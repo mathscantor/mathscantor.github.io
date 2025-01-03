@@ -1,0 +1,30 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Posts on Hello Friend NG</title>
+        <link>https://mathscantor.github.io/posts/</link>
+        <description>Recent content in Posts on Hello Friend NG</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>en-us</language>
+        <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+        <lastBuildDate>Fri, 03 Jan 2025 17:43:28 +0800</lastBuildDate>
+        <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Welcome Stranger</title>
+            <link>https://mathscantor.github.io/posts/welcome/</link>
+            <pubDate>Fri, 03 Jan 2025 17:43:28 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/welcome/</guid>
+            <description>Introduction Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.
+Goals The aim of this blog is to teach other researchers tricks and tips that they may not have known.</description>
+            <content type="html"><![CDATA[<h2 id="introduction">Introduction</h2>
+<p>Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.</p>
+<h2 id="goals">Goals</h2>
+<p>The aim of this blog is to teach other researchers tricks and tips that they may not have known. In addition, if the opportunity arises, I will also share in-depth analysis on CVEs I find interesting.</p>
+<h2 id="future">Future</h2>
+<p>This blog will most likely be continuously updated as the years go by as it is free. Thanks Hugo!</p>
+]]></content>
+        </item>
+        
+    </channel>
+</rss>

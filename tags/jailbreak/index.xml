@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Hello Friend NG</title>
-    <link>https://mathscantor.github.io/</link>
-    <description>Recent content on Hello Friend NG</description>
+    <title>jailbreak on Hello Friend NG</title>
+    <link>https://mathscantor.github.io/tags/jailbreak/</link>
+    <description>Recent content in jailbreak on Hello Friend NG</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Fri, 03 Jan 2025 20:26:00 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 03 Jan 2025 20:26:00 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/jailbreak/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Getting Root Shell Mikrotik RouterOS</title>
       <link>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</link>
@@ -16,16 +16,6 @@
       <guid>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</guid>
       <description>1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
 For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface.</description>
-    </item>
-    
-    <item>
-      <title>Welcome Stranger</title>
-      <link>https://mathscantor.github.io/posts/welcome/</link>
-      <pubDate>Fri, 03 Jan 2025 17:43:28 +0800</pubDate>
-      
-      <guid>https://mathscantor.github.io/posts/welcome/</guid>
-      <description>Introduction Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.
-Goals The aim of this blog is to teach other researchers tricks and tips that they may not have known.</description>
     </item>
     
   </channel>

@@ -2,25 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://mathscantor.github.io/tags/centos/</loc>
+    <lastmod>2025-01-05T11:45:27+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/posts/installing-packages-offline/</loc>
+    <lastmod>2025-01-05T11:45:27+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/linux/</loc>
+    <lastmod>2025-01-05T11:45:27+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/</loc>
+    <lastmod>2025-01-05T11:45:27+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/offline-package-installation/</loc>
+    <lastmod>2025-01-05T11:45:27+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/posts/</loc>
+    <lastmod>2025-01-05T11:45:27+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/</loc>
+    <lastmod>2025-01-05T11:45:27+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/ubuntu/</loc>
+    <lastmod>2025-01-05T11:45:27+08:00</lastmod>
+  </url><url>
     <loc>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</loc>
     <lastmod>2025-01-03T20:26:00+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/tags/jailbreak/</loc>
     <lastmod>2025-01-03T20:26:00+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/linux/</loc>
-    <lastmod>2025-01-03T20:26:00+08:00</lastmod>
-  </url><url>
-    <loc>https://mathscantor.github.io/</loc>
-    <lastmod>2025-01-03T20:26:00+08:00</lastmod>
-  </url><url>
     <loc>https://mathscantor.github.io/tags/mikrotik/</loc>
-    <lastmod>2025-01-03T20:26:00+08:00</lastmod>
-  </url><url>
-    <loc>https://mathscantor.github.io/posts/</loc>
-    <lastmod>2025-01-03T20:26:00+08:00</lastmod>
-  </url><url>
-    <loc>https://mathscantor.github.io/tags/</loc>
     <lastmod>2025-01-03T20:26:00+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/tags/intro/</loc>

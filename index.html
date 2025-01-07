@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="Cybersecurity Blog" />
+<meta name="description" content="" />
 <meta name="keywords" content="" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="" />
@@ -76,7 +76,7 @@
 
     
     
-    <body class=" background-image" style="background-image: url('/images/background/cyberpunk-pixelart.gif');" >
+    <body class="">
     
 
     
@@ -87,7 +87,7 @@
     <div class="logo">
         
             <span class="logo__mark">></span>
-            <span class="logo__text">Be You Cat, or Mouse?</span>
+            <span data-pagefind-ignore class="logo__text">Be You Cat, or Mouse?</span>
             <span class="logo__cursor" style=
                   "
                    
@@ -151,11 +151,40 @@
 
             <div class="content">
                 
+
+    <link href="/pagefind/pagefind-ui.css" rel="stylesheet">
+    <style>
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --pagefind-ui-primary: #eeeeee;
+            --pagefind-ui-text: #eeeeee;
+            --pagefind-ui-background: #1b1c1d;
+            --pagefind-ui-border: #626568;
+            --pagefind-ui-tag: #1b1c1d;
+          }
+        }
+        .pagefind-ui__results {
+            text-align: left;  
+        }
+
+        .pagefind-ui__result {
+            display: block;  
+            text-align: left;  
+        }
+        
+      </style>
+    <script src="/pagefind/pagefind-ui.js"></script>
+
+    <div id="search"></div>
+    <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+            new PagefindUI({ element: "#search", showSubResults: true , showImages: false});
+        });
+    </script>
     <main aria-role="main">
         <div>
             <h1></h1>
             
-    <p>Cybersecurity Blog</p>
         
         
         

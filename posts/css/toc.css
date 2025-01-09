@@ -1,0 +1,42 @@
+html {
+  scroll-behavior: smooth;
+}
+
+/* Position the TOC at the very left of the screen */
+#sticky-toc {
+  position: fixed; /* Fix TOC to the leftmost side */
+  top: 20px; /* Adjust for spacing from the top */
+  left: 0; /* Stick to the leftmost edge */
+  max-height: 100vh; /* Ensure it doesn’t overflow the viewport */
+  overflow-y: auto; /* Add scroll if TOC is too long */
+  overflow-x: auto;
+  width: 350px; /* Set a fixed width for TOC */
+  /* background-color: #f9f9f9; Optional: Background color */
+  padding: 10px;
+  border-right: 2px solid #727470; /* Optional: Border for visual separation */
+  z-index: 100; /* Ensure TOC is above other elements */
+}
+
+#sticky-toc li {
+  margin-bottom: 10px; /* Add spacing between list items */
+}
+
+#sticky-toc a {
+  text-decoration: none; /* Remove underline from links */
+  font-weight: normal; 
+  color: inherit; 
+  line-height: 1.5; 
+}
+
+#sticky-toc a:hover {
+  text-decoration: underline; 
+  font-weight: bold;
+  color: inherit; 
+}
+
+@media (max-width: 1500px) {
+  #sticky-toc {
+    display: none; /* Hide TOC on smaller screens */
+  }
+}
+

@@ -1,0 +1,18 @@
+@media (prefers-color-scheme: dark) {
+    :root {
+        --pagefind-ui-primary: #eeeeee;
+        --pagefind-ui-text: #eeeeee;
+        --pagefind-ui-background: #1b1c1d;
+        --pagefind-ui-border: #626568;
+        --pagefind-ui-tag: #1b1c1d;
+    }
+}
+
+.pagefind-ui__results {
+    text-align: left; /* Aligns the text content */
+}
+
+.pagefind-ui__result {
+    display: block; /* Ensures results stack vertically */
+    text-align: left; /* Ensures text within each result aligns to the left */
+}

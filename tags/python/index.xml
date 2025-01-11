@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>python on Mathscantor Cybersecurity Blog</title>
+    <link>https://mathscantor.github.io/tags/python/</link>
+    <description>Recent content in python on Mathscantor Cybersecurity Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Fri, 10 Jan 2025 08:38:41 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/python/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Transferring Python Packages</title>
+      <link>https://mathscantor.github.io/posts/transferring-python-packages/</link>
+      <pubDate>Fri, 10 Jan 2025 08:38:41 +0800</pubDate>
+      
+      <guid>https://mathscantor.github.io/posts/transferring-python-packages/</guid>
+      <description>1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!
+If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.</description>
+    </item>
+    
+  </channel>
+</rss>

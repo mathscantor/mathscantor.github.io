@@ -6,8 +6,274 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Fri, 10 Jan 2025 08:38:41 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 17 Jan 2025 10:56:44 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Writing Packets to Pcapng in C</title>
+            <link>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</link>
+            <pubDate>Fri, 17 Jan 2025 10:56:44 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</guid>
+            <description>1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library.
+The PcapNG file structure can be found on the <a href="https://pcapng.com/">Official PcapNG Documentation</a>. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.</p>
+<p>Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code <a href="/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip">here</a> as well.</p>
+<h2 id="2-overall-pcapng-structure">2. Overall PcapNG Structure.</h2>
+<img class="center" alt="pcapng-structure" src="/posts/writing-packets-to-pcapng-in-c/images/pcapng-structure.png">
+<div style="text-align: center;"><p>Figure 1. PcapNG Structure</p></div>
+<p>The overall structure can be broken down into 3 parts:</p>
+<ol>
+<li>Section Header Block (SHB)
+<ul>
+<li>Only can have 1</li>
+</ul>
+</li>
+<li>Interface Description Block (IDB)
+<ul>
+<li>Can have multiple IDBs to represent different interfaces</li>
+</ul>
+</li>
+<li>Enhanced Packet Block (EPB)
+<ul>
+<li>EPB headers can relate back to different interfaces where the packet was captured.</li>
+</ul>
+</li>
+</ol>
+<p>In addition, <strong>the entire structure must be word-aligned</strong> (divisible by 4 bytes). This means that padding is necessary if it&rsquo;s not word-aligned.</p>
+<blockquote>
+<p>❗ <strong>Important</strong></p>
+<ul>
+<li>Ensure that you pad with <code>0x00</code> just before the redundant block total length section.</li>
+<li>Do not pad <code>0x00</code> at the end of each block!</li>
+</ul>
+</blockquote>
+<h2 id="3-section-header-block-shb">3. Section Header Block (SHB)</h2>
+<img class="center" alt="shb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/shb-structure.png">
+<div style="text-align: center;"><p>Figure 2. SHB Structure</p></div>
+<p>Figure 2 can be partially translated into the following SHB header struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#66d9ef">uint32_t</span> block_type;
+    <span style="color:#66d9ef">uint32_t</span> block_length;
+    <span style="color:#66d9ef">uint32_t</span> bom;      
+    <span style="color:#66d9ef">uint16_t</span> major_version;
+    <span style="color:#66d9ef">uint16_t</span> minor_version;
+    <span style="color:#66d9ef">int64_t</span> section_length;
+} shb_headers_t;
+</code></pre></div><div style="text-align: center;"><p>Listing 1. SHB Header Struct</p></div>
+<p>Do take note that I did not include a <code>uint32_t block_length_redundant</code> in the struct. This is because we have to place
+a padding before the redundant block length, and the padding length can vary. A struct declaration cannot take in a member with
+a variable size and therefore, we have to declare it separately. The same logic will be carried through to the other blocks.</p>
+<p>According to the documentation, there are some constants we need to adhere to:</p>
+<ul>
+<li>Block Type = <code>0x0A0D0D0A</code> &ndash;&gt; SHB Type</li>
+<li>Byte-Order Magic = <code>0x1A2B3C4D</code> &ndash;&gt; Little Endian</li>
+<li>Major Version = <code>0x0001</code></li>
+<li>Minor Version = <code>0x0000</code></li>
+<li>Section Length = <code>0xFFFFFFFFFFFFFFFF</code> &ndash;&gt; -1</li>
+</ul>
+<p>The writing of the SHB section can be translated into the following C snippet:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define SHB_TYPE 0x0A0D0D0A
+</span><span style="color:#75715e">#define BOM 0x1A2B3C4D
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_shb_section</span>(FILE <span style="color:#f92672">*</span>pcapng_file) {
+    
+    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(shb_headers_t) <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
+    <span style="color:#66d9ef">uint32_t</span> padding_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">-</span> (block_length <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span>);
+    block_length <span style="color:#f92672">+=</span> padding_length;
+
+    <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#f92672">*</span>padding <span style="color:#f92672">=</span> malloc(padding_length);
+    memset(padding, <span style="color:#ae81ff">0</span>, padding_length);
+
+    shb_headers_t shb_headers <span style="color:#f92672">=</span> {
+        .block_type <span style="color:#f92672">=</span> SHB_TYPE,
+        .block_length <span style="color:#f92672">=</span> block_length,
+        .bom <span style="color:#f92672">=</span> BOM,
+        .major_version <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,
+        .minor_version <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+        .section_length <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+    };
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>shb_headers, <span style="color:#66d9ef">sizeof</span>(shb_headers), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(padding, padding_length, <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>block_length, <span style="color:#66d9ef">sizeof</span>(block_length), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    fflush(pcapng_file);
+    <span style="color:#66d9ef">return</span> true;
+}
+</code></pre></div><div style="text-align: center;"><p>Listing 2. Write SHB Section Example</p></div>
+<h2 id="4-interface-description-block-idb">4. Interface Description Block (IDB)</h2>
+<img class="center" alt="idb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/idb-structure.png">
+<div style="text-align: center;"><p>Figure 3. IDB Structure</p></div>
+<p>Figure 3 can be partially translated into the following IDB header struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#66d9ef">uint32_t</span> block_type;
+    <span style="color:#66d9ef">uint32_t</span> block_length;
+    <span style="color:#66d9ef">uint16_t</span> link_type;
+    <span style="color:#66d9ef">uint16_t</span> reserved;
+    <span style="color:#66d9ef">uint32_t</span> snap_len;
+} idb_headers_t;
+</code></pre></div><div style="text-align: center;"><p>Listing 3. IDB Header Struct</p></div>
+<p>Constants to adhere to:</p>
+<ul>
+<li>Block Type = <code>0x00000001</code> &ndash;&gt; IDB Type</li>
+<li>Link Type = <code>0x0001</code> &ndash;&gt; Ethernet</li>
+<li>Reserved = <code>0x0000</code></li>
+<li>Snap Length = <code>0x0000FFFF</code>(65535 bytes) OR <br>
+        = <code>0x00040000</code>(256kB) OR <br>
+        = <code>0x00000000</code>(No Limit) <br></li>
+</ul>
+<p>The writing of the IDB section to a PcapNG file can be translated into the following C snippet:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define IDB_TYPE 0x00000001
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_idb_section</span>(FILE <span style="color:#f92672">*</span>pcapng_file) {
+
+    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(idb_headers_t) <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
+    <span style="color:#66d9ef">uint32_t</span> padding_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">-</span> (block_length <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span>);
+    block_length <span style="color:#f92672">+=</span> padding_length;
+
+    <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#f92672">*</span>padding <span style="color:#f92672">=</span> malloc(padding_length);
+    memset(padding, <span style="color:#ae81ff">0</span>, padding_length);
+
+    idb_headers_t idb_headers <span style="color:#f92672">=</span> {
+        .block_type <span style="color:#f92672">=</span> IDB_TYPE,
+        .block_length <span style="color:#f92672">=</span> block_length,
+        .link_type <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,
+        .reserved <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+        .snap_len <span style="color:#f92672">=</span> <span style="color:#ae81ff">65535</span>
+
+    };
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>idb_headers, <span style="color:#66d9ef">sizeof</span>(idb_headers), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(padding, padding_length, <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>block_length, <span style="color:#66d9ef">sizeof</span>(block_length), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    fflush(pcapng_file);
+    <span style="color:#66d9ef">return</span> true;
+}
+</code></pre></div><div style="text-align: center;"><p>Listing 4. Write IDB Section Example</p></div>
+<h2 id="5-enhanced-packet-block-epb">5. Enhanced Packet Block (EPB)</h2>
+<img class="center" alt="epb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/epb-structure.png">
+<div style="text-align: center;"><p>Figure 4. EPB Structure</p></div>
+<p>Figure 4 can be partially translated into the following EPB header struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#66d9ef">uint32_t</span> block_type;
+    <span style="color:#66d9ef">uint32_t</span> block_length;
+    <span style="color:#66d9ef">uint32_t</span> interface_id;
+    <span style="color:#66d9ef">uint32_t</span> timestamp_high;
+    <span style="color:#66d9ef">uint32_t</span> timestamp_low;
+    <span style="color:#66d9ef">uint32_t</span> captured_len;
+    <span style="color:#66d9ef">uint32_t</span> original_len;
+} epb_headers_t;
+</code></pre></div><div style="text-align: center;"><p>Listing 5. EPB Header Struct</p></div>
+<p>Constants to adhere to:</p>
+<ul>
+<li>Block Type = <code>0x00000006</code> &ndash;&gt; EPB Type</li>
+<li>Interface ID = <code>0x00000000</code> &ndash;&gt; First IDB <br>
+       = <code>0x00000001</code> &ndash;&gt; Second IDB (If there is more than 1)</li>
+</ul>
+<p>Things to note:</p>
+<ul>
+<li>Timestamp Upper = <code>(uint32_t)(unix_epoch_microseconds &gt;&gt; 32)</code></li>
+<li>Timestamp Lower = <code>(uint32_t)(unix_epoch_microseconds)</code></li>
+<li>In most cases, <code>captured_length == original_len</code>, unless a short snap length is used.</li>
+<li>If a packet is truncated due to a short snap length stated in the IDB section, then <code>captured_length &lt; original_len</code>.</li>
+</ul>
+<p>The writing of the EPB section to a PcapNG file can be translated into the following C snippet:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_packet</span>(FILE<span style="color:#f92672">*</span> pcapng_file, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>packet_data, <span style="color:#66d9ef">uint32_t</span> packet_length) {
+    
+    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(epb_headers_t) <span style="color:#f92672">+</span> packet_length <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
+    <span style="color:#66d9ef">uint32_t</span> padding_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">-</span> (block_length <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span>);
+    block_length <span style="color:#f92672">+=</span> padding_length;
+
+    <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#f92672">*</span>padding <span style="color:#f92672">=</span> malloc(padding_length);
+    memset(padding, <span style="color:#ae81ff">0</span>, padding_length);
+
+    <span style="color:#66d9ef">uint32_t</span> ts_high <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    <span style="color:#66d9ef">uint32_t</span> ts_low <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    <span style="color:#66d9ef">struct</span> timeval tv;
+
+    gettimeofday(<span style="color:#f92672">&amp;</span>tv, NULL);
+    <span style="color:#66d9ef">uint64_t</span> unix_epoch_microseconds <span style="color:#f92672">=</span> (<span style="color:#66d9ef">uint64_t</span>)tv.tv_sec <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000000ULL</span> <span style="color:#f92672">+</span> (<span style="color:#66d9ef">uint64_t</span>)tv.tv_usec;
+    
+    ts_high <span style="color:#f92672">=</span> (<span style="color:#66d9ef">uint32_t</span>)(unix_epoch_microseconds <span style="color:#f92672">&gt;&gt;</span> <span style="color:#ae81ff">32</span>);
+    ts_low <span style="color:#f92672">=</span> (<span style="color:#66d9ef">uint32_t</span>)(unix_epoch_microseconds);
+
+    epb_headers_t epb_header <span style="color:#f92672">=</span> {
+        .block_type <span style="color:#f92672">=</span> EPB_TYPE,
+        .block_length <span style="color:#f92672">=</span> block_length,
+        .interface_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+        .timestamp_high <span style="color:#f92672">=</span> ts_high,
+        .timestamp_low <span style="color:#f92672">=</span> ts_low,
+        .captured_len <span style="color:#f92672">=</span> packet_length,
+        .original_len <span style="color:#f92672">=</span> packet_length
+    };
+
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>epb_header, <span style="color:#66d9ef">sizeof</span>(epb_header), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(packet_data, packet_length, <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(padding, padding_length, <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>block_length, <span style="color:#66d9ef">sizeof</span>(block_length), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    fflush(pcapng_file);
+    <span style="color:#66d9ef">return</span> true;
+}
+</code></pre></div><div style="text-align: center;"><p>Listing 6. Write EPB Section Example</p></div>
+<h2 id="6-example-usage-of-pcapngh">6. Example Usage of pcapng.h</h2>
+<p>After putting all the logic into a header file called &ldquo;pcapng.h&rdquo;, and asking chatgpt to generate some sample data for us to test,
+we are ready to go! If you want to follow along for this part of the walkthrough, you can get a copy of my files <a href="/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip">here</a>.</p>
+<p>The following listing shows a simple example of saving packets to a PcapNG file called &ldquo;output.pcapng&rdquo; in the same directory.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;pcapng.h&#34;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;pcapng_samples.h&#34;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span> (<span style="color:#66d9ef">void</span>) {
+
+    FILE <span style="color:#f92672">*</span>pcapng_file <span style="color:#f92672">=</span> pcapng_init_file(<span style="color:#e6db74">&#34;output.pcapng&#34;</span>);
+    pcapng_write_packet(pcapng_file, sample_tcp_syn, <span style="color:#66d9ef">sizeof</span>(sample_tcp_syn));
+    pcapng_write_packet(pcapng_file, sample_icmp_request, <span style="color:#66d9ef">sizeof</span>(sample_icmp_request));
+    pcapng_close_file(pcapng_file);
+
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><div style="text-align: center;"><p>Listing 7. test.c</p></div>
+<p>Compile the C program and run it.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc test.c -o test
+$ ./test
+</code></pre></div><div style="text-align: center;"><p>Listing 8. Running Test Case</p></div>
+<p>We can now view our &ldquo;output.pcapng&rdquo; file with Wireshark!
+<img class="center" alt="wireshark_output_pcapng" src="/posts/writing-packets-to-pcapng-in-c/images/wireshark_output_pcapng.png"></p>
+<div style="text-align: center;"><p>Figure 5. Wireshark - output.pcapng</p></div>
+<h2 id="7-conclusion">7. Conclusion</h2>
+<p>If you have reached this stage after going through the above sections, you are now a qualified expert on writing PcapNG structures 😎.
+In my next post, I am going to share some important tips for static and dynamic analysis based on past mistakes that I had made. Till then,
+stay safe and keep being awesome. Over and out!
+<img alt="pcapng-structure" src="/posts/writing-packets-to-pcapng-in-c/images/tapioca-goodnight-loop.gif" style="zoom:40%;"></p>
+<h2 id="8-references">8. References</h2>
+<ol>
+<li>Official PcapNG Documentation: <a href="https://pcapng.com/">https://pcapng.com/</a></li>
+</ol>
+<h2 id="9-resources">9. Resources</h2>
+<ol>
+<li><a href="/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip">pcapng-example.zip</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Transferring Python Packages</title>

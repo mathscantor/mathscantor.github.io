@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>packet-capture on Mathscantor Cybersecurity Blog</title>
+    <link>https://mathscantor.github.io/tags/packet-capture/</link>
+    <description>Recent content in packet-capture on Mathscantor Cybersecurity Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Fri, 17 Jan 2025 10:56:44 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/packet-capture/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Writing Packets to Pcapng in C</title>
+      <link>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</link>
+      <pubDate>Fri, 17 Jan 2025 10:56:44 +0800</pubDate>
+      
+      <guid>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</guid>
+      <description>1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.</description>
+    </item>
+    
+  </channel>
+</rss>

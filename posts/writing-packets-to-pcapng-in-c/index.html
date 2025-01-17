@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="">
+<meta name="description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file." />
+<meta name="keywords" content=", c-c&#43;&#43;, packet-capture" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/" />
+
+
+    <title>
+        
+            Writing Packets to Pcapng in C :: Mathscantor Cybersecurity Blog  — A simple theme for Hugo
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="/main.d7ff2d2210fd0ab14f417c6d91d2931b4ecffab189943b30890ff820a24a57c9.css">
+
+
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="Writing Packets to Pcapng in C">
+<meta itemprop="description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file."><meta itemprop="datePublished" content="2025-01-17T10:56:44+08:00" />
+<meta itemprop="dateModified" content="2025-01-17T10:56:44+08:00" />
+<meta itemprop="wordCount" content="1115"><meta itemprop="image" content="https://mathscantor.github.io"/>
+<meta itemprop="keywords" content="c-c&#43;&#43;,packet-capture," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mathscantor.github.io"/>
+
+<meta name="twitter:title" content="Writing Packets to Pcapng in C"/>
+<meta name="twitter:description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file."/>
+
+
+
+    <meta property="og:title" content="Writing Packets to Pcapng in C" />
+<meta property="og:description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/" /><meta property="og:image" content="https://mathscantor.github.io"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-01-17T10:56:44+08:00" />
+<meta property="article:modified_time" content="2025-01-17T10:56:44+08:00" /><meta property="og:site_name" content="Mathscantor Cybersecurity Blog" />
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2025-01-17 10:56:44 &#43;0800 &#43;08" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span data-pagefind-ignore class="logo__text">Be You Cat, or Mouse?</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner">
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/posts/">
+                        Posts
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/tags/">
+                        Categories
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="https://github.com/mathscantor">
+                        Projects
+                    </a>
+                </li>
+            </div>
+            
+        
+
+    
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+
+  <main class="post">
+    
+    <link href="/posts/css/toc.css" rel="stylesheet">
+    <aside id="sticky-toc">
+      <div class="toc-title">Table of Contents</div>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-introduction">1. Introduction</a></li>
+    <li><a href="#2-overall-pcapng-structure">2. Overall PcapNG Structure.</a></li>
+    <li><a href="#3-section-header-block-shb">3. Section Header Block (SHB)</a></li>
+    <li><a href="#4-interface-description-block-idb">4. Interface Description Block (IDB)</a></li>
+    <li><a href="#5-enhanced-packet-block-epb">5. Enhanced Packet Block (EPB)</a></li>
+    <li><a href="#6-example-usage-of-pcapngh">6. Example Usage of pcapng.h</a></li>
+    <li><a href="#7-conclusion">7. Conclusion</a></li>
+    <li><a href="#8-references">8. References</a></li>
+    <li><a href="#9-resources">9. Resources</a></li>
+  </ul>
+</nav>
+    </aside>
+    
+
+    <div class="post-info">
+      <p>
+        <i class="fa-solid fa-clock"></i>
+        6 minutes
+        <i class="fa-solid fa-clipboard"></i>
+        1115 Words
+        
+      </p>
+      <p>
+        <i class="fa-solid fa-calendar-days"></i>
+        
+          2025-01-17 10:56
+        
+
+         
+          
+        
+      </p>
+      <p>
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://mathscantor.github.io/tags/c-c&#43;&#43;/">c-c&#43;&#43;</a></span>
+        <span class="tag"><a href="https://mathscantor.github.io/tags/packet-capture/">packet-capture</a></span>
+        
+    </p>
+
+      
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/">Writing Packets to Pcapng in C</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="1-introduction">1. Introduction</h2>
+<p>Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library.
+The PcapNG file structure can be found on the <a href="https://pcapng.com/">Official PcapNG Documentation</a>. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.</p>
+<p>Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code <a href="/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip">here</a> as well.</p>
+<h2 id="2-overall-pcapng-structure">2. Overall PcapNG Structure.</h2>
+<img class="center" alt="pcapng-structure" src="/posts/writing-packets-to-pcapng-in-c/images/pcapng-structure.png">
+<div style="text-align: center;"><p>Figure 1. PcapNG Structure</p></div>
+<p>The overall structure can be broken down into 3 parts:</p>
+<ol>
+<li>Section Header Block (SHB)
+<ul>
+<li>Only can have 1</li>
+</ul>
+</li>
+<li>Interface Description Block (IDB)
+<ul>
+<li>Can have multiple IDBs to represent different interfaces</li>
+</ul>
+</li>
+<li>Enhanced Packet Block (EPB)
+<ul>
+<li>EPB headers can relate back to different interfaces where the packet was captured.</li>
+</ul>
+</li>
+</ol>
+<p>In addition, <strong>the entire structure must be word-aligned</strong> (divisible by 4 bytes). This means that padding is necessary if it&rsquo;s not word-aligned.</p>
+<blockquote>
+<p>❗ <strong>Important</strong></p>
+<ul>
+<li>Ensure that you pad with <code>0x00</code> just before the redundant block total length section.</li>
+<li>Do not pad <code>0x00</code> at the end of each block!</li>
+</ul>
+</blockquote>
+<h2 id="3-section-header-block-shb">3. Section Header Block (SHB)</h2>
+<img class="center" alt="shb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/shb-structure.png">
+<div style="text-align: center;"><p>Figure 2. SHB Structure</p></div>
+<p>Figure 2 can be partially translated into the following SHB header struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#66d9ef">uint32_t</span> block_type;
+    <span style="color:#66d9ef">uint32_t</span> block_length;
+    <span style="color:#66d9ef">uint32_t</span> bom;      
+    <span style="color:#66d9ef">uint16_t</span> major_version;
+    <span style="color:#66d9ef">uint16_t</span> minor_version;
+    <span style="color:#66d9ef">int64_t</span> section_length;
+} shb_headers_t;
+</code></pre></div><div style="text-align: center;"><p>Listing 1. SHB Header Struct</p></div>
+<p>Do take note that I did not include a <code>uint32_t block_length_redundant</code> in the struct. This is because we have to place
+a padding before the redundant block length, and the padding length can vary. A struct declaration cannot take in a member with
+a variable size and therefore, we have to declare it separately. The same logic will be carried through to the other blocks.</p>
+<p>According to the documentation, there are some constants we need to adhere to:</p>
+<ul>
+<li>Block Type = <code>0x0A0D0D0A</code> &ndash;&gt; SHB Type</li>
+<li>Byte-Order Magic = <code>0x1A2B3C4D</code> &ndash;&gt; Little Endian</li>
+<li>Major Version = <code>0x0001</code></li>
+<li>Minor Version = <code>0x0000</code></li>
+<li>Section Length = <code>0xFFFFFFFFFFFFFFFF</code> &ndash;&gt; -1</li>
+</ul>
+<p>The writing of the SHB section can be translated into the following C snippet:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define SHB_TYPE 0x0A0D0D0A
+</span><span style="color:#75715e">#define BOM 0x1A2B3C4D
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_shb_section</span>(FILE <span style="color:#f92672">*</span>pcapng_file) {
+    
+    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(shb_headers_t) <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
+    <span style="color:#66d9ef">uint32_t</span> padding_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">-</span> (block_length <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span>);
+    block_length <span style="color:#f92672">+=</span> padding_length;
+
+    <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#f92672">*</span>padding <span style="color:#f92672">=</span> malloc(padding_length);
+    memset(padding, <span style="color:#ae81ff">0</span>, padding_length);
+
+    shb_headers_t shb_headers <span style="color:#f92672">=</span> {
+        .block_type <span style="color:#f92672">=</span> SHB_TYPE,
+        .block_length <span style="color:#f92672">=</span> block_length,
+        .bom <span style="color:#f92672">=</span> BOM,
+        .major_version <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,
+        .minor_version <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+        .section_length <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+    };
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>shb_headers, <span style="color:#66d9ef">sizeof</span>(shb_headers), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(padding, padding_length, <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>block_length, <span style="color:#66d9ef">sizeof</span>(block_length), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    fflush(pcapng_file);
+    <span style="color:#66d9ef">return</span> true;
+}
+</code></pre></div><div style="text-align: center;"><p>Listing 2. Write SHB Section Example</p></div>
+<h2 id="4-interface-description-block-idb">4. Interface Description Block (IDB)</h2>
+<img class="center" alt="idb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/idb-structure.png">
+<div style="text-align: center;"><p>Figure 3. IDB Structure</p></div>
+<p>Figure 3 can be partially translated into the following IDB header struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#66d9ef">uint32_t</span> block_type;
+    <span style="color:#66d9ef">uint32_t</span> block_length;
+    <span style="color:#66d9ef">uint16_t</span> link_type;
+    <span style="color:#66d9ef">uint16_t</span> reserved;
+    <span style="color:#66d9ef">uint32_t</span> snap_len;
+} idb_headers_t;
+</code></pre></div><div style="text-align: center;"><p>Listing 3. IDB Header Struct</p></div>
+<p>Constants to adhere to:</p>
+<ul>
+<li>Block Type = <code>0x00000001</code> &ndash;&gt; IDB Type</li>
+<li>Link Type = <code>0x0001</code> &ndash;&gt; Ethernet</li>
+<li>Reserved = <code>0x0000</code></li>
+<li>Snap Length = <code>0x0000FFFF</code>(65535 bytes) OR <br>
+        = <code>0x00040000</code>(256kB) OR <br>
+        = <code>0x00000000</code>(No Limit) <br></li>
+</ul>
+<p>The writing of the IDB section to a PcapNG file can be translated into the following C snippet:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define IDB_TYPE 0x00000001
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_idb_section</span>(FILE <span style="color:#f92672">*</span>pcapng_file) {
+
+    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(idb_headers_t) <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
+    <span style="color:#66d9ef">uint32_t</span> padding_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">-</span> (block_length <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span>);
+    block_length <span style="color:#f92672">+=</span> padding_length;
+
+    <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#f92672">*</span>padding <span style="color:#f92672">=</span> malloc(padding_length);
+    memset(padding, <span style="color:#ae81ff">0</span>, padding_length);
+
+    idb_headers_t idb_headers <span style="color:#f92672">=</span> {
+        .block_type <span style="color:#f92672">=</span> IDB_TYPE,
+        .block_length <span style="color:#f92672">=</span> block_length,
+        .link_type <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,
+        .reserved <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+        .snap_len <span style="color:#f92672">=</span> <span style="color:#ae81ff">65535</span>
+
+    };
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>idb_headers, <span style="color:#66d9ef">sizeof</span>(idb_headers), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(padding, padding_length, <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>block_length, <span style="color:#66d9ef">sizeof</span>(block_length), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    fflush(pcapng_file);
+    <span style="color:#66d9ef">return</span> true;
+}
+</code></pre></div><div style="text-align: center;"><p>Listing 4. Write IDB Section Example</p></div>
+<h2 id="5-enhanced-packet-block-epb">5. Enhanced Packet Block (EPB)</h2>
+<img class="center" alt="epb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/epb-structure.png">
+<div style="text-align: center;"><p>Figure 4. EPB Structure</p></div>
+<p>Figure 4 can be partially translated into the following EPB header struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#66d9ef">uint32_t</span> block_type;
+    <span style="color:#66d9ef">uint32_t</span> block_length;
+    <span style="color:#66d9ef">uint32_t</span> interface_id;
+    <span style="color:#66d9ef">uint32_t</span> timestamp_high;
+    <span style="color:#66d9ef">uint32_t</span> timestamp_low;
+    <span style="color:#66d9ef">uint32_t</span> captured_len;
+    <span style="color:#66d9ef">uint32_t</span> original_len;
+} epb_headers_t;
+</code></pre></div><div style="text-align: center;"><p>Listing 5. EPB Header Struct</p></div>
+<p>Constants to adhere to:</p>
+<ul>
+<li>Block Type = <code>0x00000006</code> &ndash;&gt; EPB Type</li>
+<li>Interface ID = <code>0x00000000</code> &ndash;&gt; First IDB <br>
+       = <code>0x00000001</code> &ndash;&gt; Second IDB (If there is more than 1)</li>
+</ul>
+<p>Things to note:</p>
+<ul>
+<li>Timestamp Upper = <code>(uint32_t)(unix_epoch_microseconds &gt;&gt; 32)</code></li>
+<li>Timestamp Lower = <code>(uint32_t)(unix_epoch_microseconds)</code></li>
+<li>In most cases, <code>captured_length == original_len</code>, unless a short snap length is used.</li>
+<li>If a packet is truncated due to a short snap length stated in the IDB section, then <code>captured_length &lt; original_len</code>.</li>
+</ul>
+<p>The writing of the EPB section to a PcapNG file can be translated into the following C snippet:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_packet</span>(FILE<span style="color:#f92672">*</span> pcapng_file, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>packet_data, <span style="color:#66d9ef">uint32_t</span> packet_length) {
+    
+    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(epb_headers_t) <span style="color:#f92672">+</span> packet_length <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
+    <span style="color:#66d9ef">uint32_t</span> padding_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">-</span> (block_length <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span>);
+    block_length <span style="color:#f92672">+=</span> padding_length;
+
+    <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">unsigned</span> <span style="color:#f92672">*</span>padding <span style="color:#f92672">=</span> malloc(padding_length);
+    memset(padding, <span style="color:#ae81ff">0</span>, padding_length);
+
+    <span style="color:#66d9ef">uint32_t</span> ts_high <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    <span style="color:#66d9ef">uint32_t</span> ts_low <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    <span style="color:#66d9ef">struct</span> timeval tv;
+
+    gettimeofday(<span style="color:#f92672">&amp;</span>tv, NULL);
+    <span style="color:#66d9ef">uint64_t</span> unix_epoch_microseconds <span style="color:#f92672">=</span> (<span style="color:#66d9ef">uint64_t</span>)tv.tv_sec <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000000ULL</span> <span style="color:#f92672">+</span> (<span style="color:#66d9ef">uint64_t</span>)tv.tv_usec;
+    
+    ts_high <span style="color:#f92672">=</span> (<span style="color:#66d9ef">uint32_t</span>)(unix_epoch_microseconds <span style="color:#f92672">&gt;&gt;</span> <span style="color:#ae81ff">32</span>);
+    ts_low <span style="color:#f92672">=</span> (<span style="color:#66d9ef">uint32_t</span>)(unix_epoch_microseconds);
+
+    epb_headers_t epb_header <span style="color:#f92672">=</span> {
+        .block_type <span style="color:#f92672">=</span> EPB_TYPE,
+        .block_length <span style="color:#f92672">=</span> block_length,
+        .interface_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+        .timestamp_high <span style="color:#f92672">=</span> ts_high,
+        .timestamp_low <span style="color:#f92672">=</span> ts_low,
+        .captured_len <span style="color:#f92672">=</span> packet_length,
+        .original_len <span style="color:#f92672">=</span> packet_length
+    };
+
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>epb_header, <span style="color:#66d9ef">sizeof</span>(epb_header), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(packet_data, packet_length, <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(padding, padding_length, <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>fwrite(<span style="color:#f92672">&amp;</span>block_length, <span style="color:#66d9ef">sizeof</span>(block_length), <span style="color:#ae81ff">1</span>, pcapng_file)) {
+        <span style="color:#66d9ef">return</span> false;
+    }
+    fflush(pcapng_file);
+    <span style="color:#66d9ef">return</span> true;
+}
+</code></pre></div><div style="text-align: center;"><p>Listing 6. Write EPB Section Example</p></div>
+<h2 id="6-example-usage-of-pcapngh">6. Example Usage of pcapng.h</h2>
+<p>After putting all the logic into a header file called &ldquo;pcapng.h&rdquo;, and asking chatgpt to generate some sample data for us to test,
+we are ready to go! If you want to follow along for this part of the walkthrough, you can get a copy of my files <a href="/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip">here</a>.</p>
+<p>The following listing shows a simple example of saving packets to a PcapNG file called &ldquo;output.pcapng&rdquo; in the same directory.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;pcapng.h&#34;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;pcapng_samples.h&#34;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span> (<span style="color:#66d9ef">void</span>) {
+
+    FILE <span style="color:#f92672">*</span>pcapng_file <span style="color:#f92672">=</span> pcapng_init_file(<span style="color:#e6db74">&#34;output.pcapng&#34;</span>);
+    pcapng_write_packet(pcapng_file, sample_tcp_syn, <span style="color:#66d9ef">sizeof</span>(sample_tcp_syn));
+    pcapng_write_packet(pcapng_file, sample_icmp_request, <span style="color:#66d9ef">sizeof</span>(sample_icmp_request));
+    pcapng_close_file(pcapng_file);
+
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><div style="text-align: center;"><p>Listing 7. test.c</p></div>
+<p>Compile the C program and run it.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc test.c -o test
+$ ./test
+</code></pre></div><div style="text-align: center;"><p>Listing 8. Running Test Case</p></div>
+<p>We can now view our &ldquo;output.pcapng&rdquo; file with Wireshark!
+<img class="center" alt="wireshark_output_pcapng" src="/posts/writing-packets-to-pcapng-in-c/images/wireshark_output_pcapng.png"></p>
+<div style="text-align: center;"><p>Figure 5. Wireshark - output.pcapng</p></div>
+<h2 id="7-conclusion">7. Conclusion</h2>
+<p>If you have reached this stage after going through the above sections, you are now a qualified expert on writing PcapNG structures 😎.
+In my next post, I am going to share some important tips for static and dynamic analysis based on past mistakes that I had made. Till then,
+stay safe and keep being awesome. Over and out!
+<img alt="pcapng-structure" src="/posts/writing-packets-to-pcapng-in-c/images/tapioca-goodnight-loop.gif" style="zoom:40%;"></p>
+<h2 id="8-references">8. References</h2>
+<ol>
+<li>Official PcapNG Documentation: <a href="https://pcapng.com/">https://pcapng.com/</a></li>
+</ol>
+<h2 id="9-resources">9. Resources</h2>
+<ol>
+<li><a href="/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip">pcapng-example.zip</a></li>
+</ol>
+
+      </div>
+    </article>
+      <hr />
+    <div class="post-info">
+      
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+
+            
+            <span class="button next">
+                <a href="https://mathscantor.github.io/posts/transferring-python-packages/">
+                    <span class="button__text">Transferring Python Packages</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+    </div>
+      <div class="sharing-buttons">
+        
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f" target="_blank" rel="noopener" aria-label="" title="Share on facebook">
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f" target="_blank" rel="noopener" aria-label="" title="Share on twitter">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small">
+      <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=Writing%20Packets%20to%20Pcapng%20in%20C&amp;caption=Writing%20Packets%20to%20Pcapng%20in%20C&amp;canonicalUrl=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f" target="_blank" rel="noopener" aria-label="" title="Share on tumblr">
+  <div class="resp-sharing-button resp-sharing-button--tumblr resp-sharing-button--small">
+    <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.178l.011.002z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=Writing%20Packets%20to%20Pcapng%20in%20C&amp;body=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f" target="_self" rel="noopener" aria-label="" title="Share via email">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://pinterest.com/pin/create/button/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f&amp;media=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f;description=Writing%20Packets%20to%20Pcapng%20in%20C" target="_blank" rel="noopener" aria-label="" title="Share on pinterest">
+  <div class="resp-sharing-button resp-sharing-button--pinterest resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f&amp;title=Writing%20Packets%20to%20Pcapng%20in%20C&amp;summary=Writing%20Packets%20to%20Pcapng%20in%20C&amp;source=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f" target="_blank" rel="noopener" aria-label="" title="Share on linkedin">
+  <div class="resp-sharing-button resp-sharing-button--linkedin resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f&amp;resubmit=true&amp;title=Writing%20Packets%20to%20Pcapng%20in%20C" target="_blank" rel="noopener" aria-label="" title="Share on reddit">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.xing.com/app/user?op=share;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f;title=Writing%20Packets%20to%20Pcapng%20in%20C" target="_blank" rel="noopener" aria-label="" title="Share on xing">
+  <div class="resp-sharing-button resp-sharing-button--xing resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.188 0c-.517 0-.741.325-.927.66 0 0-7.455 13.224-7.702 13.657.015.024 4.919 9.023 4.919 9.023.17.308.436.66.967.66h3.454c.211 0 .375-.078.463-.22.089-.151.089-.346-.009-.536l-4.879-8.916c-.004-.006-.004-.016 0-.022L22.139.756c.095-.191.097-.387.006-.535C22.056.078 21.894 0 21.686 0h-3.498zM3.648 4.74c-.211 0-.385.074-.473.216-.09.149-.078.339.02.531l2.34 4.05c.004.01.004.016 0 .021L1.86 16.051c-.099.188-.093.381 0 .529.085.142.239.234.45.234h3.461c.518 0 .766-.348.945-.667l3.734-6.609-2.378-4.155c-.172-.315-.434-.659-.962-.659H3.648v.016z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="whatsapp://send?text=Writing%20Packets%20to%20Pcapng%20in%20C%20https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f" target="_blank" rel="noopener" aria-label="" title="Share on whatsapp">
+  <div class="resp-sharing-button resp-sharing-button--whatsapp resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f&amp;t=Writing%20Packets%20to%20Pcapng%20in%20C" target="_blank" rel="noopener" aria-label="" title="Share on hacker news">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://telegram.me/share/url?text=Writing%20Packets%20to%20Pcapng%20in%20C&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fwriting-packets-to-pcapng-in-c%2f" target="_blank" rel="noopener" aria-label="" title="Share on telegram">
+  <div class="resp-sharing-button resp-sharing-button--telegram resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </div>
+  </div>
+</a>
+
+      </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+    
+        <div class="footer__inner">
+            <div class="footer__content">
+            
+            
+        </div>
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="/bundle.min.10d839adb239f51bf25fafe01de77c4c8051b60820650f0437db4ba8524c169165e6d0af642adcdd2a86b33443881a6b4ec9a2590c28c32bba079c00ff8ce1a4.js" integrity="sha512-ENg5rbI59RvyX6/gHed8TIBRtgggZQ8EN9tLqFJMFpFl5tCvZCrc3SqGszRDiBprTsmiWQwowyu6B5wA/4zhpA=="></script>
+
+
+
+    </body>
+</html>

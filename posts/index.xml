@@ -19,7 +19,7 @@
 If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!</p>
-<p><img src="/images/transferring-python-packages/sumikko-penguin-nerd-loop.gif" alt="sumikko-penguin-nerd-loop"></p>
+<p><img src="/posts/transferring-python-packages/images/sumikko-penguin-nerd-loop.gif" alt="sumikko-penguin-nerd-loop"></p>
 <p>If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages.
 This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.
 If you were to face conflicting python packages on the base environment, things could get extremely messy.</p>
@@ -57,8 +57,8 @@ gerald@nexus:~$ rm ~/miniconda3/miniconda.sh
 </code></pre></div><h2 id="3-creating-python-environments-with-conda">3. Creating Python Environments with Conda</h2>
 <p>Once you have a working setup, you should be able to see that there is a <code>(base)</code> environment in your terminal.
 The two figures below are for Windows and Linux, respectively.</p>
-<p><img src="/images/transferring-python-packages/miniconda_powershell.png" alt="alt text"></p>
-<p><img src="/images/transferring-python-packages/miniconda_bash.png" alt="alt text"></p>
+<p><img src="/posts/transferring-python-packages/images/miniconda_powershell.png" alt="alt text"></p>
+<p><img src="/posts/transferring-python-packages/images/miniconda_bash.png" alt="alt text"></p>
 <p>To create a new environment with basic python packages, do the following command:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> gerald@nexus:~$ conda create -n $ENVIRONMENT_NAME python<span style="color:#f92672">=</span>$PYTHON_VERSION
 </code></pre></div><h2 id="4-install-python-packages-in-environment">4. Install Python Packages in Environment</h2>
@@ -157,7 +157,7 @@ deb-src http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
 <p>Then, just run the following command to install all packages. Do not that this is an extremely lazy way of doing things and it does not regard the order in which the packages should be installed.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">user@standalone:~/Downloads/xfer$ sudo dpkg -i *.deb
 </code></pre></div><p>If the above command does not install everything the first time due to the wrong order of dependencies being installed, just run it a few more times until you see that there&rsquo;s no error. It&rsquo;s abit stupid&hellip;I know. But if it works, it works.</p>
-<p><img src="/images/installing-packages-offline/sumikko-gurashi-penguin-throw-book.gif" alt="sumikko-gurashi-penguin-throw-book"></p>
+<p><img src="/posts/installing-packages-offline/images/sumikko-gurashi-penguin-throw-book.gif" alt="sumikko-gurashi-penguin-throw-book"></p>
 <h3 id="24--bonus----extracting-libraries-and-binaries">2.4 ⭐ BONUS -  Extracting Libraries and Binaries</h3>
 <p>Assuming you just want some libraries from the <code>.deb</code> package, you can make use of <code>dpkg-deb</code> extraction.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># SYSROOT_PATH refers to the directory to extract to.</span>
@@ -251,7 +251,7 @@ $ dpkg-deb -x $PACKAGE_NAME.deb $SYSROOT_PATH
 </span><span style="color:#ae81ff"></span><span style="color:#66d9ef">done</span>
 </code></pre></div><h2 id="4-conclusion">4. Conclusion</h2>
 <p>If you have made it this far, congratulations!
-<img src="/images/installing-packages-offline/sumikko-gurashi-party-popper.gif" alt="sumikko-gurashi"></p>
+<img src="/posts/installing-packages-offline/images/sumikko-gurashi-party-popper.gif" alt="sumikko-gurashi"></p>
 <p>I hope you learnt something useful today and if this works like a charm for you, you are always welcome to come back to reference these set of instructions for your future use. Cheers and have a nice day!</p>
 ]]></content>
         </item>
@@ -277,10 +277,10 @@ Do also note that the walkthrough is based on a older version of Mikrotik Router
 <p>Firstly, we need to get the ISO file of interest from the official <a href="https://mikrotik.com/download/archive"><strong>mikrotik archives</strong></a>.</p>
 <p>Spin up a VM using any hypervisor of your choosing. I would personally recommend using VMWare as it is now free for personal use. However, if you are doing research on a commercial network, please make sure you have a commercial license activated if not you may get yourself into hot water.</p>
 <p>To start the installation of the Mikrotik RouterOS, create a new virtual machine from the ISO file and when selecting a guest operating system, choose <em>Other &ndash;&gt; Other</em>.
-<img src="/images/getting-root-shell-mikrotik-routeros/vmware-guest-operating-system.png" alt="vmware-guest-operating-system"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/vmware-guest-operating-system.png" alt="vmware-guest-operating-system"></p>
 <p>Follow the instructions of the installation, and on success you will be prompted to login. By default the administrator username is &lsquo;admin&rsquo; with no password.</p>
 <p>If everything is okay up till this point, you will be able to see the RouterOS CLI.</p>
-<p><img src="/images/getting-root-shell-mikrotik-routeros/mikrotik-admin-shell.png" alt="vmware-guest-operating-system"></p>
+<p><img src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png" alt="vmware-guest-operating-system"></p>
 <p>After logging in as admin, we need to assign an IP address to our VM. For this example, I have assigned 172.16.205.150/24 as my RouterOS IP. Please change the values according to your own setup.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>admin@MikroTik &gt; /ip address add address<span style="color:#f92672">=</span>172.16.205.150/24 interface<span style="color:#f92672">=</span>ether1<span style="color:#f92672">]</span>
 </code></pre></div><p>After wards, do a simple ping test from your host to see if it is reachable.</p>
@@ -390,9 +390,9 @@ local: busybox-i686 remote: busybox-i686
 <span style="color:#75715e"># Add the following line any where</span>
 bios.forceSetupOnce <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;TRUE&#34;</span>
 </code></pre></div><p>Change the boot order by pushing the CD/ROM to the first. Press F10 to save and exit.
-<img src="/images/getting-root-shell-mikrotik-routeros/bios-boot-order-cd-first.png" alt="bios-boot-order-cd-first"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/bios-boot-order-cd-first.png" alt="bios-boot-order-cd-first"></p>
 <p>Upon exiting, you will see the CentOS 6 installer option. Choose the <em>Boot</em> option.
-<img src="/images/getting-root-shell-mikrotik-routeros/boot-centos-livecd.png" alt="boot-centos-livecd"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/boot-centos-livecd.png" alt="boot-centos-livecd"></p>
 <p>Once inside CentOS 6, Click on the top left <em>Applications &ndash;&gt; System Tools &ndash;&gt; Terminal</em>.
 Run the following commands to mount the routeros sysroot.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>centos@livecd centoslive<span style="color:#f92672">]</span>$ sudo su
@@ -405,16 +405,16 @@ Run the following commands to mount the routeros sysroot.</p>
 <span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ chmod +x /mnt/routeros-sysroot/rw/disk/busybox-i686
 </code></pre></div><h3 id="28-getting-root-shell">2.8 Getting Root Shell</h3>
 <p>Once done, shutdown the VM, edit the <em>hardware settings &ndash;&gt; CD/DVD (IDE)</em> and uncheck <em>Connect at power on</em>.
-<img src="/images/getting-root-shell-mikrotik-routeros/iso-uncheck-connect-at-power-on.png" alt="iso-uncheck-connect-at-power-on"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/iso-uncheck-connect-at-power-on.png" alt="iso-uncheck-connect-at-power-on"></p>
 <p>Upon powering on the VM, you will see this output instead of the normal login screen.</p>
-<p><img src="/images/getting-root-shell-mikrotik-routeros/busybox-running1.png" alt="busybox-running1"></p>
+<p><img src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-running1.png" alt="busybox-running1"></p>
 <p>We can now telnet into our RouterOS via port 1270.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ telnet 172.16.205.150 <span style="color:#ae81ff">1270</span>
-</code></pre></div><p><img src="/images/getting-root-shell-mikrotik-routeros/telnet-success.png" alt="telnet-success"></p>
+</code></pre></div><p><img src="/posts/getting-root-shell-mikrotik-routeros/images/telnet-success.png" alt="telnet-success"></p>
 <h3 id="29-running-commands">2.9 Running Commands</h3>
 <p>Unlike the typical unix shell, we cannot run the normal linux commands as it is as we would need
 to piggyback on busybox in order to run anything.
-<img src="/images/getting-root-shell-mikrotik-routeros/busybox-piggyback-ls.png" alt="busybox-piggyback-ls"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-piggyback-ls.png" alt="busybox-piggyback-ls"></p>
 <p>Thus to put simply, the template to run any bash commands is:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ /rw/disk/busybox-i686 $COMMAND
 </code></pre></div><h2 id="3-conclusion">3. Conclusion</h2>

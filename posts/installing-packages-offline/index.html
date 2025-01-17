@@ -285,7 +285,7 @@ deb-src http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
 <p>Then, just run the following command to install all packages. Do not that this is an extremely lazy way of doing things and it does not regard the order in which the packages should be installed.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">user@standalone:~/Downloads/xfer$ sudo dpkg -i *.deb
 </code></pre></div><p>If the above command does not install everything the first time due to the wrong order of dependencies being installed, just run it a few more times until you see that there&rsquo;s no error. It&rsquo;s abit stupid&hellip;I know. But if it works, it works.</p>
-<p><img src="/images/installing-packages-offline/sumikko-gurashi-penguin-throw-book.gif" alt="sumikko-gurashi-penguin-throw-book"></p>
+<p><img src="/posts/installing-packages-offline/images/sumikko-gurashi-penguin-throw-book.gif" alt="sumikko-gurashi-penguin-throw-book"></p>
 <h3 id="24--bonus----extracting-libraries-and-binaries">2.4 ⭐ BONUS -  Extracting Libraries and Binaries</h3>
 <p>Assuming you just want some libraries from the <code>.deb</code> package, you can make use of <code>dpkg-deb</code> extraction.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># SYSROOT_PATH refers to the directory to extract to.</span>
@@ -379,7 +379,7 @@ $ dpkg-deb -x $PACKAGE_NAME.deb $SYSROOT_PATH
 </span><span style="color:#ae81ff"></span><span style="color:#66d9ef">done</span>
 </code></pre></div><h2 id="4-conclusion">4. Conclusion</h2>
 <p>If you have made it this far, congratulations!
-<img src="/images/installing-packages-offline/sumikko-gurashi-party-popper.gif" alt="sumikko-gurashi"></p>
+<img src="/posts/installing-packages-offline/images/sumikko-gurashi-party-popper.gif" alt="sumikko-gurashi"></p>
 <p>I hope you learnt something useful today and if this works like a charm for you, you are always welcome to come back to reference these set of instructions for your future use. Cheers and have a nice day!</p>
 
       </div>

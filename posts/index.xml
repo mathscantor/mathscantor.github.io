@@ -196,6 +196,10 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
 <li><a href="http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html">MIT x86-64 Architecture Guide</a></li>
 <li><a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">IRed Team Blog - Linux x64 Calling Convention Stack Frame</a></li>
 </ol>
+<h2 id="6-resources">6. Resources</h2>
+<ol>
+<li><a href="/posts/gdb-guide-part1-basics/resources/test.c">test.c</a></li>
+</ol>
 ]]></content>
         </item>
         

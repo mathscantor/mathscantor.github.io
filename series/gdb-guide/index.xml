@@ -9,12 +9,14 @@
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
     <lastBuildDate>Tue, 21 Jan 2025 12:21:39 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/series/gdb-guide/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>GDB Guide Part 2 - Linux Calling Conventions, Breakpoints Etc</title>
-      <link>https://mathscantor.github.io/posts/gdb-guide-part2-calling-conventions-breakpoints-etc/</link>
+      <title>GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</title>
+      <link>https://mathscantor.github.io/posts/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
       <pubDate>Tue, 21 Jan 2025 12:21:39 +0800</pubDate>
       
-      <guid>https://mathscantor.github.io/posts/gdb-guide-part2-calling-conventions-breakpoints-etc/</guid>
-      <description></description>
+      <guid>https://mathscantor.github.io/posts/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
+      <description>1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
+To ensure this post is not too long-winded, I have decided to only go through the following topics today:
+ Breakpoints Linux x86 vs x86_64 Calling Convention  2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.</description>
     </item>
     
     <item>

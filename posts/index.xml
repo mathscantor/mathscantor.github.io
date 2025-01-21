@@ -64,7 +64,7 @@ The second way to do this is to attach to an already running process via its PID
 
 
 <h2 id="4-useful-gdb-configurations">4. Useful GDB Configurations</h2>
-<p>I would recommend the following setting the following configurations right from the get-go when doing dynamic analysis.</p>
+<p>I would recommend the following configurations right from the get-go when doing dynamic analysis.</p>
 <ol>
 <li>
 <p><code>set pagination off</code></p>

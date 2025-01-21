@@ -6,8 +6,195 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Fri, 17 Jan 2025 10:56:44 +0800</lastBuildDate>
+        <lastBuildDate>Sun, 19 Jan 2025 10:37:22 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>GDB Guide Part 1 - Basics</title>
+            <link>https://mathscantor.github.io/posts/gdb-guide-part1-basics/</link>
+            <pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/gdb-guide-part1-basics/</guid>
+            <description>1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
+2. Overview Today&amp;rsquo;s guide will show you how to:
+ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions  I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!</p>
+<h2 id="2-overview">2. Overview</h2>
+<p>Today&rsquo;s guide will show you how to:</p>
+<ol>
+<li>Attach to a Process</li>
+<li>Set useful GDB Configuration</li>
+<li>Inspect Registers</li>
+<li>Disassemble Functions</li>
+</ol>
+<p>I will be providing an example C file <a href="/posts/gdb-guide-part1-basics/resources/test.c">here</a> for you to compile so that you may follow the walkthrough and deepen your understanding.</p>
+<p>To compile test.c:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc test.c -o test
+</code></pre></div><h2 id="3-attaching-to-a-process">3. Attaching to a Process</h2>
+<p>There are two ways to go about doing this. The first which is the simplest, is to run GDB with the binary path as its parameter.
+The second way to do this is to attach to an already running process via its PID.</p>
+<h3 id="31-via-binary">3.1 Via Binary</h3>
+<p>If you have chosen this method, it means that you know the binary full path and also the parameters to run the binary.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gdb $BINARY_PATH
+</code></pre></div><p>Afterwards, run the binary with its parameters.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r $param1 $param2 ....
+</code></pre></div><h3 id="32-via-pid">3.2 Via PID</h3>
+<p>Alternatively, you can also attach to a running process via its PID in several ways as well.</p>
+<ol>
+<li>
+<p>You can start either GDB first, then do <code>attach $PID</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gdb
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> attach $pid
+</code></pre></div></li>
+<li>
+<p>OR, you can start GDB with the <code>-p</code> parameter.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gdb -p <span style="color:#e6db74">`</span>pidof $PROC_NAME<span style="color:#e6db74">`</span>
+</code></pre></div></li>
+</ol>
+<h3 id="33-test-example">3.3 Test Example</h3>
+<p>I have created a video for those who are more visual learners, using a compiled test.c as an example for GDB to attach to.</p>
+
+ 
+
+<video width=100% controls>
+    <source src="/posts/gdb-guide-part1-basics/videos/attach-to-process.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+
+
+<h2 id="4-useful-gdb-configurations">4. Useful GDB Configurations</h2>
+<p>I would recommend the following setting the following configurations right from the get-go when doing dynamic analysis.</p>
+<ol>
+<li>
+<p><code>set pagination off</code></p>
+<ul>
+<li>By default, this is set to &ldquo;on&rdquo; and it is really annoying when you are dealing with large outputs, prompting you to press <code>Enter</code> in order to continue.</li>
+</ul>
+</li>
+<li>
+<p><code>set logging enabled on</code></p>
+<ul>
+<li>By default, this is set to &ldquo;off&rdquo;. This is very useful especially when you want to look back at the commands you ran and the outputs you had. If the file path is not stated, it will be written to gdb.txt. See <a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/Logging-Output.html">here</a> for more information on GDB logging.</li>
+</ul>
+</li>
+<li>
+<p><code>set confirm off</code></p>
+<ul>
+<li>By default, this is set to &ldquo;on&rdquo; as GDB is very cautious. When automating dynamic analysis with a GDB script, this will break your automation. I will recommend turning this off only when you need to automate things.</li>
+</ul>
+</li>
+<li>
+<p><code>set print pretty on</code></p>
+<ul>
+<li>By default, this is set to &ldquo;off&rdquo;. This is more of a personal preference for me. This is more for you to decide whether you want your structure to be printed in one line or in a more readable form.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># set print pretty on</span>
+$1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+next <span style="color:#f92672">=</span> 0x0,
+flags <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+    sweet <span style="color:#f92672">=</span> 1,
+    sour <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+<span style="color:#f92672">}</span>,
+meat <span style="color:#f92672">=</span> 0x54 <span style="color:#e6db74">&#34;Pork&#34;</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#75715e"># set print pretty off</span>
+$1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>next <span style="color:#f92672">=</span> 0x0, flags <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>sweet <span style="color:#f92672">=</span> 1, sour <span style="color:#f92672">=</span> 1<span style="color:#f92672">}</span>, meat <span style="color:#f92672">=</span> 0x54 <span style="color:#e6db74">&#34;Pork&#34;</span><span style="color:#f92672">}</span>
+
+</code></pre></div></li>
+</ul>
+</li>
+<li>
+<p><code>set output-radix 16</code></p>
+<ul>
+<li>By default, output-radix is set to 10. This would print out numbers in GDB as hexadecimal. I&rsquo;m hard-wired to read hexadecimals when debugging stuff, so this is a must for me.</li>
+</ul>
+</li>
+<li>
+<p><code>set disassembly-flavor intel</code></p>
+<ul>
+<li>By default disassembly-flavor is set to &ldquo;att&rdquo;. However, I prefer the &ldquo;intel&rdquo; style disassembly despite specializing in Linux exploitation 🤡.</li>
+</ul>
+</li>
+<li>
+<p><code>set print elements 0</code></p>
+<ul>
+<li>By default, the limit is set to 200 characters. I will usually set this to 0 which means that printing is unlimited. This is especially useful whenever you are trying to print a very large string from memory.</li>
+</ul>
+</li>
+</ol>
+<h2 id="5-inspecting-registers">5. Inspecting Registers</h2>
+<p>There are actually several ways to print the values of the registers.</p>
+<h3 id="51-via-info-registers">5.1 Via <code>info registers</code></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Prints all registers&#39; values</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers
+
+<span style="color:#75715e"># Print only rax value</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers rax
+
+<span style="color:#75715e"># Print an array of registers</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers rdi rsi rdx rcx 
+</code></pre></div><h3 id="52-via-print--printf">5.2 Via <code>print</code> / <code>printf</code></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Print rax value</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $rax
+
+<span style="color:#75715e"># Printf rax value</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> printf <span style="color:#e6db74">&#34;rax = %d\n&#34;</span>, $rax
+
+<span style="color:#75715e"># Printf rdi, rsi, rdx, rcx</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> printf <span style="color:#e6db74">&#34;rdi = %d\nrsi = %d\nrdx = %d\nrcx = %d\n&#34;</span>, $rdi, $rsi, $rdx, $rcx
+</code></pre></div><h3 id="53-test-example">5.3 Test Example</h3>
+
+ 
+
+<video width=100% controls>
+    <source src="/posts/gdb-guide-part1-basics/videos/get-register-info.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+
+
+<h2 id="6-looking-at-disassembly">6. Looking at Disassembly</h2>
+<p>Looking at disassembly provides us more information such as offsets and instruction sets.
+Of course, you need not use GDB&rsquo;s disassembly feature for static analysis and can always use <a href="https://github.com/NationalSecurityAgency/ghidra">Ghidra</a> or IDA (<a href="https://hex-rays.com/ida-free">Free Version</a> or <a href="https://hex-rays.com/ida-pro">Pro</a>)
+which is a lot more user-friendly.</p>
+<p>Assuming we can only use GDB, then the way to go about doing this is to make use of the <code>disassemble</code> command.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># If no address/function is stated, disassemble function at current instruction.</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble
+
+<span style="color:#75715e"># Disassemble the entire function</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Function<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Disassemble the entire function that contain the given address</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Address<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Disassemble instruction between start and end address. </span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Start<span style="color:#f92672">]</span>,<span style="color:#f92672">[</span>End<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Disassemble from start of function to address of function + offset.</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Function<span style="color:#f92672">]</span>,+<span style="color:#f92672">[</span>Length<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Disassmble from address to address + offset</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Address<span style="color:#f92672">]</span>,+<span style="color:#f92672">[</span>Length<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Show the current instruction (rip)</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble /m <span style="color:#f92672">[</span>...<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Show the byte values of all instructions</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble /r <span style="color:#f92672">[</span>...<span style="color:#f92672">]</span>
+</code></pre></div><h3 id="61-test-example">6.1 Test Example</h3>
+
+ 
+
+<video width=100% controls>
+    <source src="/posts/gdb-guide-part1-basics/videos/viewing-disassembly.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+
+
+<h2 id="7-conclusion">7. Conclusion</h2>
+<p>I figured this is a good stopping point and of course, we are not yet done! I barely scratched the surface just for the basics! Stay tuned for part 2, where I will teach you more about Linux calling conventions, setting breakpoints etc.</p>
+]]></content>
+        </item>
         
         <item>
             <title>Writing Packets to Pcapng in C</title>

@@ -7,7 +7,18 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Fri, 17 Jan 2025 10:56:44 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 19 Jan 2025 10:37:22 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>GDB Guide Part 1 - Basics</title>
+      <link>https://mathscantor.github.io/posts/gdb-guide-part1-basics/</link>
+      <pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
+      
+      <guid>https://mathscantor.github.io/posts/gdb-guide-part1-basics/</guid>
+      <description>1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
+2. Overview Today&amp;rsquo;s guide will show you how to:
+ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions  I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.</description>
+    </item>
+    
     <item>
       <title>Writing Packets to Pcapng in C</title>
       <link>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</link>

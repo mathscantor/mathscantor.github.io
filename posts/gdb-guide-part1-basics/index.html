@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="">
+<meta name="description" content="1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
+2. Overview Today&amp;rsquo;s guide will show you how to:
+ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions  I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding." />
+<meta name="keywords" content=", gdb, linux" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://mathscantor.github.io/posts/gdb-guide-part1-basics/" />
+
+
+    <title>
+        
+            GDB Guide Part 1 - Basics :: Mathscantor Cybersecurity Blog  — A simple theme for Hugo
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="/main.b501ed643dfd07f3083ce28d39b344cac20aaf19aee4826008829551aefa5b7d.css">
+
+
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="GDB Guide Part 1 - Basics">
+<meta itemprop="description" content="1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
+2. Overview Today&rsquo;s guide will show you how to:
+ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions  I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding."><meta itemprop="datePublished" content="2025-01-19T10:37:22+08:00" />
+<meta itemprop="dateModified" content="2025-01-19T10:37:22+08:00" />
+<meta itemprop="wordCount" content="927"><meta itemprop="image" content="https://mathscantor.github.io"/>
+<meta itemprop="keywords" content="gdb,linux," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mathscantor.github.io"/>
+
+<meta name="twitter:title" content="GDB Guide Part 1 - Basics"/>
+<meta name="twitter:description" content="1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
+2. Overview Today&rsquo;s guide will show you how to:
+ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions  I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding."/>
+
+
+
+    <meta property="og:title" content="GDB Guide Part 1 - Basics" />
+<meta property="og:description" content="1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
+2. Overview Today&rsquo;s guide will show you how to:
+ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions  I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guide-part1-basics/" /><meta property="og:image" content="https://mathscantor.github.io"/><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-01-19T10:37:22+08:00" />
+<meta property="article:modified_time" content="2025-01-19T10:37:22+08:00" /><meta property="og:site_name" content="Mathscantor Cybersecurity Blog" />
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2025-01-19 10:37:22 &#43;0800 &#43;08" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span data-pagefind-ignore class="logo__text">Be You Cat, or Mouse?</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner">
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/posts/">
+                        Posts
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/tags/">
+                        Categories
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="https://github.com/mathscantor">
+                        Projects
+                    </a>
+                </li>
+            </div>
+            
+        
+
+    
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+
+  <main class="post">
+    
+    <link href="/posts/css/toc.css" rel="stylesheet">
+    <aside id="sticky-toc">
+      <div class="toc-title">Table of Contents</div>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-introduction">1. Introduction</a></li>
+    <li><a href="#2-overview">2. Overview</a></li>
+    <li><a href="#3-attaching-to-a-process">3. Attaching to a Process</a>
+      <ul>
+        <li><a href="#31-via-binary">3.1 Via Binary</a></li>
+        <li><a href="#32-via-pid">3.2 Via PID</a></li>
+        <li><a href="#33-test-example">3.3 Test Example</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-useful-gdb-configurations">4. Useful GDB Configurations</a></li>
+    <li><a href="#5-inspecting-registers">5. Inspecting Registers</a>
+      <ul>
+        <li><a href="#51-via-info-registers">5.1 Via <code>info registers</code></a></li>
+        <li><a href="#52-via-print--printf">5.2 Via <code>print</code> / <code>printf</code></a></li>
+        <li><a href="#53-test-example">5.3 Test Example</a></li>
+      </ul>
+    </li>
+    <li><a href="#6-looking-at-disassembly">6. Looking at Disassembly</a>
+      <ul>
+        <li><a href="#61-test-example">6.1 Test Example</a></li>
+      </ul>
+    </li>
+    <li><a href="#7-conclusion">7. Conclusion</a></li>
+  </ul>
+</nav>
+    </aside>
+    
+
+    <div class="post-info">
+      <p>
+        <i class="fa-solid fa-clock"></i>
+        5 minutes
+        <i class="fa-solid fa-clipboard"></i>
+        927 Words
+        
+      </p>
+      <p>
+        <i class="fa-solid fa-calendar-days"></i>
+        
+          2025-01-19 10:37
+        
+
+         
+          
+        
+      </p>
+      <p>
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://mathscantor.github.io/tags/gdb/">gdb</a></span>
+        <span class="tag"><a href="https://mathscantor.github.io/tags/linux/">linux</a></span>
+        
+    </p>
+
+      
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://mathscantor.github.io/posts/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="1-introduction">1. Introduction</h2>
+<p>Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!</p>
+<h2 id="2-overview">2. Overview</h2>
+<p>Today&rsquo;s guide will show you how to:</p>
+<ol>
+<li>Attach to a Process</li>
+<li>Set useful GDB Configuration</li>
+<li>Inspect Registers</li>
+<li>Disassemble Functions</li>
+</ol>
+<p>I will be providing an example C file <a href="/posts/gdb-guide-part1-basics/resources/test.c">here</a> for you to compile so that you may follow the walkthrough and deepen your understanding.</p>
+<p>To compile test.c:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc test.c -o test
+</code></pre></div><h2 id="3-attaching-to-a-process">3. Attaching to a Process</h2>
+<p>There are two ways to go about doing this. The first which is the simplest, is to run GDB with the binary path as its parameter.
+The second way to do this is to attach to an already running process via its PID.</p>
+<h3 id="31-via-binary">3.1 Via Binary</h3>
+<p>If you have chosen this method, it means that you know the binary full path and also the parameters to run the binary.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gdb $BINARY_PATH
+</code></pre></div><p>Afterwards, run the binary with its parameters.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r $param1 $param2 ....
+</code></pre></div><h3 id="32-via-pid">3.2 Via PID</h3>
+<p>Alternatively, you can also attach to a running process via its PID in several ways as well.</p>
+<ol>
+<li>
+<p>You can start either GDB first, then do <code>attach $PID</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gdb
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> attach $pid
+</code></pre></div></li>
+<li>
+<p>OR, you can start GDB with the <code>-p</code> parameter.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gdb -p <span style="color:#e6db74">`</span>pidof $PROC_NAME<span style="color:#e6db74">`</span>
+</code></pre></div></li>
+</ol>
+<h3 id="33-test-example">3.3 Test Example</h3>
+<p>I have created a video for those who are more visual learners, using a compiled test.c as an example for GDB to attach to.</p>
+
+ 
+
+<video width=100% controls>
+    <source src="/posts/gdb-guide-part1-basics/videos/attach-to-process.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+
+
+<h2 id="4-useful-gdb-configurations">4. Useful GDB Configurations</h2>
+<p>I would recommend the following setting the following configurations right from the get-go when doing dynamic analysis.</p>
+<ol>
+<li>
+<p><code>set pagination off</code></p>
+<ul>
+<li>By default, this is set to &ldquo;on&rdquo; and it is really annoying when you are dealing with large outputs, prompting you to press <code>Enter</code> in order to continue.</li>
+</ul>
+</li>
+<li>
+<p><code>set logging enabled on</code></p>
+<ul>
+<li>By default, this is set to &ldquo;off&rdquo;. This is very useful especially when you want to look back at the commands you ran and the outputs you had. If the file path is not stated, it will be written to gdb.txt. See <a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/Logging-Output.html">here</a> for more information on GDB logging.</li>
+</ul>
+</li>
+<li>
+<p><code>set confirm off</code></p>
+<ul>
+<li>By default, this is set to &ldquo;on&rdquo; as GDB is very cautious. When automating dynamic analysis with a GDB script, this will break your automation. I will recommend turning this off only when you need to automate things.</li>
+</ul>
+</li>
+<li>
+<p><code>set print pretty on</code></p>
+<ul>
+<li>By default, this is set to &ldquo;off&rdquo;. This is more of a personal preference for me. This is more for you to decide whether you want your structure to be printed in one line or in a more readable form.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># set print pretty on</span>
+$1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+next <span style="color:#f92672">=</span> 0x0,
+flags <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+    sweet <span style="color:#f92672">=</span> 1,
+    sour <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+<span style="color:#f92672">}</span>,
+meat <span style="color:#f92672">=</span> 0x54 <span style="color:#e6db74">&#34;Pork&#34;</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#75715e"># set print pretty off</span>
+$1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>next <span style="color:#f92672">=</span> 0x0, flags <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>sweet <span style="color:#f92672">=</span> 1, sour <span style="color:#f92672">=</span> 1<span style="color:#f92672">}</span>, meat <span style="color:#f92672">=</span> 0x54 <span style="color:#e6db74">&#34;Pork&#34;</span><span style="color:#f92672">}</span>
+
+</code></pre></div></li>
+</ul>
+</li>
+<li>
+<p><code>set output-radix 16</code></p>
+<ul>
+<li>By default, output-radix is set to 10. This would print out numbers in GDB as hexadecimal. I&rsquo;m hard-wired to read hexadecimals when debugging stuff, so this is a must for me.</li>
+</ul>
+</li>
+<li>
+<p><code>set disassembly-flavor intel</code></p>
+<ul>
+<li>By default disassembly-flavor is set to &ldquo;att&rdquo;. However, I prefer the &ldquo;intel&rdquo; style disassembly despite specializing in Linux exploitation 🤡.</li>
+</ul>
+</li>
+<li>
+<p><code>set print elements 0</code></p>
+<ul>
+<li>By default, the limit is set to 200 characters. I will usually set this to 0 which means that printing is unlimited. This is especially useful whenever you are trying to print a very large string from memory.</li>
+</ul>
+</li>
+</ol>
+<h2 id="5-inspecting-registers">5. Inspecting Registers</h2>
+<p>There are actually several ways to print the values of the registers.</p>
+<h3 id="51-via-info-registers">5.1 Via <code>info registers</code></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Prints all registers&#39; values</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers
+
+<span style="color:#75715e"># Print only rax value</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers rax
+
+<span style="color:#75715e"># Print an array of registers</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers rdi rsi rdx rcx 
+</code></pre></div><h3 id="52-via-print--printf">5.2 Via <code>print</code> / <code>printf</code></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Print rax value</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $rax
+
+<span style="color:#75715e"># Printf rax value</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> printf <span style="color:#e6db74">&#34;rax = %d\n&#34;</span>, $rax
+
+<span style="color:#75715e"># Printf rdi, rsi, rdx, rcx</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> printf <span style="color:#e6db74">&#34;rdi = %d\nrsi = %d\nrdx = %d\nrcx = %d\n&#34;</span>, $rdi, $rsi, $rdx, $rcx
+</code></pre></div><h3 id="53-test-example">5.3 Test Example</h3>
+
+ 
+
+<video width=100% controls>
+    <source src="/posts/gdb-guide-part1-basics/videos/get-register-info.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+
+
+<h2 id="6-looking-at-disassembly">6. Looking at Disassembly</h2>
+<p>Looking at disassembly provides us more information such as offsets and instruction sets.
+Of course, you need not use GDB&rsquo;s disassembly feature for static analysis and can always use <a href="https://github.com/NationalSecurityAgency/ghidra">Ghidra</a> or IDA (<a href="https://hex-rays.com/ida-free">Free Version</a> or <a href="https://hex-rays.com/ida-pro">Pro</a>)
+which is a lot more user-friendly.</p>
+<p>Assuming we can only use GDB, then the way to go about doing this is to make use of the <code>disassemble</code> command.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># If no address/function is stated, disassemble function at current instruction.</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble
+
+<span style="color:#75715e"># Disassemble the entire function</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Function<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Disassemble the entire function that contain the given address</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Address<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Disassemble instruction between start and end address. </span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Start<span style="color:#f92672">]</span>,<span style="color:#f92672">[</span>End<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Disassemble from start of function to address of function + offset.</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Function<span style="color:#f92672">]</span>,+<span style="color:#f92672">[</span>Length<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Disassmble from address to address + offset</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble <span style="color:#f92672">[</span>Address<span style="color:#f92672">]</span>,+<span style="color:#f92672">[</span>Length<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Show the current instruction (rip)</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble /m <span style="color:#f92672">[</span>...<span style="color:#f92672">]</span>
+
+<span style="color:#75715e"># Show the byte values of all instructions</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble /r <span style="color:#f92672">[</span>...<span style="color:#f92672">]</span>
+</code></pre></div><h3 id="61-test-example">6.1 Test Example</h3>
+
+ 
+
+<video width=100% controls>
+    <source src="/posts/gdb-guide-part1-basics/videos/viewing-disassembly.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+
+
+<h2 id="7-conclusion">7. Conclusion</h2>
+<p>I figured this is a good stopping point and of course, we are not yet done! I barely scratched the surface just for the basics! Stay tuned for part 2, where I will teach you more about Linux calling conventions, setting breakpoints etc.</p>
+
+      </div>
+    </article>
+      <hr />
+    <div class="post-info">
+      
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+
+            
+            <span class="button next">
+                <a href="https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/">
+                    <span class="button__text">Writing Packets to Pcapng in C</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+    </div>
+      <div class="sharing-buttons">
+        
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f" target="_blank" rel="noopener" aria-label="" title="Share on facebook">
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f" target="_blank" rel="noopener" aria-label="" title="Share on twitter">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small">
+      <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=GDB%20Guide%20Part%201%20-%20Basics&amp;caption=GDB%20Guide%20Part%201%20-%20Basics&amp;canonicalUrl=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f" target="_blank" rel="noopener" aria-label="" title="Share on tumblr">
+  <div class="resp-sharing-button resp-sharing-button--tumblr resp-sharing-button--small">
+    <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.178l.011.002z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=GDB%20Guide%20Part%201%20-%20Basics&amp;body=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f" target="_self" rel="noopener" aria-label="" title="Share via email">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://pinterest.com/pin/create/button/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f&amp;media=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f;description=GDB%20Guide%20Part%201%20-%20Basics" target="_blank" rel="noopener" aria-label="" title="Share on pinterest">
+  <div class="resp-sharing-button resp-sharing-button--pinterest resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f&amp;title=GDB%20Guide%20Part%201%20-%20Basics&amp;summary=GDB%20Guide%20Part%201%20-%20Basics&amp;source=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f" target="_blank" rel="noopener" aria-label="" title="Share on linkedin">
+  <div class="resp-sharing-button resp-sharing-button--linkedin resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f&amp;resubmit=true&amp;title=GDB%20Guide%20Part%201%20-%20Basics" target="_blank" rel="noopener" aria-label="" title="Share on reddit">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.xing.com/app/user?op=share;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f;title=GDB%20Guide%20Part%201%20-%20Basics" target="_blank" rel="noopener" aria-label="" title="Share on xing">
+  <div class="resp-sharing-button resp-sharing-button--xing resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.188 0c-.517 0-.741.325-.927.66 0 0-7.455 13.224-7.702 13.657.015.024 4.919 9.023 4.919 9.023.17.308.436.66.967.66h3.454c.211 0 .375-.078.463-.22.089-.151.089-.346-.009-.536l-4.879-8.916c-.004-.006-.004-.016 0-.022L22.139.756c.095-.191.097-.387.006-.535C22.056.078 21.894 0 21.686 0h-3.498zM3.648 4.74c-.211 0-.385.074-.473.216-.09.149-.078.339.02.531l2.34 4.05c.004.01.004.016 0 .021L1.86 16.051c-.099.188-.093.381 0 .529.085.142.239.234.45.234h3.461c.518 0 .766-.348.945-.667l3.734-6.609-2.378-4.155c-.172-.315-.434-.659-.962-.659H3.648v.016z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="whatsapp://send?text=GDB%20Guide%20Part%201%20-%20Basics%20https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f" target="_blank" rel="noopener" aria-label="" title="Share on whatsapp">
+  <div class="resp-sharing-button resp-sharing-button--whatsapp resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f&amp;t=GDB%20Guide%20Part%201%20-%20Basics" target="_blank" rel="noopener" aria-label="" title="Share on hacker news">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://telegram.me/share/url?text=GDB%20Guide%20Part%201%20-%20Basics&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guide-part1-basics%2f" target="_blank" rel="noopener" aria-label="" title="Share on telegram">
+  <div class="resp-sharing-button resp-sharing-button--telegram resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </div>
+  </div>
+</a>
+
+      </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+    
+        <div class="footer__inner">
+            <div class="footer__content">
+            
+            
+        </div>
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="/bundle.min.10d839adb239f51bf25fafe01de77c4c8051b60820650f0437db4ba8524c169165e6d0af642adcdd2a86b33443881a6b4ec9a2590c28c32bba079c00ff8ce1a4.js" integrity="sha512-ENg5rbI59RvyX6/gHed8TIBRtgggZQ8EN9tLqFJMFpFl5tCvZCrc3SqGszRDiBprTsmiWQwowyu6B5wA/4zhpA=="></script>
+
+
+
+    </body>
+</html>

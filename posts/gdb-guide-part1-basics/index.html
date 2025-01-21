@@ -47,7 +47,7 @@
 2. Overview Today&rsquo;s guide will show you how to:
  Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions  I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding."><meta itemprop="datePublished" content="2025-01-19T10:37:22+08:00" />
 <meta itemprop="dateModified" content="2025-01-19T10:37:22+08:00" />
-<meta itemprop="wordCount" content="924"><meta itemprop="image" content="https://mathscantor.github.io"/>
+<meta itemprop="wordCount" content="932"><meta itemprop="image" content="https://mathscantor.github.io"/>
 <meta itemprop="keywords" content="gdb,linux," />
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://mathscantor.github.io"/>
@@ -67,7 +67,7 @@
 <meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guide-part1-basics/" /><meta property="og:image" content="https://mathscantor.github.io"/><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2025-01-19T10:37:22+08:00" />
 <meta property="article:modified_time" content="2025-01-19T10:37:22+08:00" /><meta property="og:site_name" content="Mathscantor Cybersecurity Blog" />
-
+<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guide-part2-calling-conventions-breakpoints-etc/" />
 
 
 
@@ -204,6 +204,8 @@
       </ul>
     </li>
     <li><a href="#7-conclusion">7. Conclusion</a></li>
+    <li><a href="#8-references">8. References</a></li>
+    <li><a href="#9-resources">9. Resources</a></li>
   </ul>
 </nav>
     </aside>
@@ -214,7 +216,7 @@
         <i class="fa-solid fa-clock"></i>
         5 minutes
         <i class="fa-solid fa-clipboard"></i>
-        924 Words
+        932 Words
         
       </p>
       <p>
@@ -253,7 +255,9 @@
       
 
       <div class="post-content">
+        <hr>
         
+          
 <div>
     <h4>This post is part of a series.</h4>
     <ul class="list-group">
@@ -265,9 +269,20 @@
                 </li>
             
         
+            
+                <li class="list-group-item">
+                    <a href="https://mathscantor.github.io/posts/gdb-guide-part2-calling-conventions-breakpoints-etc/">
+                        
+                        GDB Guide Part 2 - Linux Calling Conventions, Breakpoints Etc
+                    </a>
+                </li>
+            
+        
     </ul>
 </div>
 
+          <hr>
+        
         <h2 id="1-introduction">1. Introduction</h2>
 <p>Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!</p>
 <h2 id="2-overview">2. Overview</h2>
@@ -443,8 +458,18 @@ which is a lot more user-friendly.</p>
 
 <h2 id="7-conclusion">7. Conclusion</h2>
 <p>I figured this is a good stopping point and of course, we are not yet done! I barely scratched the surface just for the basics! Stay tuned for part 2, where I will teach you more about Linux calling conventions, setting breakpoints etc.</p>
+<h2 id="8-references">8. References</h2>
+<ol>
+<li>GDB Manual: <a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/">https://sourceware.org/gdb/current/onlinedocs/gdb.html/</a></li>
+</ol>
+<h2 id="9-resources">9. Resources</h2>
+<ol>
+<li><a href="/posts/gdb-guide-part1-basics/resources/test.c">test.c</a></li>
+</ol>
 
         
+          <hr>
+          
 <div>
     <h4>This post is part of a series.</h4>
     <ul class="list-group">
@@ -456,12 +481,22 @@ which is a lot more user-friendly.</p>
                 </li>
             
         
+            
+                <li class="list-group-item">
+                    <a href="https://mathscantor.github.io/posts/gdb-guide-part2-calling-conventions-breakpoints-etc/">
+                        
+                        GDB Guide Part 2 - Linux Calling Conventions, Breakpoints Etc
+                    </a>
+                </li>
+            
+        
     </ul>
 </div>
 
+        
       </div>
     </article>
-      <hr />
+
     <div class="post-info">
       
     <div class="pagination">
@@ -473,6 +508,13 @@ which is a lot more user-friendly.</p>
         
 
         <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://mathscantor.github.io/posts/gdb-guide-part2-calling-conventions-breakpoints-etc/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">GDB Guide Part 2 - Linux Calling Conventions, Breakpoints Etc</span>
+                </a>
+            </span>
             
 
             

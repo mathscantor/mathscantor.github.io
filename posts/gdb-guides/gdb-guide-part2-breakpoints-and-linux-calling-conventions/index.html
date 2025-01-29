@@ -27,7 +27,7 @@ To ensure this post is not too long-winded, I have decided to only go through th
 
 
 
-<link rel="stylesheet" href="/main.b501ed643dfd07f3083ce28d39b344cac20aaf19aee4826008829551aefa5b7d.css">
+<link rel="stylesheet" href="/main.16b779fbf812b89d393e90eeb1c7da7995d46983a2667880515089166ee47486.css">
 
 
 
@@ -67,7 +67,7 @@ To ensure this post is not too long-winded, I have decided to only go through th
 <meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/" /><meta property="og:image" content="https://mathscantor.github.io"/><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2025-01-21T12:21:39+08:00" />
 <meta property="article:modified_time" content="2025-01-21T12:21:39+08:00" /><meta property="og:site_name" content="Mathscantor Cybersecurity Blog" />
-<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/" />
+<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/" /><meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/" />
 
 
 
@@ -273,13 +273,22 @@ To ensure this post is not too long-winded, I have decided to only go through th
                 </li>
             
         
+            
+                <li class="list-group-item">
+                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">
+                        
+                        Gdb Guide Part 3 - Process Maps
+                    </a>
+                </li>
+            
+        
     </ul>
 </div>
 
           <hr>
         
         <h2 id="1-introduction">1. Introduction</h2>
-<p>This post is a continuation from the <a href="/posts/gdb-guide-part1-basics/">previous post in this series</a> and will cover more fundamentals on GDB and dynamic analysis.</p>
+<p>This post is a continuation from the <a href="/posts/gdb-guides/gdb-guide-part1-basics/">previous post in this series</a> and will cover more fundamentals on GDB and dynamic analysis.</p>
 <p>To ensure this post is not too long-winded, I have decided to only go through the following topics today:</p>
 <ol>
 <li>Breakpoints</li>
@@ -348,11 +357,11 @@ In that case, you may consider adding a <code>condition</code> clause to the bre
 Bear in mind that this section will not cover ARM. Perhaps in the future, I will do a separate post about it. For now, we will keep things simple and stick to x86(32 bit) and x86_64(64 bit) architectures.</p>
 <h3 id="31-32-bit---x86">3.1 32 Bit - x86</h3>
 <p>You can read the full details <a href="https://en.wikipedia.org/wiki/X86_calling_conventions">here</a>, but if you just want the gist of it, the following diagram summarizes the x86 calling convention.</p>
-<img class="center" alt="epb-structure" src="/posts/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_calling_convention.png">
+<img class="center" alt="epb-structure" src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_calling_convention.png">
 <div style="text-align: center;"><p>Figure 1. x86 Stack Frame</p></div>
 <p>Following the above diagram as an example, if we have a function that takes in 3 parameters, the 3rd parameter will get pushed onto the stack first, followed by the 2nd then the 1st. 4 bytes after the address of EBP, it contains the return address after the function call.</p>
 <p>Unlike 64 bit binaries, <strong>addresses are only stored as a 4-byte value</strong>.</p>
-<p>We can actually test this out by compiling our <a href="/posts/gdb-guide-part1-basics/resources/test.c">test.c</a> program shown previously in part 1 of the tutorial, as a 32 bit ELF binary.</p>
+<p>We can actually test this out by compiling our <a href="/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c">test.c</a> program shown previously in part 1 of the tutorial, as a 32 bit ELF binary.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc -m32 test.c -o test32
 </code></pre></div><p>To practice what we have learned earlier, let us set a breakpoint on <em>func_2()</em> and print out its parameters and return address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Set the GDB configuration</span>
@@ -378,7 +387,7 @@ Bear in mind that this section will not cover ARM. Perhaps in the future, I will
  
 
 <video width=100% controls>
-    <source src="/posts/gdb-guide-part2-breakpoints-and-linux-calling-conventions/videos/x86-calling-convention-example.webm" type="video/webm">
+    <source src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/videos/x86-calling-convention-example.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
@@ -387,7 +396,7 @@ Bear in mind that this section will not cover ARM. Perhaps in the future, I will
 <p>The <a href="http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html#:~:text=Calling%20Convention&amp;text=The%20caller%20uses%20registers%20to,off%20the%20stack%20in%20order.">MIT documentation</a> on 64-bit Linux does get straight to the point but lack concrete examples. Instead, I found out this other <a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">blog post</a>
 talking about it and found it a lot more comprehensible. You could give it a read if you have the time.</p>
 <p>For those of you who just want the TLDR, refer to the diagram below.</p>
-<img class="center" alt="epb-structure" src="/posts/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_64_calling_convention.png">
+<img class="center" alt="epb-structure" src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_64_calling_convention.png">
 <div style="text-align: center;"><p>Figure 2. x86_64 Stack Frame</p></div>
 <p>At the start of the function, the following parameters will be stored in its respective registers:</p>
 <ol>
@@ -442,7 +451,7 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
  
 
 <video width=100% controls>
-    <source src="/posts/gdb-guide-part2-breakpoints-and-linux-calling-conventions/videos/x86-64-calling-convention-example.webm" type="video/webm">
+    <source src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/videos/x86-64-calling-convention-example.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
@@ -458,7 +467,7 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
 </ol>
 <h2 id="6-resources">6. Resources</h2>
 <ol>
-<li><a href="/posts/gdb-guide-part1-basics/resources/test.c">test.c</a></li>
+<li><a href="/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c">test.c</a></li>
 </ol>
 
         
@@ -484,6 +493,15 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
                 </li>
             
         
+            
+                <li class="list-group-item">
+                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">
+                        
+                        Gdb Guide Part 3 - Process Maps
+                    </a>
+                </li>
+            
+        
     </ul>
 </div>
 
@@ -502,6 +520,13 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
         
 
         <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">Gdb Guide Part 3 - Process Maps</span>
+                </a>
+            </span>
             
 
             

@@ -7,7 +7,17 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Tue, 21 Jan 2025 12:21:39 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/gdb/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 29 Jan 2025 08:58:52 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/gdb/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Gdb Guide Part 3 - Process Maps</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
+      <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
+      
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
+      <description>1. Introduction Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.
+2. Overview Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.</description>
+    </item>
+    
     <item>
       <title>GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>

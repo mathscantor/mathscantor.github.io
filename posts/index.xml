@@ -6,11 +6,77 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Wed, 29 Jan 2025 08:58:52 +0800</lastBuildDate>
+        <lastBuildDate>Wed, 05 Feb 2025 13:05:09 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
         
         <item>
-            <title>Gdb Guide Part 3 - Process Maps</title>
+            <title>GDB Guide Part 4 - Examining Memory</title>
+            <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
+            <pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
+            <description>1. Introduction Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.
+Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with eval.
+2. Examine Command (x/) To examine the process&amp;rsquo;s memory, we will always start of with the prefix x/, followed by whatever we which to examine at a particular address.</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.</p>
+<p>Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with <em>eval</em>.</p>
+<h2 id="2-examine-command-x">2. Examine Command (x/)</h2>
+<p>To examine the process&rsquo;s memory, we will always start of with the prefix <code>x/</code>, followed by whatever we which to examine at a particular address.</p>
+<h3 id="21-bytes">2.1 Bytes</h3>
+<p>This example shows you how to display 16 bytes from 0x7ffd2d856f1b.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/16bx 0x7ffd2d856f1b
+
+0x7ffd2d856f1b: 0x48    0x65    0x6c    0x6c    0x6f    0x20    0x57    0x6f
+0x7ffd2d856f23: 0x72    0x6c    0x64    0x21    0x00    0x00    0x7f    0xfb
+</code></pre></div><h3 id="22-half-words-2-bytes">2.2 Half Words (2 Bytes)</h3>
+<p>This example shows you how to display 8 half words from 0x7ffd2d856f1b.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/8hx 0x7ffd2d856f1b
+
+0x7ffd2d856f1b: 0x6548  0x6c6c  0x206f  0x6f57  0x6c72  0x2164  0x0000  0xfb7f
+</code></pre></div><h3 id="23-words-4-bytes">2.3 Words (4 Bytes)</h3>
+<p>This example shows you how to display 4 words from 0x7ffd2d856f1b.
+When dealing with 32 bit binaries, it will be useful to display the memory as a word if there is a pointer at the address of examination.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/4wx 0x7ffd2d856f1b
+
+0x7ffd2d856f1b: 0x6c6c6548      0x6f57206f      0x21646c72      0xfb7f0000
+</code></pre></div><h3 id="24-giant-words-8-bytes">2.4 Giant Words (8 Bytes)</h3>
+<p>This example shows you how to display 2 giant words from 0x7ffd2d856f1b.
+For 64 bit binaries, it will be useful to display the memory as a giant word if there is a pointer at the address of examination.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/2gx 0x7ffd2d856f1b
+
+0x7ffd2d856f1b: 0x6f57206f6c6c6548      0xfb7f000021646c72
+</code></pre></div><h3 id="25-strings">2.5 Strings</h3>
+<p>This example shows you how to display the bytes as ASCII characters. This command will iteratively convert the byte from the starting address until it hits a <code>0x00</code> byte.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s 0x7ffd2d856f1b
+
+0x7ffd2d856f1b: <span style="color:#e6db74">&#34;Hello World!&#34;</span>
+</code></pre></div><h3 id="26-instructions">2.6 Instructions</h3>
+<p>This example shows you how to display 5 instructions from the current instruction.
+Note that on x86-64, <code>$pc</code> is just an alias for <code>$rip</code>, which is the instruction pointer.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/5i $pc
+
+<span style="color:#f92672">=</span>&gt; 0x5ecd0af2e1d1 &lt;func_1+8&gt;:   sub    $0x10,%rsp
+   0x5ecd0af2e1d5 &lt;func_1+12&gt;:  mov    %rdi,-0x8<span style="color:#f92672">(</span>%rbp<span style="color:#f92672">)</span>
+   0x5ecd0af2e1d9 &lt;func_1+16&gt;:  mov    %rsi,-0x10<span style="color:#f92672">(</span>%rbp<span style="color:#f92672">)</span>
+   0x5ecd0af2e1dd &lt;func_1+20&gt;:  mov    -0x8<span style="color:#f92672">(</span>%rbp<span style="color:#f92672">)</span>,%rax
+   0x5ecd0af2e1e1 &lt;func_1+24&gt;:  mov    %rax,%rsi
+</code></pre></div><h2 id="3-creative-usage-of-eval">3. Creative usage of eval</h2>
+<p>If you want to automate your GDB script and set different sizes when examining bytes, you can do the following using <em>eval</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $num_bytes <span style="color:#f92672">=</span> <span style="color:#ae81ff">16</span>
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $addr <span style="color:#f92672">=</span> 0x7ffd2d856f1b
+<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> eval <span style="color:#e6db74">&#34;x/%dbx %p&#34;</span>, $num_bytes, $addr
+
+0x7ffd2d856f1b: 0x48    0x65    0x6c    0x6c    0x6f    0x20    0x57    0x6f
+0x7ffd2d856f23: 0x72    0x6c    0x64    0x21    0x00    0x00    0x7f    0xfb
+</code></pre></div><h2 id="4-conclusion">4. Conclusion</h2>
+<p>That is it folks. T&rsquo;was short and mundane, but I hope you found the eval usage meaningful to use in your everyday work. Gotta go rest in bed now.
+<img src="/posts/gdb-guides/gdb-guide-part4-examining-memory/images/sumikko-bedtime-loop.gif" alt="sumikko-bedtime-loop"></p>
+]]></content>
+        </item>
+        
+        <item>
+            <title>GDB Guide Part 3 - Process Maps</title>
             <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
             <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
             

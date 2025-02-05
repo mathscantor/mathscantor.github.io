@@ -7,9 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Wed, 29 Jan 2025 08:58:52 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 05 Feb 2025 13:05:09 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Gdb Guide Part 3 - Process Maps</title>
+      <title>GDB Guide Part 4 - Examining Memory</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
+      <pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
+      
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
+      <description>1. Introduction Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.
+Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with eval.
+2. Examine Command (x/) To examine the process&amp;rsquo;s memory, we will always start of with the prefix x/, followed by whatever we which to examine at a particular address.</description>
+    </item>
+    
+    <item>
+      <title>GDB Guide Part 3 - Process Maps</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
       <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
       

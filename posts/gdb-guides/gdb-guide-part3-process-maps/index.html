@@ -45,7 +45,7 @@
 <meta itemprop="description" content="1. Introduction Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.
 2. Overview Today&rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out."><meta itemprop="datePublished" content="2025-01-29T08:58:52+08:00" />
 <meta itemprop="dateModified" content="2025-01-29T08:58:52+08:00" />
-<meta itemprop="wordCount" content="768"><meta itemprop="image" content="https://mathscantor.github.io"/>
+<meta itemprop="wordCount" content="766"><meta itemprop="image" content="https://mathscantor.github.io"/>
 <meta itemprop="keywords" content="gdb,linux," />
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="https://mathscantor.github.io"/>
@@ -199,7 +199,7 @@
         <i class="fa-solid fa-clock"></i>
         4 minutes
         <i class="fa-solid fa-clipboard"></i>
-        768 Words
+        766 Words
         
       </p>
       <p>
@@ -304,7 +304,7 @@ However, I think it is also important to cover some background on dynamic and st
 <p>Thus, our test binary actually only loads <em>libc.so.6</em> and <em>ld-linux-x86-64.so.2</em> upon running.</p>
 <h2 id="4-static-executables">4. Static Executables</h2>
 <p>To compile a static executable, we will require additional GCC flags that tell the compiler to cramp all the different library functions into one single binary.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc -static -static-libgcc -static-libstdc++ test.c -o test_s
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc -static test.c -o test_s
 </code></pre></div><p>Again, we can use the <em>ldd</em> command to check that it is now a standalone executable.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ldd test_s
 

@@ -103,7 +103,7 @@ However, I think it is also important to cover some background on dynamic and st
 <p>Thus, our test binary actually only loads <em>libc.so.6</em> and <em>ld-linux-x86-64.so.2</em> upon running.</p>
 <h2 id="4-static-executables">4. Static Executables</h2>
 <p>To compile a static executable, we will require additional GCC flags that tell the compiler to cramp all the different library functions into one single binary.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc -static -static-libgcc -static-libstdc++ test.c -o test_s
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ gcc -static test.c -o test_s
 </code></pre></div><p>Again, we can use the <em>ldd</em> command to check that it is now a standalone executable.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ldd test_s
 

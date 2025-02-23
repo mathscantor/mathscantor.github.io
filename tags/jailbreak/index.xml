@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Jailbreak on Mathscantor Cybersecurity Blog</title>
+    <title>jailbreak on Mathscantor Cybersecurity Blog</title>
     <link>https://mathscantor.github.io/tags/jailbreak/</link>
-    <description>Recent content in Jailbreak on Mathscantor Cybersecurity Blog</description>
+    <description>Recent content in jailbreak on Mathscantor Cybersecurity Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
+    <language>en-us</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Fri, 03 Jan 2025 20:26:00 +0800</lastBuildDate>
-    <atom:link href="https://mathscantor.github.io/tags/jailbreak/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 03 Jan 2025 20:26:00 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/jailbreak/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Getting Root Shell Mikrotik RouterOS</title>
       <link>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</link>
       <pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
+      
       <guid>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</guid>
-      <description>1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.&#xA;For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface.</description>
+      <description>1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
+For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface.</description>
     </item>
+    
   </channel>
 </rss>

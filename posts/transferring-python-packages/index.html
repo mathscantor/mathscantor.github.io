@@ -45,10 +45,12 @@ If you are unfamiliar with Python environments, they are basically a self-contai
 <meta itemprop="description" content="1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!
 If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free."><meta itemprop="datePublished" content="2025-01-10T08:38:41+08:00" />
 <meta itemprop="dateModified" content="2025-01-10T08:38:41+08:00" />
-<meta itemprop="wordCount" content="590"><meta itemprop="image" content="https://mathscantor.github.io/" />
+<meta itemprop="wordCount" content="590"><meta itemprop="image" content="https://mathscantor.github.io"/>
 <meta itemprop="keywords" content="python,offline-package-installation," />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="Transferring Python Packages"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://mathscantor.github.io"/>
+
+<meta name="twitter:title" content="Transferring Python Packages"/>
 <meta name="twitter:description" content="1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!
 If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free."/>
 
@@ -58,10 +60,9 @@ If you are unfamiliar with Python environments, they are basically a self-contai
 <meta property="og:description" content="1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!
 If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://mathscantor.github.io/posts/transferring-python-packages/" /><meta property="og:image" content="https://mathscantor.github.io/" /><meta property="article:section" content="posts" />
+<meta property="og:url" content="https://mathscantor.github.io/posts/transferring-python-packages/" /><meta property="og:image" content="https://mathscantor.github.io"/><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2025-01-10T08:38:41+08:00" />
-<meta property="article:modified_time" content="2025-01-10T08:38:41+08:00" />
-
+<meta property="article:modified_time" content="2025-01-10T08:38:41+08:00" /><meta property="og:site_name" content="Mathscantor Cybersecurity Blog" />
 
 
 
@@ -250,7 +251,7 @@ If you are unfamiliar with Python environments, they are basically a self-contai
         
         <h2 id="1-introduction">1. Introduction</h2>
 <p>Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!</p>
-<p><img alt="sumikko-penguin-nerd-loop" src="/posts/transferring-python-packages/images/sumikko-penguin-nerd-loop.gif"></p>
+<p><img src="/posts/transferring-python-packages/images/sumikko-penguin-nerd-loop.gif" alt="sumikko-penguin-nerd-loop"></p>
 <p>If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages.
 This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.
 If you were to face conflicting python packages on the base environment, things could get extremely messy.</p>
@@ -272,58 +273,58 @@ If you were to face conflicting python packages on the base environment, things 
 </blockquote>
 <h2 id="2-installing-miniconda">2. Installing Miniconda</h2>
 <h3 id="21-windows">2.1 Windows</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>PS C:\Users\gerald&gt; curl https<span style="color:#960050;background-color:#1e0010">:</span>//repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -o miniconda.exe
-</span></span><span style="display:flex;"><span>PS C:\Users\gerald&gt; Start-Process -FilePath <span style="color:#e6db74">&#34;.\miniconda.exe&#34;</span> -ArgumentList <span style="color:#e6db74">&#34;/S&#34;</span> -Wait
-</span></span><span style="display:flex;"><span>PS C:\Users\gerald&gt; del miniconda.exe
-</span></span></code></pre></div><p>After installation, open the “Anaconda Powershell Prompt (miniconda3)”.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">PS C:\Users\gerald&gt; curl https<span style="color:#960050;background-color:#1e0010">:</span>//repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -o miniconda.exe
+PS C:\Users\gerald&gt; Start-Process -FilePath <span style="color:#e6db74">&#34;.\miniconda.exe&#34;</span> -ArgumentList <span style="color:#e6db74">&#34;/S&#34;</span> -Wait
+PS C:\Users\gerald&gt; del miniconda.exe
+</code></pre></div><p>After installation, open the “Anaconda Powershell Prompt (miniconda3)”.</p>
 <h3 id="22-linux">2.2 Linux</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@nexus:~$ mkdir -p ~/miniconda3
-</span></span><span style="display:flex;"><span>gerald@nexus:~$ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
-</span></span><span style="display:flex;"><span>gerald@nexus:~$ bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-</span></span><span style="display:flex;"><span>gerald@nexus:~$ rm ~/miniconda3/miniconda.sh
-</span></span></code></pre></div><p>After installing, close and reopen your terminal application or refresh it by running the following command:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@nexus:~$ source ~/miniconda3/bin/activate
-</span></span></code></pre></div><p>To initialize conda on all available shells, run the following command:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@nexus:~$ conda init --all
-</span></span></code></pre></div><h2 id="3-creating-python-environments-with-conda">3. Creating Python Environments with Conda</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gerald@nexus:~$ mkdir -p ~/miniconda3
+gerald@nexus:~$ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+gerald@nexus:~$ bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+gerald@nexus:~$ rm ~/miniconda3/miniconda.sh
+</code></pre></div><p>After installing, close and reopen your terminal application or refresh it by running the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gerald@nexus:~$ source ~/miniconda3/bin/activate
+</code></pre></div><p>To initialize conda on all available shells, run the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gerald@nexus:~$ conda init --all
+</code></pre></div><h2 id="3-creating-python-environments-with-conda">3. Creating Python Environments with Conda</h2>
 <p>Once you have a working setup, you should be able to see that there is a <code>(base)</code> environment in your terminal.
 The two figures below are for Windows and Linux, respectively.</p>
-<p><img alt="alt text" src="/posts/transferring-python-packages/images/miniconda_powershell.png"></p>
-<p><img alt="alt text" src="/posts/transferring-python-packages/images/miniconda_bash.png"></p>
+<p><img src="/posts/transferring-python-packages/images/miniconda_powershell.png" alt="alt text"></p>
+<p><img src="/posts/transferring-python-packages/images/miniconda_bash.png" alt="alt text"></p>
 <p>To create a new environment with basic python packages, do the following command:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> gerald@nexus:~$ conda create -n $ENVIRONMENT_NAME python<span style="color:#f92672">=</span>$PYTHON_VERSION
-</span></span></code></pre></div><h2 id="4-install-python-packages-in-environment">4. Install Python Packages in Environment</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> gerald@nexus:~$ conda create -n $ENVIRONMENT_NAME python<span style="color:#f92672">=</span>$PYTHON_VERSION
+</code></pre></div><h2 id="4-install-python-packages-in-environment">4. Install Python Packages in Environment</h2>
 <p>The following example assumes that I have created an environment called test-env. Do note
 that the Linux and Windows conda syntax is exactly the same.</p>
 <ol>
 <li>
 <p>Activate the environment</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> gerald@nexus:~$ conda activate test-env
-</span></span></code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> gerald@nexus:~$ conda activate test-env
+</code></pre></div></li>
 <li>
 <p><strong>IMPORTANT</strong> - Install conda-pack</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>test-env<span style="color:#f92672">)</span> gerald@nexus:~$ conda install conda-pack
-</span></span></code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>test-env<span style="color:#f92672">)</span> gerald@nexus:~$ conda install conda-pack
+</code></pre></div></li>
 <li>
 <p>Install whichever python package you need with <em>pip3</em></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>test-env<span style="color:#f92672">)</span> gerald@nexus:~$ pip3 install $PYTHON_PACKAGE
-</span></span></code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>test-env<span style="color:#f92672">)</span> gerald@nexus:~$ pip3 install $PYTHON_PACKAGE
+</code></pre></div></li>
 </ol>
 <h2 id="5-transferring-python-environments-with-conda">5. Transferring Python Environments with Conda</h2>
 <h3 id="51-packing-the-environment">5.1 Packing the Environment</h3>
 <p>While the environment is still activated, run the following command to archive this environment:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>test-env<span style="color:#f92672">)</span> gerald@nexus:~$ conda-pack
-</span></span></code></pre></div><p>On success, this should give you a <code>.tar.gz</code> archive of the environment.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>test-env<span style="color:#f92672">)</span> gerald@nexus:~$ conda-pack
+</code></pre></div><p>On success, this should give you a <code>.tar.gz</code> archive of the environment.</p>
 <h3 id="52-unpacking-environment-on-target-machine">5.2 Unpacking Environment on Target Machine</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@target:~$ mkdir test-env
-</span></span><span style="display:flex;"><span>user@target:~$ tar -xzf test-env.tar.gz -C test-env
-</span></span><span style="display:flex;"><span>user@target:~$ source test-env/bin/activate
-</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>test-env<span style="color:#f92672">)</span> user@target:~$ conda-unpack
-</span></span></code></pre></div><p>If everything has been done properly up to this stage, you will have a working python environment with all your packages in your target machine.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">user@target:~$ mkdir test-env
+user@target:~$ tar -xzf test-env.tar.gz -C test-env
+user@target:~$ source test-env/bin/activate
+<span style="color:#f92672">(</span>test-env<span style="color:#f92672">)</span> user@target:~$ conda-unpack
+</code></pre></div><p>If everything has been done properly up to this stage, you will have a working python environment with all your packages in your target machine.</p>
 <h2 id="6-conclusion">6. Conclusion</h2>
 <p>I have been using this workaround for quite some time now and while doing this write-up, I realized that conda has a new feature where you can specify the target platform when creating a new environment. The example shown in their official documentation is as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ conda create --platform osx-64 --name python-x64 python
-</span></span></code></pre></div><p>I have yet to test this new feature out. Perhaps I will do a follow-up post soon to explore this new workflow.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ conda create --platform osx-64 --name python-x64 python
+</code></pre></div><p>I have yet to test this new feature out. Perhaps I will do a follow-up post soon to explore this new workflow.
 Adios for now!</p>
 <h2 id="7-references">7. References</h2>
 <ol>
@@ -488,7 +489,7 @@ Adios for now!</p>
 
 
 
-<script type="text/javascript" src="/bundle.min.7614b61975bea337fbd225d7849a29679d36a6e3585e31c5d3fbc8d49f8df27404da3a8e3bea32e96bc8790c16b228ed563cfb91bbcda56ec698dcb95f4306c7.js" integrity="sha512-dhS2GXW&#43;ozf70iXXhJopZ502puNYXjHF0/vI1J&#43;N8nQE2jqOO&#43;oy6WvIeQwWsijtVjz7kbvNpW7GmNy5X0MGxw=="></script>
+<script type="text/javascript" src="/bundle.min.10d839adb239f51bf25fafe01de77c4c8051b60820650f0437db4ba8524c169165e6d0af642adcdd2a86b33443881a6b4ec9a2590c28c32bba079c00ff8ce1a4.js" integrity="sha512-ENg5rbI59RvyX6/gHed8TIBRtgggZQ8EN9tLqFJMFpFl5tCvZCrc3SqGszRDiBprTsmiWQwowyu6B5wA/4zhpA=="></script>
 
 
 

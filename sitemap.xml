@@ -3,27 +3,30 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://mathscantor.github.io/tags/gdb/</loc>
-    <lastmod>2025-02-05T13:05:09+08:00</lastmod>
+    <lastmod>2025-02-23T13:08:30+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/series/gdb-guide/</loc>
-    <lastmod>2025-02-05T13:05:09+08:00</lastmod>
+    <lastmod>2025-02-23T13:08:30+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</loc>
-    <lastmod>2025-02-05T13:05:09+08:00</lastmod>
+    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</loc>
+    <lastmod>2025-02-23T13:08:30+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/tags/linux/</loc>
-    <lastmod>2025-02-05T13:05:09+08:00</lastmod>
+    <lastmod>2025-02-23T13:08:30+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/</loc>
-    <lastmod>2025-02-05T13:05:09+08:00</lastmod>
+    <lastmod>2025-02-23T13:08:30+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/</loc>
-    <lastmod>2025-02-05T13:05:09+08:00</lastmod>
+    <lastmod>2025-02-23T13:08:30+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/series/</loc>
-    <lastmod>2025-02-05T13:05:09+08:00</lastmod>
+    <lastmod>2025-02-23T13:08:30+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/tags/</loc>
+    <lastmod>2025-02-23T13:08:30+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</loc>
     <lastmod>2025-02-05T13:05:09+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</loc>

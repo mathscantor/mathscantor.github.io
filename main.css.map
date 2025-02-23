@@ -1,7 +1,7 @@
 {
 	"version": 3,
 	"file": "main.css",
-	"sourceRoot": "/home/gerald/repositories/Blog/hugo-blog/staging.mathscantor.github.io",
+	"sourceRoot": "/home/gerald/Desktop/Repositories/hugo-blog/staging.mathscantor.github.io",
 	"sources": [
 		"themes/hello-4s3ti/assets/scss/main.scss",
 		"themes/hello-4s3ti/assets/scss/_normalize.scss",

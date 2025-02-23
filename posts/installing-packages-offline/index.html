@@ -47,12 +47,10 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
 For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.
 Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems."><meta itemprop="datePublished" content="2025-01-05T11:45:27+08:00" />
 <meta itemprop="dateModified" content="2025-01-05T11:45:27+08:00" />
-<meta itemprop="wordCount" content="872"><meta itemprop="image" content="https://mathscantor.github.io"/>
+<meta itemprop="wordCount" content="872"><meta itemprop="image" content="https://mathscantor.github.io/" />
 <meta itemprop="keywords" content="linux,ubuntu,centos,offline-package-installation," />
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://mathscantor.github.io"/>
-
-<meta name="twitter:title" content="Installing Linux Packages Offline"/>
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="Installing Linux Packages Offline"/>
 <meta name="twitter:description" content="1. Introduction Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.
 For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.
 Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems."/>
@@ -64,9 +62,10 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
 For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.
 Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://mathscantor.github.io/posts/installing-packages-offline/" /><meta property="og:image" content="https://mathscantor.github.io"/><meta property="article:section" content="posts" />
+<meta property="og:url" content="https://mathscantor.github.io/posts/installing-packages-offline/" /><meta property="og:image" content="https://mathscantor.github.io/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2025-01-05T11:45:27+08:00" />
-<meta property="article:modified_time" content="2025-01-05T11:45:27+08:00" /><meta property="og:site_name" content="Mathscantor Cybersecurity Blog" />
+<meta property="article:modified_time" content="2025-01-05T11:45:27+08:00" />
+
 
 
 
@@ -265,16 +264,16 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
 <h3 id="21-editing-apt-source">2.1 Editing Apt Source</h3>
 <p>The first thing you want to do is to edit /etc/apt/sources.list and uncomment the lines that start with <code>deb-src</code>.</p>
 <p>Once you are done, your /etc/apt/sources.list should look something like this:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> gerald@nexus:~$ cat /etc/apt/sources.list
-
-<span style="color:#75715e">#deb cdrom:[Ubuntu 22.04.1 LTS _Jammy Jellyfish_ - Release amd64 (20220809.1)]/ jammy main restricted</span>
-
-<span style="color:#75715e"># See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to</span>
-<span style="color:#75715e"># newer versions of the distribution.</span>
-deb http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
-deb-src http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
-....
-</code></pre></div><blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> gerald@nexus:~$ cat /etc/apt/sources.list
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#deb cdrom:[Ubuntu 22.04.1 LTS _Jammy Jellyfish_ - Release amd64 (20220809.1)]/ jammy main restricted</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># newer versions of the distribution.</span>
+</span></span><span style="display:flex;"><span>deb http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
+</span></span><span style="display:flex;"><span>deb-src http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
+</span></span><span style="display:flex;"><span>....
+</span></span></code></pre></div><blockquote>
 <p>💡 Tip</p>
 <ul>
 <li>Depending on the Ubuntu version you are using, the distro name will be different. In my case, my Ubuntu internet-connected machine is 22.04, and hence mine is jammy.</li>
@@ -284,37 +283,37 @@ deb-src http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
 <ol>
 <li>
 <p>Make a new directory to save your packages</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">user@internet-connected:~$ mkdir $HOME/Downloads/xfer
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@internet-connected:~$ mkdir $HOME/Downloads/xfer
+</span></span></code></pre></div></li>
 <li>
 <p>Change directory</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">user@internet-connected:~$ cd $HOME/Downloads/xfer
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@internet-connected:~$ cd $HOME/Downloads/xfer
+</span></span></code></pre></div></li>
 <li>
 <p>Download package with its dependencies</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">user@internet-connected:~/Downloads/xfer$ apt-get download <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">$(</span>apt-cache depends --recurse --no-recommends <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>--no-suggests --no-conflicts --no-breaks <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>--no-replaces --no-enhances <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>$PACKAGE_NAME | grep <span style="color:#e6db74">&#34;^\w&#34;</span><span style="color:#66d9ef">)</span>
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@internet-connected:~/Downloads/xfer$ apt-get download <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span><span style="color:#66d9ef">$(</span>apt-cache depends --recurse --no-recommends <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>--no-suggests --no-conflicts --no-breaks <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>--no-replaces --no-enhances <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>$PACKAGE_NAME | grep <span style="color:#e6db74">&#34;^\w&#34;</span><span style="color:#66d9ef">)</span>
+</span></span></code></pre></div></li>
 </ol>
 <h3 id="23-transfer-and-install-on-offline-machine">2.3 Transfer and Install on Offline Machine</h3>
 <p>Now that you have the main package with its dependencies, use whichever method you prefer to transfer these packages over to the offline machine.</p>
 <p>Then, just run the following command to install all packages. Do not that this is an extremely lazy way of doing things and it does not regard the order in which the packages should be installed.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">user@standalone:~/Downloads/xfer$ sudo dpkg -i *.deb
-</code></pre></div><p>If the above command does not install everything the first time due to the wrong order of dependencies being installed, just run it a few more times until you see that there&rsquo;s no error. It&rsquo;s abit stupid&hellip;I know. But if it works, it works.</p>
-<p><img src="/posts/installing-packages-offline/images/sumikko-gurashi-penguin-throw-book.gif" alt="sumikko-gurashi-penguin-throw-book"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@standalone:~/Downloads/xfer$ sudo dpkg -i *.deb
+</span></span></code></pre></div><p>If the above command does not install everything the first time due to the wrong order of dependencies being installed, just run it a few more times until you see that there&rsquo;s no error. It&rsquo;s abit stupid&hellip;I know. But if it works, it works.</p>
+<p><img alt="sumikko-gurashi-penguin-throw-book" src="/posts/installing-packages-offline/images/sumikko-gurashi-penguin-throw-book.gif"></p>
 <h3 id="24--bonus----extracting-libraries-and-binaries">2.4 ⭐ BONUS -  Extracting Libraries and Binaries</h3>
 <p>Assuming you just want some libraries from the <code>.deb</code> package, you can make use of <code>dpkg-deb</code> extraction.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># SYSROOT_PATH refers to the directory to extract to.</span>
-$ dpkg-deb -x $PACKAGE_NAME.deb $SYSROOT_PATH
-</code></pre></div><p>Here&rsquo;s also a one liner to extract all <code>.deb</code> packages in the same directory for the lazy people out there like myself.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ DEBS<span style="color:#f92672">=(</span><span style="color:#66d9ef">$(</span>ls | grep <span style="color:#e6db74">&#34;.deb&#34;</span><span style="color:#66d9ef">)</span><span style="color:#f92672">)</span>; <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">for</span> package in <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>DEBS[@]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>; <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">do</span> dpkg-deb -x $package $SYSROOT_PATH; <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">done</span>
-</code></pre></div><h2 id="3-centos">3. CentOS</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># SYSROOT_PATH refers to the directory to extract to.</span>
+</span></span><span style="display:flex;"><span>$ dpkg-deb -x $PACKAGE_NAME.deb $SYSROOT_PATH
+</span></span></code></pre></div><p>Here&rsquo;s also a one liner to extract all <code>.deb</code> packages in the same directory for the lazy people out there like myself.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ DEBS<span style="color:#f92672">=(</span><span style="color:#66d9ef">$(</span>ls | grep <span style="color:#e6db74">&#34;.deb&#34;</span><span style="color:#66d9ef">)</span><span style="color:#f92672">)</span>; <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span><span style="color:#66d9ef">for</span> package in <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>DEBS[@]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>; <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span><span style="color:#66d9ef">do</span> dpkg-deb -x $package $SYSROOT_PATH; <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span><span style="color:#66d9ef">done</span>
+</span></span></code></pre></div><h2 id="3-centos">3. CentOS</h2>
 <p>If your CentOS Version has reached EOL (End of Life), you will need to update the remote yum repository URLs. Otherwise, you can skip the steps in sub section 3.1.</p>
 <h3 id="31-editing-yum-source">3.1 Editing Yum Source</h3>
 <p>For CentOS Versions that have reached EOL, you may find all archived packages in the following 2 URLs:</p>
@@ -327,31 +326,31 @@ $ dpkg-deb -x $PACKAGE_NAME.deb $SYSROOT_PATH
 <ol>
 <li>
 <p>Edit /etc/yum.repos.d/CentOS-Linux-AppStream.repo:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ini" data-lang="ini"><span style="color:#a6e22e">...</span>
-<span style="color:#66d9ef">[appstream]</span>
-<span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">CentOS Linux $releasever - AppStream</span>
-<span style="color:#75715e">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=AppStream&amp;infra=$infra</span>
-<span style="color:#a6e22e">baseurl</span><span style="color:#f92672">=</span><span style="color:#e6db74">http://archive.kernel.org/centos-vault/8.5.2111/AppStream/$basearch/os/</span>
-<span style="color:#a6e22e">...</span>
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#a6e22e">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">[appstream]</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">CentOS Linux $releasever - AppStream</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=AppStream&amp;infra=$infra</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">baseurl</span><span style="color:#f92672">=</span><span style="color:#e6db74">http://archive.kernel.org/centos-vault/8.5.2111/AppStream/$basearch/os/</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">...</span>
+</span></span></code></pre></div></li>
 <li>
 <p>Edit /etc/yum.repos.d/CentOS-Linux-BaseOS.repo</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ini" data-lang="ini"><span style="color:#a6e22e">...</span>
-<span style="color:#66d9ef">[baseos]</span>
-<span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">CentOS Linux $releasever - BaseOS</span>
-<span style="color:#75715e">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=BaseOS&amp;infra=$infra</span>
-<span style="color:#a6e22e">baseurl</span><span style="color:#f92672">=</span><span style="color:#e6db74">http://archive.kernel.org/centos-vault/8.5.2111/BaseOS/$basearch/os/</span>
-<span style="color:#a6e22e">...</span>
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#a6e22e">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">[baseos]</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">CentOS Linux $releasever - BaseOS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=BaseOS&amp;infra=$infra</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">baseurl</span><span style="color:#f92672">=</span><span style="color:#e6db74">http://archive.kernel.org/centos-vault/8.5.2111/BaseOS/$basearch/os/</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">...</span>
+</span></span></code></pre></div></li>
 <li>
 <p>Edit /etc/yum.repos.d/CentOS-Linux-Extras.repo</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ini" data-lang="ini"><span style="color:#a6e22e">...</span>
-<span style="color:#66d9ef">[extras]</span>
-<span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">CentOS Linux $releasever - Extras</span>
-<span style="color:#75715e">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=extras&amp;infra=$infra</span>
-<span style="color:#a6e22e">baseurl</span><span style="color:#f92672">=</span><span style="color:#e6db74">http://archive.kernel.org/centos-vault/8.5.2111/extras/$basearch/os/</span>
-<span style="color:#a6e22e">...</span>
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#a6e22e">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">[extras]</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">name</span><span style="color:#f92672">=</span><span style="color:#e6db74">CentOS Linux $releasever - Extras</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&amp;arch=$basearch&amp;repo=extras&amp;infra=$infra</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">baseurl</span><span style="color:#f92672">=</span><span style="color:#e6db74">http://archive.kernel.org/centos-vault/8.5.2111/extras/$basearch/os/</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">...</span>
+</span></span></code></pre></div></li>
 </ol>
 <p>Once you are done, do a <code>dnf update</code> / <code>yum update</code> to check that the remote reposiotry is working properly.</p>
 <h3 id="32-downloading-main-package-with-dependencies">3.2 Downloading Main Package with Dependencies</h3>
@@ -359,46 +358,46 @@ $ dpkg-deb -x $PACKAGE_NAME.deb $SYSROOT_PATH
 <h4 id="321-using-dnf">3.2.1 Using dnf</h4>
 <ol>
 <li>Install dnf-plugins-core (if not already installed)
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>user@internet-connected ~<span style="color:#f92672">]</span>$ sudo dnf install dnf-plugins-core
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>user@internet-connected ~<span style="color:#f92672">]</span>$ sudo dnf install dnf-plugins-core
+</span></span></code></pre></div></li>
 <li>Download the package together with its dependencies
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>user@internet-connected ~<span style="color:#f92672">]</span>$ dnf download --resolve <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>--destdir $HOME/Downloads/xfer <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>$PACKAGE_NAME
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>user@internet-connected ~<span style="color:#f92672">]</span>$ dnf download --resolve <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>--destdir $HOME/Downloads/xfer <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>$PACKAGE_NAME
+</span></span></code></pre></div></li>
 </ol>
 <h4 id="322-using-yum">3.2.2 Using yum</h4>
 <ol>
 <li>Install yum-utils (if not already installed)
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>user@internet-connected ~<span style="color:#f92672">]</span>$ sudo yum install yum-utils
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>user@internet-connected ~<span style="color:#f92672">]</span>$ sudo yum install yum-utils
+</span></span></code></pre></div></li>
 <li>Download the package together with its dependencies
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>user@internet-connected ~<span style="color:#f92672">]</span>$ yumdownloader --resolve <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>--destdir $HOME/Downloads/xfer <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>$PACKAGE_NAME
-</code></pre></div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>user@internet-connected ~<span style="color:#f92672">]</span>$ yumdownloader --resolve <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>--destdir $HOME/Downloads/xfer <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>$PACKAGE_NAME
+</span></span></code></pre></div></li>
 </ol>
 <h3 id="33-transfer-and-install-on-offline-machine">3.3 Transfer and Install on Offline Machine</h3>
 <p>You can use either <code>dnf</code> or <code>yum</code> to install your packages.</p>
 <h4 id="331-using-dnf">3.3.1 Using dnf</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>user@standalone ~<span style="color:#f92672">]</span>$ sudo dnf localinstall *.rpm
-</code></pre></div><h4 id="332-using-yum">3.3.2 Using yum</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>user@standalone ~<span style="color:#f92672">]</span>$ sudo yum localinstall *.rpm
-</code></pre></div><h3 id="34--bonus----extracting-libraries-and-binaries">3.4 ⭐ BONUS -  Extracting Libraries and Binaries</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>user@standalone ~<span style="color:#f92672">]</span>$ sudo dnf localinstall *.rpm
+</span></span></code></pre></div><h4 id="332-using-yum">3.3.2 Using yum</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>user@standalone ~<span style="color:#f92672">]</span>$ sudo yum localinstall *.rpm
+</span></span></code></pre></div><h3 id="34--bonus----extracting-libraries-and-binaries">3.4 ⭐ BONUS -  Extracting Libraries and Binaries</h3>
 <p>Assuming you just want some libraries from the <code>.rpm</code> package, you can make use of
 <code>rpm2cpio</code> and <code>cpio</code> for extraction.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># SYSROOT_PATH refers to the directory to extract to.</span>
-<span style="color:#f92672">[</span>user@localhost ~<span style="color:#f92672">]</span>$ rpm2cpio $PACKAGE_NAME.rpm <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>| <span style="color:#f92672">(</span>cd $SYSROOT_PATH <span style="color:#f92672">&amp;&amp;</span> cpio -idmv<span style="color:#f92672">)</span>
-</code></pre></div><p>Here&rsquo;s also a one liner to extract all <code>.rpm</code> packages in the same directory for the lazy people out there like myself.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ RPMS<span style="color:#f92672">=(</span><span style="color:#66d9ef">$(</span>ls | grep <span style="color:#e6db74">&#34;.rpm&#34;</span><span style="color:#66d9ef">)</span><span style="color:#f92672">)</span>; <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">for</span> package in <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>RPMS[@]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>; <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">do</span> rpm2cpio $package <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span>| <span style="color:#f92672">(</span>cd $SYSROOT_PATH <span style="color:#f92672">&amp;&amp;</span> cpio -idmv<span style="color:#f92672">)</span>; <span style="color:#ae81ff">\
-</span><span style="color:#ae81ff"></span><span style="color:#66d9ef">done</span>
-</code></pre></div><h2 id="4-conclusion">4. Conclusion</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># SYSROOT_PATH refers to the directory to extract to.</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>user@localhost ~<span style="color:#f92672">]</span>$ rpm2cpio $PACKAGE_NAME.rpm <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>| <span style="color:#f92672">(</span>cd $SYSROOT_PATH <span style="color:#f92672">&amp;&amp;</span> cpio -idmv<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>Here&rsquo;s also a one liner to extract all <code>.rpm</code> packages in the same directory for the lazy people out there like myself.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ RPMS<span style="color:#f92672">=(</span><span style="color:#66d9ef">$(</span>ls | grep <span style="color:#e6db74">&#34;.rpm&#34;</span><span style="color:#66d9ef">)</span><span style="color:#f92672">)</span>; <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span><span style="color:#66d9ef">for</span> package in <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>RPMS[@]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>; <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span><span style="color:#66d9ef">do</span> rpm2cpio $package <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>| <span style="color:#f92672">(</span>cd $SYSROOT_PATH <span style="color:#f92672">&amp;&amp;</span> cpio -idmv<span style="color:#f92672">)</span>; <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span><span style="color:#66d9ef">done</span>
+</span></span></code></pre></div><h2 id="4-conclusion">4. Conclusion</h2>
 <p>If you have made it this far, congratulations!
-<img src="/posts/installing-packages-offline/images/sumikko-gurashi-party-popper.gif" alt="sumikko-gurashi"></p>
+<img alt="sumikko-gurashi" src="/posts/installing-packages-offline/images/sumikko-gurashi-party-popper.gif"></p>
 <p>I hope you learnt something useful today and if this works like a charm for you, you are always welcome to come back to reference these set of instructions for your future use. Cheers and have a nice day!</p>
 
         
@@ -558,7 +557,7 @@ $ dpkg-deb -x $PACKAGE_NAME.deb $SYSROOT_PATH
 
 
 
-<script type="text/javascript" src="/bundle.min.10d839adb239f51bf25fafe01de77c4c8051b60820650f0437db4ba8524c169165e6d0af642adcdd2a86b33443881a6b4ec9a2590c28c32bba079c00ff8ce1a4.js" integrity="sha512-ENg5rbI59RvyX6/gHed8TIBRtgggZQ8EN9tLqFJMFpFl5tCvZCrc3SqGszRDiBprTsmiWQwowyu6B5wA/4zhpA=="></script>
+<script type="text/javascript" src="/bundle.min.7614b61975bea337fbd225d7849a29679d36a6e3585e31c5d3fbc8d49f8df27404da3a8e3bea32e96bc8790c16b228ed563cfb91bbcda56ec698dcb95f4306c7.js" integrity="sha512-dhS2GXW&#43;ozf70iXXhJopZ502puNYXjHF0/vI1J&#43;N8nQE2jqOO&#43;oy6WvIeQwWsijtVjz7kbvNpW7GmNy5X0MGxw=="></script>
 
 
 

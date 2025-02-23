@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="">
+<meta name="description" content="1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
+2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along." />
+<meta name="keywords" content=", gdb, linux" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="dark" />
+<link rel="canonical" href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/" />
+
+
+    <title>
+        
+            GDB Guide Part 5 - Stepping :: Mathscantor Cybersecurity Blog  — A simple theme for Hugo
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="/main.16b779fbf812b89d393e90eeb1c7da7995d46983a2667880515089166ee47486.css">
+
+
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="GDB Guide Part 5 - Stepping">
+<meta itemprop="description" content="1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
+2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along."><meta itemprop="datePublished" content="2025-02-23T13:08:30+08:00" />
+<meta itemprop="dateModified" content="2025-02-23T13:08:30+08:00" />
+<meta itemprop="wordCount" content="738"><meta itemprop="image" content="https://mathscantor.github.io/" />
+<meta itemprop="keywords" content="gdb,linux," />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="GDB Guide Part 5 - Stepping"/>
+<meta name="twitter:description" content="1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
+2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along."/>
+
+
+
+    <meta property="og:title" content="GDB Guide Part 5 - Stepping" />
+<meta property="og:description" content="1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
+2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/" /><meta property="og:image" content="https://mathscantor.github.io/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-02-23T13:08:30+08:00" />
+<meta property="article:modified_time" content="2025-02-23T13:08:30+08:00" />
+
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2025-02-23 13:08:30 &#43;0800 &#43;08" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span data-pagefind-ignore class="logo__text">Be You Cat, or Mouse?</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner">
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/posts/">
+                        Posts
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/tags/">
+                        Tags
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/series/">
+                        Series
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="https://github.com/mathscantor">
+                        Projects
+                    </a>
+                </li>
+            </div>
+            
+        
+
+    
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+                <span class="theme-toggle not-selectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+   <path d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+   3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+   13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"/>
+ </svg></span>
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+
+  <main class="post">
+    
+    <link href="/posts/css/toc.css" rel="stylesheet">
+    <aside id="sticky-toc">
+      <div class="toc-title">Table of Contents</div>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-introduction">1. Introduction</a></li>
+    <li><a href="#2-example-program">2. Example Program</a></li>
+    <li><a href="#2-stepping-in">2. Stepping In</a></li>
+    <li><a href="#3-stepping-over">3. Stepping Over</a></li>
+    <li><a href="#4-stepping-out">4. Stepping Out</a></li>
+    <li><a href="#5-conclusion">5. Conclusion</a></li>
+    <li><a href="#6-resources">6. Resources</a></li>
+  </ul>
+</nav>
+    </aside>
+    
+
+    <div class="post-info">
+      <p>
+        <i class="fa-solid fa-clock"></i>
+        4 minutes
+        <i class="fa-solid fa-clipboard"></i>
+        738 Words
+        
+      </p>
+      <p>
+        <i class="fa-solid fa-calendar-days"></i>
+        
+          2025-02-23 13:08
+        
+
+         
+          
+        
+      </p>
+      <p>
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://mathscantor.github.io/tags/gdb/">gdb</a></span>
+        <span class="tag"><a href="https://mathscantor.github.io/tags/linux/">linux</a></span>
+        
+    </p>
+
+      
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">GDB Guide Part 5 - Stepping</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <hr>
+        
+          
+<div>
+    <h4>This post is part of a series.</h4>
+    <ul class="list-group">
+        
+    </ul>
+</div>
+
+          <hr>
+        
+        <h2 id="1-introduction">1. Introduction</h2>
+<p>This part of the guide will demonstrate to you the differences between stepping in, over and out.
+In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples
+I provide will only be for stepping through instructions and not source lines.</p>
+<h2 id="2-example-program">2. Example Program</h2>
+<p>For this part of the tutorial, either compile <a href="/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise.c">stepping-exercise.c</a> or download the static binary <a href="/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise">stepping-exercise</a> to follow along.</p>
+<h2 id="2-stepping-in">2. Stepping In</h2>
+<p>To step through one instruction at a time, the command to use will be <code>stepi / si</code>.
+For more information, see the help usage of <code>stepi / si</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help si
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>stepi, si
+</span></span><span style="display:flex;"><span>Step one instruction exactly.
+</span></span><span style="display:flex;"><span>Usage: stepi <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
+</span></span></code></pre></div><p>The following example shows the relevant commands for stepping into 5 instructions after we hit the breakpoint at the start of <em>fib_num()</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b fib_num
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x4018bd
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Run the program and enter any number</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
+</span></span><span style="display:flex;"><span>Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Breakpoint 1, 0x00000000004018bd in fib_num <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect 10 instructions from the current instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/10i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x4018bd &lt;fib_num+8&gt;:        mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,edi
+</span></span><span style="display:flex;"><span>   0x4018c0 &lt;fib_num+11&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x10<span style="color:#f92672">]</span>,0x0
+</span></span><span style="display:flex;"><span>   0x4018c7 &lt;fib_num+18&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0xc<span style="color:#f92672">]</span>,0x1
+</span></span><span style="display:flex;"><span>   0x4018ce &lt;fib_num+25&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x8<span style="color:#f92672">]</span>,0x0
+</span></span><span style="display:flex;"><span>   0x4018d5 &lt;fib_num+32&gt;:       cmp    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,0x0
+</span></span><span style="display:flex;"><span>   0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
+</span></span><span style="display:flex;"><span>   0x4018db &lt;fib_num+38&gt;:       mov    eax,DWORD PTR <span style="color:#f92672">[</span>rbp-0x10<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>   0x4018de &lt;fib_num+41&gt;:       jmp    0x40191a &lt;fib_num+101&gt;
+</span></span><span style="display:flex;"><span>   0x4018e0 &lt;fib_num+43&gt;:       cmp    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,0x1
+</span></span><span style="display:flex;"><span>   0x4018e4 &lt;fib_num+47&gt;:       jne    0x4018eb &lt;fib_num+54&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Step into 5 instructions</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> si <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span>0x00000000004018d9 in fib_num <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect the current instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
+</span></span></code></pre></div><h2 id="3-stepping-over">3. Stepping Over</h2>
+<p>Stepping over is slightly different from stepping as it treats a function/subroutine call as one instruction. To step over instructions, the command to use is <code>nexti / ni</code>.
+To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help ni
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>nexti, ni
+</span></span><span style="display:flex;"><span>Step one instruction, but proceed through subroutine calls.
+</span></span><span style="display:flex;"><span>Usage: nexti <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
+</span></span></code></pre></div><p>The following example shows the relevant commands for stepping over the fib_num call after we hit the breakpoint at the function call to <em>fib_num()</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Diassemble main to find the offset of the call to fib_num()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disass main
+</span></span><span style="display:flex;"><span>Dump of assembler code <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">function</span> main:
+</span></span><span style="display:flex;"><span>   ...
+</span></span><span style="display:flex;"><span>   0x0000000000401959 &lt;+61&gt;:    mov    rdi,rax
+</span></span><span style="display:flex;"><span>   0x000000000040195c &lt;+64&gt;:    mov    eax,0x0
+</span></span><span style="display:flex;"><span>   0x0000000000401961 &lt;+69&gt;:    call   0x404e00 &lt;__isoc99_scanf&gt;
+</span></span><span style="display:flex;"><span>   0x0000000000401966 &lt;+74&gt;:    mov    eax,DWORD PTR <span style="color:#f92672">[</span>rbp-0xc<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>   0x0000000000401969 &lt;+77&gt;:    mov    edi,eax
+</span></span><span style="display:flex;"><span>   0x000000000040196b &lt;+79&gt;:    call   0x4018b5 &lt;fib_num&gt;
+</span></span><span style="display:flex;"><span>   0x0000000000401970 &lt;+84&gt;:    mov    esi,eax
+</span></span><span style="display:flex;"><span>   ...
+</span></span><span style="display:flex;"><span>End of assembler dump.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Set a breakpoint at the call instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 79<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x40196b
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Run the program and enter any number</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
+</span></span><span style="display:flex;"><span>Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Breakpoint 1, 0x000000000040196b in main <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect 5 instructions from the current instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/5i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x40196b &lt;main+79&gt;:  call   0x4018b5 &lt;fib_num&gt;
+</span></span><span style="display:flex;"><span>   0x401970 &lt;main+84&gt;:  mov    esi,eax
+</span></span><span style="display:flex;"><span>   0x401972 &lt;main+86&gt;:  lea    rax,<span style="color:#f92672">[</span>rip+0x9b6d1<span style="color:#f92672">]</span>        <span style="color:#75715e"># 0x49d04a</span>
+</span></span><span style="display:flex;"><span>   0x401979 &lt;main+93&gt;:  mov    rdi,rax
+</span></span><span style="display:flex;"><span>   0x40197c &lt;main+96&gt;:  mov    eax,0x0
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Current instruction is after fib_num() call.</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
+</span></span></code></pre></div><h2 id="4-stepping-out">4. Stepping Out</h2>
+<p>The last method of stepping is to execute everything in the current function and return back to the caller. To do so, use the
+<code>finish</code> command. To see more information on <code>finish</code>, refer to the help usage.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help finish
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>finish, fin
+</span></span><span style="display:flex;"><span>Execute <span style="color:#66d9ef">until</span> selected stack frame returns.
+</span></span><span style="display:flex;"><span>Usage: finish
+</span></span><span style="display:flex;"><span>Upon <span style="color:#66d9ef">return</span>, the value returned is printed and put in the value history.
+</span></span></code></pre></div><p>The following example shows the relevant commands for stepping out of the <em>fib_num()</em> function and getting its return value.
+The</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b fib_num
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x4018bd
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
+</span></span><span style="display:flex;"><span>Starting program: /home/gerald/Desktop/Repositories/hugo-blog/staging.mathscantor.github.io/static/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise 
+</span></span><span style="display:flex;"><span>Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Breakpoint 1, 0x00000000004018bd in fib_num <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> finish
+</span></span><span style="display:flex;"><span>Run till exit from <span style="color:#75715e">#0  0x00000000004018bd in fib_num ()</span>
+</span></span><span style="display:flex;"><span>0x0000000000401970 in main <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># See current instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Get the return value of fib_num()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $rax
+</span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>
+</span></span></code></pre></div><h2 id="5-conclusion">5. Conclusion</h2>
+<p>Now that you have made it this far, you have mastered the basics of GDB! In the next few guides, I will be going through more advanced techniques to achieve greater efficiency in dynamic analysis through automation.</p>
+<p>Stay safe and healthy folks!</p>
+<h2 id="6-resources">6. Resources</h2>
+<ol>
+<li><a href="/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise.c">stepping-exercise.c</a></li>
+<li><a href="/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise">stepping-exercise</a></li>
+</ol>
+
+        
+          <hr>
+          
+<div>
+    <h4>This post is part of a series.</h4>
+    <ul class="list-group">
+        
+    </ul>
+</div>
+
+        
+      </div>
+    </article>
+
+    <div class="post-info">
+      
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+
+            
+            <span class="button next">
+                <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">
+                    <span class="button__text">GDB Guide Part 4 - Examining Memory</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+    </div>
+      <div class="sharing-buttons">
+        
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f" target="_blank" rel="noopener" aria-label="" title="Share on facebook">
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f" target="_blank" rel="noopener" aria-label="" title="Share on twitter">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small">
+      <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=GDB%20Guide%20Part%205%20-%20Stepping&amp;caption=GDB%20Guide%20Part%205%20-%20Stepping&amp;canonicalUrl=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f" target="_blank" rel="noopener" aria-label="" title="Share on tumblr">
+  <div class="resp-sharing-button resp-sharing-button--tumblr resp-sharing-button--small">
+    <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.178l.011.002z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=GDB%20Guide%20Part%205%20-%20Stepping&amp;body=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f" target="_self" rel="noopener" aria-label="" title="Share via email">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://pinterest.com/pin/create/button/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f&amp;media=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f;description=GDB%20Guide%20Part%205%20-%20Stepping" target="_blank" rel="noopener" aria-label="" title="Share on pinterest">
+  <div class="resp-sharing-button resp-sharing-button--pinterest resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f&amp;title=GDB%20Guide%20Part%205%20-%20Stepping&amp;summary=GDB%20Guide%20Part%205%20-%20Stepping&amp;source=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f" target="_blank" rel="noopener" aria-label="" title="Share on linkedin">
+  <div class="resp-sharing-button resp-sharing-button--linkedin resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f&amp;resubmit=true&amp;title=GDB%20Guide%20Part%205%20-%20Stepping" target="_blank" rel="noopener" aria-label="" title="Share on reddit">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.xing.com/app/user?op=share;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f;title=GDB%20Guide%20Part%205%20-%20Stepping" target="_blank" rel="noopener" aria-label="" title="Share on xing">
+  <div class="resp-sharing-button resp-sharing-button--xing resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.188 0c-.517 0-.741.325-.927.66 0 0-7.455 13.224-7.702 13.657.015.024 4.919 9.023 4.919 9.023.17.308.436.66.967.66h3.454c.211 0 .375-.078.463-.22.089-.151.089-.346-.009-.536l-4.879-8.916c-.004-.006-.004-.016 0-.022L22.139.756c.095-.191.097-.387.006-.535C22.056.078 21.894 0 21.686 0h-3.498zM3.648 4.74c-.211 0-.385.074-.473.216-.09.149-.078.339.02.531l2.34 4.05c.004.01.004.016 0 .021L1.86 16.051c-.099.188-.093.381 0 .529.085.142.239.234.45.234h3.461c.518 0 .766-.348.945-.667l3.734-6.609-2.378-4.155c-.172-.315-.434-.659-.962-.659H3.648v.016z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="whatsapp://send?text=GDB%20Guide%20Part%205%20-%20Stepping%20https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f" target="_blank" rel="noopener" aria-label="" title="Share on whatsapp">
+  <div class="resp-sharing-button resp-sharing-button--whatsapp resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f&amp;t=GDB%20Guide%20Part%205%20-%20Stepping" target="_blank" rel="noopener" aria-label="" title="Share on hacker news">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://telegram.me/share/url?text=GDB%20Guide%20Part%205%20-%20Stepping&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fgdb-guides%2fgdb-guide-part5-stepping%2f" target="_blank" rel="noopener" aria-label="" title="Share on telegram">
+  <div class="resp-sharing-button resp-sharing-button--telegram resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </div>
+  </div>
+</a>
+
+      </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+    
+        <div class="footer__inner">
+            <div class="footer__content">
+            
+            
+        </div>
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="/bundle.min.7614b61975bea337fbd225d7849a29679d36a6e3585e31c5d3fbc8d49f8df27404da3a8e3bea32e96bc8790c16b228ed563cfb91bbcda56ec698dcb95f4306c7.js" integrity="sha512-dhS2GXW&#43;ozf70iXXhJopZ502puNYXjHF0/vI1J&#43;N8nQE2jqOO&#43;oy6WvIeQwWsijtVjz7kbvNpW7GmNy5X0MGxw=="></script>
+
+
+
+    </body>
+</html>

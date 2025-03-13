@@ -7,7 +7,7 @@
 <meta name="author" content="">
 <meta name="description" content="1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
 For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface." />
-<meta name="keywords" content=", linux, mikrotik, jailbreak" />
+<meta name="keywords" content="mathscantor, linux, mikrotik, jailbreak" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
 <link rel="canonical" href="https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/" />
@@ -15,7 +15,7 @@ For those that have already done their hands-on spinning up a Mikrotik RouterOS 
 
     <title>
         
-            Getting Root Shell Mikrotik RouterOS :: Mathscantor Cybersecurity Blog  — A simple theme for Hugo
+            Getting Root Shell Mikrotik RouterOS :: Mathscantor&#39;s Cybersecurity Blog  — A simple theme for Hugo
         
     </title>
 
@@ -45,12 +45,10 @@ For those that have already done their hands-on spinning up a Mikrotik RouterOS 
 <meta itemprop="description" content="1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
 For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface."><meta itemprop="datePublished" content="2025-01-03T20:26:00+08:00" />
 <meta itemprop="dateModified" content="2025-01-03T20:26:00+08:00" />
-<meta itemprop="wordCount" content="1306"><meta itemprop="image" content="https://mathscantor.github.io"/>
+<meta itemprop="wordCount" content="1306"><meta itemprop="image" content="https://mathscantor.github.io/" />
 <meta itemprop="keywords" content="linux,mikrotik,jailbreak," />
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://mathscantor.github.io"/>
-
-<meta name="twitter:title" content="Getting Root Shell Mikrotik RouterOS"/>
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="Getting Root Shell Mikrotik RouterOS"/>
 <meta name="twitter:description" content="1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
 For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface."/>
 
@@ -60,9 +58,10 @@ For those that have already done their hands-on spinning up a Mikrotik RouterOS 
 <meta property="og:description" content="1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
 For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/" /><meta property="og:image" content="https://mathscantor.github.io"/><meta property="article:section" content="posts" />
+<meta property="og:url" content="https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/" /><meta property="og:image" content="https://mathscantor.github.io/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2025-01-03T20:26:00+08:00" />
-<meta property="article:modified_time" content="2025-01-03T20:26:00+08:00" /><meta property="og:site_name" content="Mathscantor Cybersecurity Blog" />
+<meta property="article:modified_time" content="2025-01-03T20:26:00+08:00" />
+
 
 
 
@@ -261,147 +260,147 @@ Do also note that the walkthrough is based on a older version of Mikrotik Router
 <p>Firstly, we need to get the ISO file of interest from the official <a href="https://mikrotik.com/download/archive"><strong>mikrotik archives</strong></a>.</p>
 <p>Spin up a VM using any hypervisor of your choosing. I would personally recommend using VMWare as it is now free for personal use. However, if you are doing research on a commercial network, please make sure you have a commercial license activated if not you may get yourself into hot water.</p>
 <p>To start the installation of the Mikrotik RouterOS, create a new virtual machine from the ISO file and when selecting a guest operating system, choose <em>Other &ndash;&gt; Other</em>.
-<img src="/posts/getting-root-shell-mikrotik-routeros/images/vmware-guest-operating-system.png" alt="vmware-guest-operating-system"></p>
+<img alt="vmware-guest-operating-system" src="/posts/getting-root-shell-mikrotik-routeros/images/vmware-guest-operating-system.png"></p>
 <p>Follow the instructions of the installation, and on success you will be prompted to login. By default the administrator username is &lsquo;admin&rsquo; with no password.</p>
 <p>If everything is okay up till this point, you will be able to see the RouterOS CLI.</p>
-<p><img src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png" alt="vmware-guest-operating-system"></p>
+<p><img alt="vmware-guest-operating-system" src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png"></p>
 <p>After logging in as admin, we need to assign an IP address to our VM. For this example, I have assigned 172.16.205.150/24 as my RouterOS IP. Please change the values according to your own setup.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>admin@MikroTik &gt; /ip address add address<span style="color:#f92672">=</span>172.16.205.150/24 interface<span style="color:#f92672">=</span>ether1<span style="color:#f92672">]</span>
-</code></pre></div><p>After wards, do a simple ping test from your host to see if it is reachable.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ping 172.16.205.150
-
-PING 172.16.205.150 <span style="color:#f92672">(</span>172.16.205.150<span style="color:#f92672">)</span> 56<span style="color:#f92672">(</span>84<span style="color:#f92672">)</span> bytes of data.
-<span style="color:#ae81ff">64</span> bytes from 172.16.205.150: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>37.5 ms
-<span style="color:#ae81ff">64</span> bytes from 172.16.205.150: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.709 ms
-<span style="color:#ae81ff">64</span> bytes from 172.16.205.150: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.391 ms
-</code></pre></div><p>Test if FTP works as well.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ftp admin@172.16.205.150
-
-Connected to 172.16.205.150.
-<span style="color:#ae81ff">220</span> MikroTik FTP server <span style="color:#f92672">(</span>MikroTik 6.42.11<span style="color:#f92672">)</span> ready
-<span style="color:#ae81ff">331</span> Password required <span style="color:#66d9ef">for</span> admin
-Password: 
-<span style="color:#ae81ff">230</span> User admin logged in
-Remote system type is UNIX.
-Using binary mode to transfer files.
-ftp&gt;
-</code></pre></div><h3 id="22-getting-system-file-npk-from-iso">2.2 Getting system file (.npk) from ISO</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>admin@MikroTik &gt; /ip address add address<span style="color:#f92672">=</span>172.16.205.150/24 interface<span style="color:#f92672">=</span>ether1<span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>After wards, do a simple ping test from your host to see if it is reachable.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ping 172.16.205.150
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PING 172.16.205.150 <span style="color:#f92672">(</span>172.16.205.150<span style="color:#f92672">)</span> 56<span style="color:#f92672">(</span>84<span style="color:#f92672">)</span> bytes of data.
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from 172.16.205.150: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>37.5 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from 172.16.205.150: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.709 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from 172.16.205.150: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span> time<span style="color:#f92672">=</span>0.391 ms
+</span></span></code></pre></div><p>Test if FTP works as well.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ftp admin@172.16.205.150
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Connected to 172.16.205.150.
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">220</span> MikroTik FTP server <span style="color:#f92672">(</span>MikroTik 6.42.11<span style="color:#f92672">)</span> ready
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">331</span> Password required <span style="color:#66d9ef">for</span> admin
+</span></span><span style="display:flex;"><span>Password: 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">230</span> User admin logged in
+</span></span><span style="display:flex;"><span>Remote system type is UNIX.
+</span></span><span style="display:flex;"><span>Using binary mode to transfer files.
+</span></span><span style="display:flex;"><span>ftp&gt;
+</span></span></code></pre></div><h3 id="22-getting-system-file-npk-from-iso">2.2 Getting system file (.npk) from ISO</h3>
 <p>On my ubuntu host, I used 7zip to extract the iso to get its corresponding .npk files</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ 7z x mikrotik-6.42.11.iso
-
-<span style="color:#75715e"># Output</span>
-7-Zip <span style="color:#f92672">[</span>64<span style="color:#f92672">]</span> 9.20  Copyright <span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> 1999-2010 Igor Pavlov  2010-11-18
-p7zip Version 9.20 <span style="color:#f92672">(</span>locale<span style="color:#f92672">=</span>en_US.UTF-8,Utf16<span style="color:#f92672">=</span>on,HugeFiles<span style="color:#f92672">=</span>on,4 CPUs<span style="color:#f92672">)</span>
-Processing archive: mikrotik-6.42.11.iso
-Extracting  advanced-tools-6.42.11.npk
-Extracting  calea-6.42.11.npk
-Extracting  defpacks
-Extracting  dhcp-6.42.11.npk
-Extracting  dude-6.42.11.npk
-Extracting  gps-6.42.11.npk
-...
-</code></pre></div><p>The only file that we are interested in is the system .npk file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ 7z x mikrotik-6.42.11.iso
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Output</span>
+</span></span><span style="display:flex;"><span>7-Zip <span style="color:#f92672">[</span>64<span style="color:#f92672">]</span> 9.20  Copyright <span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> 1999-2010 Igor Pavlov  2010-11-18
+</span></span><span style="display:flex;"><span>p7zip Version 9.20 <span style="color:#f92672">(</span>locale<span style="color:#f92672">=</span>en_US.UTF-8,Utf16<span style="color:#f92672">=</span>on,HugeFiles<span style="color:#f92672">=</span>on,4 CPUs<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Processing archive: mikrotik-6.42.11.iso
+</span></span><span style="display:flex;"><span>Extracting  advanced-tools-6.42.11.npk
+</span></span><span style="display:flex;"><span>Extracting  calea-6.42.11.npk
+</span></span><span style="display:flex;"><span>Extracting  defpacks
+</span></span><span style="display:flex;"><span>Extracting  dhcp-6.42.11.npk
+</span></span><span style="display:flex;"><span>Extracting  dude-6.42.11.npk
+</span></span><span style="display:flex;"><span>Extracting  gps-6.42.11.npk
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>The only file that we are interested in is the system .npk file.</p>
 <h3 id="23-unpacking-system-npk-file">2.3 Unpacking System .npk File</h3>
 <p>Using binwalk, we can extract the system file.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ binwalk -e system-6.42.11.npk
-
-<span style="color:#75715e"># Output</span>
-DECIMAL       HEXADECIMAL     DESCRIPTION
---------------------------------------------------------------------
-<span style="color:#ae81ff">0</span>             0x0             NPK firmware header, image size: 15616295, image name: <span style="color:#e6db74">&#34;system&#34;</span>, description: <span style="color:#e6db74">&#34;&#34;</span>
-<span style="color:#ae81ff">4096</span>          0x1000          Squashfs filesystem, little endian, version 4.0, compression:xz, size: <span style="color:#ae81ff">9818075</span> bytes, <span style="color:#ae81ff">1340</span> inodes, blocksize: <span style="color:#ae81ff">262144</span> bytes, created: 2018-12-21 09:18:10
-<span style="color:#ae81ff">9822304</span>       0x95E060        ELF, 32-bit LSB executable, Intel 80386, version <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>SYSV<span style="color:#f92672">)</span>
-<span style="color:#ae81ff">9842177</span>       0x962E01        Unix path: /sys/devices/system/cpu
-...
-</code></pre></div><p>If everything runs successfully up to this point, a <strong>_system-$VERSION.npk.extracted</strong> directory will be created.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ls -la _system-6.42.11.npk.extracted/squashfs-root/	
-
-total <span style="color:#ae81ff">72</span>
-drwxr-xr-x <span style="color:#ae81ff">18</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:41 .
-drwxrwxr-x  <span style="color:#ae81ff">3</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 ..
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 bin
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> boot
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> dev
-lrwxrwxrwx  <span style="color:#ae81ff">1</span> gerald gerald    <span style="color:#ae81ff">9</span> Mar <span style="color:#ae81ff">16</span> 21:13 dude -&gt; /dev/null
-drwxr-xr-x  <span style="color:#ae81ff">3</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 etc
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> flash
-drwxr-xr-x  <span style="color:#ae81ff">3</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> home
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> initrd
-drwxr-xr-x  <span style="color:#ae81ff">4</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 lib
-drwxr-xr-x  <span style="color:#ae81ff">5</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 nova
-drwxr-xr-x  <span style="color:#ae81ff">3</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> old
-lrwxrwxrwx  <span style="color:#ae81ff">1</span> gerald gerald    <span style="color:#ae81ff">9</span> Mar <span style="color:#ae81ff">16</span> 21:13 pckg -&gt; /dev/null
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> proc
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> ram
-lrwxrwxrwx  <span style="color:#ae81ff">1</span> gerald gerald    <span style="color:#ae81ff">9</span> Mar <span style="color:#ae81ff">16</span> 21:13 rw -&gt; /dev/null
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> sbin
-drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> sys
-lrwxrwxrwx  <span style="color:#ae81ff">1</span> gerald gerald    <span style="color:#ae81ff">9</span> Mar <span style="color:#ae81ff">16</span> 21:13 tmp -&gt; /dev/null
-</code></pre></div><h3 id="24-jailbreak-discovery">2.4 Jailbreak Discovery</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ binwalk -e system-6.42.11.npk
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Output</span>
+</span></span><span style="display:flex;"><span>DECIMAL       HEXADECIMAL     DESCRIPTION
+</span></span><span style="display:flex;"><span>--------------------------------------------------------------------
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>             0x0             NPK firmware header, image size: 15616295, image name: <span style="color:#e6db74">&#34;system&#34;</span>, description: <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">4096</span>          0x1000          Squashfs filesystem, little endian, version 4.0, compression:xz, size: <span style="color:#ae81ff">9818075</span> bytes, <span style="color:#ae81ff">1340</span> inodes, blocksize: <span style="color:#ae81ff">262144</span> bytes, created: 2018-12-21 09:18:10
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">9822304</span>       0x95E060        ELF, 32-bit LSB executable, Intel 80386, version <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>SYSV<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">9842177</span>       0x962E01        Unix path: /sys/devices/system/cpu
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>If everything runs successfully up to this point, a <strong>_system-$VERSION.npk.extracted</strong> directory will be created.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ls -la _system-6.42.11.npk.extracted/squashfs-root/	
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>total <span style="color:#ae81ff">72</span>
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#ae81ff">18</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:41 .
+</span></span><span style="display:flex;"><span>drwxrwxr-x  <span style="color:#ae81ff">3</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 ..
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 bin
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> boot
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> dev
+</span></span><span style="display:flex;"><span>lrwxrwxrwx  <span style="color:#ae81ff">1</span> gerald gerald    <span style="color:#ae81ff">9</span> Mar <span style="color:#ae81ff">16</span> 21:13 dude -&gt; /dev/null
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">3</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 etc
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> flash
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">3</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> home
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> initrd
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">4</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 lib
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">5</span> gerald gerald <span style="color:#ae81ff">4096</span> Mar <span style="color:#ae81ff">16</span> 21:13 nova
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">3</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> old
+</span></span><span style="display:flex;"><span>lrwxrwxrwx  <span style="color:#ae81ff">1</span> gerald gerald    <span style="color:#ae81ff">9</span> Mar <span style="color:#ae81ff">16</span> 21:13 pckg -&gt; /dev/null
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> proc
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> ram
+</span></span><span style="display:flex;"><span>lrwxrwxrwx  <span style="color:#ae81ff">1</span> gerald gerald    <span style="color:#ae81ff">9</span> Mar <span style="color:#ae81ff">16</span> 21:13 rw -&gt; /dev/null
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> sbin
+</span></span><span style="display:flex;"><span>drwxr-xr-x  <span style="color:#ae81ff">2</span> gerald gerald <span style="color:#ae81ff">4096</span> Dec <span style="color:#ae81ff">21</span>  <span style="color:#ae81ff">2018</span> sys
+</span></span><span style="display:flex;"><span>lrwxrwxrwx  <span style="color:#ae81ff">1</span> gerald gerald    <span style="color:#ae81ff">9</span> Mar <span style="color:#ae81ff">16</span> 21:13 tmp -&gt; /dev/null
+</span></span></code></pre></div><h3 id="24-jailbreak-discovery">2.4 Jailbreak Discovery</h3>
 <p>Looking through the files, you will stumble upon <strong>squashfs-root/etc/rc.d/run.d/S12defconf</strong>.
 A snippet of the bash script is shown in the listing below.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">...
-defcf<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>cat /rw/DEFCONF<span style="color:#66d9ef">)</span>
-echo &gt; /ram/defconf-params
-<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f /nova/bin/flash <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
-	/nova/bin/flash --fetch-defconf-params /ram/defconf-params
-<span style="color:#66d9ef">fi</span>
-<span style="color:#f92672">(</span>eval <span style="color:#66d9ef">$(</span>cat /ram/defconf-params<span style="color:#66d9ef">)</span> action<span style="color:#f92672">=</span>apply /bin/gosh $defcf;
-cp $defcf $confirm; rm /rw/DEFCONF /ram/defconf-params<span style="color:#f92672">)</span> &amp;
-</code></pre></div><p>The above suggests that <strong>/rw/DEFCONF</strong> is a Go Shell script that will be executed on boot.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>defcf<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>cat /rw/DEFCONF<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>echo &gt; /ram/defconf-params
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f /nova/bin/flash <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+</span></span><span style="display:flex;"><span>	/nova/bin/flash --fetch-defconf-params /ram/defconf-params
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fi</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>eval <span style="color:#66d9ef">$(</span>cat /ram/defconf-params<span style="color:#66d9ef">)</span> action<span style="color:#f92672">=</span>apply /bin/gosh $defcf;
+</span></span><span style="display:flex;"><span>cp $defcf $confirm; rm /rw/DEFCONF /ram/defconf-params<span style="color:#f92672">)</span> &amp;
+</span></span></code></pre></div><p>The above suggests that <strong>/rw/DEFCONF</strong> is a Go Shell script that will be executed on boot.
 It is also removed right after finishing execution.
 This means that if we can edit/add this script, we will be able to do whatever with want with the system.</p>
 <h3 id="25-download-busybox-on-host-machine">2.5 Download busybox on host machine</h3>
 <p>BusyBox is a software suite that provides several Unix utilities in a single executable file. The idea is to upload the busybox executable via FTP and edit the <strong>/rw/DEFCONF</strong> to run our busybox.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ curl https://www.busybox.net/downloads/binaries/1.26.2-defconfig-multiarch/busybox-i686 &gt; busybox-i686
-</code></pre></div><h3 id="26-upload-the-busybox-via-ftp">2.6 Upload the busybox via FTP</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ curl https://www.busybox.net/downloads/binaries/1.26.2-defconfig-multiarch/busybox-i686 &gt; busybox-i686
+</span></span></code></pre></div><h3 id="26-upload-the-busybox-via-ftp">2.6 Upload the busybox via FTP</h3>
 <p>Again, we can login as admin via FTP with no password and we will upload our previously downloaded busybox executable binary.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ftp&gt; put busybox-i686
-
-local: busybox-i686 remote: busybox-i686
-<span style="color:#ae81ff">229</span> Entering Extended Passive Mode <span style="color:#f92672">(||</span>|55029|<span style="color:#f92672">)</span>
-<span style="color:#ae81ff">150</span> Opening BINARY mode data connection <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;/busybox-i686&#39;</span>
-100% |***********************************|   <span style="color:#ae81ff">901</span> KiB   18.72 MiB/s    00:00 ETA
-<span style="color:#ae81ff">226</span> BINARY transfer complete
-<span style="color:#ae81ff">922936</span> bytes sent in 00:00 <span style="color:#f92672">(</span>17.56 MiB/s
-</code></pre></div><p>After this, power off your virtual machine.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ftp&gt; put busybox-i686
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>local: busybox-i686 remote: busybox-i686
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">229</span> Entering Extended Passive Mode <span style="color:#f92672">(||</span>|55029|<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">150</span> Opening BINARY mode data connection <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;/busybox-i686&#39;</span>
+</span></span><span style="display:flex;"><span>100% |***********************************|   <span style="color:#ae81ff">901</span> KiB   18.72 MiB/s    00:00 ETA
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">226</span> BINARY transfer complete
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">922936</span> bytes sent in 00:00 <span style="color:#f92672">(</span>17.56 MiB/s
+</span></span></code></pre></div><p>After this, power off your virtual machine.</p>
 <h3 id="27-boot-from-centos-6-iso">2.7 Boot from CentOS 6 ISO</h3>
 <p>The CentOS 6 ISO can be gotten from <a href="https://ftp.riken.jp/Linux/centos-vault/6.8/isos/x86_64/CentOS-6.8-x86_64-LiveCD.iso"><strong>here</strong></a></p>
 <p>Switch out the ISO file attached to the CD/ROM hardware component of the VM.</p>
 <p>We will then force the first boot to go through the bios by adding the following line in the .vmx file of our VM.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ vim Mikrotik-6.42.11.vmx
-
-<span style="color:#75715e"># Add the following line any where</span>
-bios.forceSetupOnce <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;TRUE&#34;</span>
-</code></pre></div><p>Change the boot order by pushing the CD/ROM to the first. Press F10 to save and exit.
-<img src="/posts/getting-root-shell-mikrotik-routeros/images/bios-boot-order-cd-first.png" alt="bios-boot-order-cd-first"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ vim Mikrotik-6.42.11.vmx
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Add the following line any where</span>
+</span></span><span style="display:flex;"><span>bios.forceSetupOnce <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;TRUE&#34;</span>
+</span></span></code></pre></div><p>Change the boot order by pushing the CD/ROM to the first. Press F10 to save and exit.
+<img alt="bios-boot-order-cd-first" src="/posts/getting-root-shell-mikrotik-routeros/images/bios-boot-order-cd-first.png"></p>
 <p>Upon exiting, you will see the CentOS 6 installer option. Choose the <em>Boot</em> option.
-<img src="/posts/getting-root-shell-mikrotik-routeros/images/boot-centos-livecd.png" alt="boot-centos-livecd"></p>
+<img alt="boot-centos-livecd" src="/posts/getting-root-shell-mikrotik-routeros/images/boot-centos-livecd.png"></p>
 <p>Once inside CentOS 6, Click on the top left <em>Applications &ndash;&gt; System Tools &ndash;&gt; Terminal</em>.
 Run the following commands to mount the routeros sysroot.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>centos@livecd centoslive<span style="color:#f92672">]</span>$ sudo su
-<span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ mkdir /mnt/routeros-sysroot
-<span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ mount /dev/sda2 /mnt/routeros-sysroot
-</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Create a new DEFCONF file that runs busy box</span>
-<span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ echo <span style="color:#e6db74">&#34;ok; /rw/disk/busybox-i686 telnetd -l /bin/sh -p 1270;&#34;</span> &gt; /mnt/routeros-sysroot/rw/DEFCONF
-
-<span style="color:#75715e"># Ensure that busybox has executable permission</span>
-<span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ chmod +x /mnt/routeros-sysroot/rw/disk/busybox-i686
-</code></pre></div><h3 id="28-getting-root-shell">2.8 Getting Root Shell</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>centos@livecd centoslive<span style="color:#f92672">]</span>$ sudo su
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ mkdir /mnt/routeros-sysroot
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ mount /dev/sda2 /mnt/routeros-sysroot
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Create a new DEFCONF file that runs busy box</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ echo <span style="color:#e6db74">&#34;ok; /rw/disk/busybox-i686 telnetd -l /bin/sh -p 1270;&#34;</span> &gt; /mnt/routeros-sysroot/rw/DEFCONF
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Ensure that busybox has executable permission</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ chmod +x /mnt/routeros-sysroot/rw/disk/busybox-i686
+</span></span></code></pre></div><h3 id="28-getting-root-shell">2.8 Getting Root Shell</h3>
 <p>Once done, shutdown the VM, edit the <em>hardware settings &ndash;&gt; CD/DVD (IDE)</em> and uncheck <em>Connect at power on</em>.
-<img src="/posts/getting-root-shell-mikrotik-routeros/images/iso-uncheck-connect-at-power-on.png" alt="iso-uncheck-connect-at-power-on"></p>
+<img alt="iso-uncheck-connect-at-power-on" src="/posts/getting-root-shell-mikrotik-routeros/images/iso-uncheck-connect-at-power-on.png"></p>
 <p>Upon powering on the VM, you will see this output instead of the normal login screen.</p>
-<p><img src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-running1.png" alt="busybox-running1"></p>
+<p><img alt="busybox-running1" src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-running1.png"></p>
 <p>We can now telnet into our RouterOS via port 1270.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ telnet 172.16.205.150 <span style="color:#ae81ff">1270</span>
-</code></pre></div><p><img src="/posts/getting-root-shell-mikrotik-routeros/images/telnet-success.png" alt="telnet-success"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ telnet 172.16.205.150 <span style="color:#ae81ff">1270</span>
+</span></span></code></pre></div><p><img alt="telnet-success" src="/posts/getting-root-shell-mikrotik-routeros/images/telnet-success.png"></p>
 <h3 id="29-running-commands">2.9 Running Commands</h3>
 <p>Unlike the typical unix shell, we cannot run the normal linux commands as it is as we would need
 to piggyback on busybox in order to run anything.
-<img src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-piggyback-ls.png" alt="busybox-piggyback-ls"></p>
+<img alt="busybox-piggyback-ls" src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-piggyback-ls.png"></p>
 <p>Thus to put simply, the template to run any bash commands is:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ /rw/disk/busybox-i686 $COMMAND
-</code></pre></div><h2 id="3-conclusion">3. Conclusion</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ /rw/disk/busybox-i686 $COMMAND
+</span></span></code></pre></div><h2 id="3-conclusion">3. Conclusion</h2>
 <p>I hope this guide is comprehensive enough for those who want to get started on
 doing vulnerability research on Mikrotik RouterOS systems. If you made it this far,
 I hope you learnt a lot and had fun along the way. Cheers and see you in the next post 😃.</p>
@@ -563,7 +562,7 @@ I hope you learnt a lot and had fun along the way. Cheers and see you in the nex
 
 
 
-<script type="text/javascript" src="/bundle.min.10d839adb239f51bf25fafe01de77c4c8051b60820650f0437db4ba8524c169165e6d0af642adcdd2a86b33443881a6b4ec9a2590c28c32bba079c00ff8ce1a4.js" integrity="sha512-ENg5rbI59RvyX6/gHed8TIBRtgggZQ8EN9tLqFJMFpFl5tCvZCrc3SqGszRDiBprTsmiWQwowyu6B5wA/4zhpA=="></script>
+<script type="text/javascript" src="/bundle.min.7614b61975bea337fbd225d7849a29679d36a6e3585e31c5d3fbc8d49f8df27404da3a8e3bea32e96bc8790c16b228ed563cfb91bbcda56ec698dcb95f4306c7.js" integrity="sha512-dhS2GXW&#43;ozf70iXXhJopZ502puNYXjHF0/vI1J&#43;N8nQE2jqOO&#43;oy6WvIeQwWsijtVjz7kbvNpW7GmNy5X0MGxw=="></script>
 
 
 

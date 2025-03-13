@@ -1,111 +1,90 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tags on Mathscantor Cybersecurity Blog</title>
+    <title>Tags on Mathscantor&#39;s Cybersecurity Blog</title>
     <link>https://mathscantor.github.io/tags/</link>
-    <description>Recent content in Tags on Mathscantor Cybersecurity Blog</description>
+    <description>Recent content in Tags on Mathscantor&#39;s Cybersecurity Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Sat, 01 Mar 2025 09:09:02 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 01 Mar 2025 09:09:02 +0800</lastBuildDate>
+    <atom:link href="https://mathscantor.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>gdb</title>
+      <title>Gdb</title>
       <link>https://mathscantor.github.io/tags/gdb/</link>
       <pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/gdb/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>linux</title>
+      <title>Linux</title>
       <link>https://mathscantor.github.io/tags/linux/</link>
       <pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/linux/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>c-c&#43;&#43;</title>
+      <title>C-C&#43;&#43;</title>
       <link>https://mathscantor.github.io/tags/c-c&#43;&#43;/</link>
       <pubDate>Fri, 17 Jan 2025 10:56:44 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/c-c&#43;&#43;/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>packet-capture</title>
+      <title>Packet-Capture</title>
       <link>https://mathscantor.github.io/tags/packet-capture/</link>
       <pubDate>Fri, 17 Jan 2025 10:56:44 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/packet-capture/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>offline-package-installation</title>
+      <title>Offline-Package-Installation</title>
       <link>https://mathscantor.github.io/tags/offline-package-installation/</link>
       <pubDate>Fri, 10 Jan 2025 08:38:41 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/offline-package-installation/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>python</title>
+      <title>Python</title>
       <link>https://mathscantor.github.io/tags/python/</link>
       <pubDate>Fri, 10 Jan 2025 08:38:41 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/python/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>centos</title>
+      <title>Centos</title>
       <link>https://mathscantor.github.io/tags/centos/</link>
       <pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/centos/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>ubuntu</title>
+      <title>Ubuntu</title>
       <link>https://mathscantor.github.io/tags/ubuntu/</link>
       <pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/ubuntu/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>jailbreak</title>
+      <title>Jailbreak</title>
       <link>https://mathscantor.github.io/tags/jailbreak/</link>
       <pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/jailbreak/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>mikrotik</title>
+      <title>Mikrotik</title>
       <link>https://mathscantor.github.io/tags/mikrotik/</link>
       <pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/mikrotik/</guid>
       <description></description>
     </item>
-    
     <item>
-      <title>intro</title>
+      <title>Intro</title>
       <link>https://mathscantor.github.io/tags/intro/</link>
       <pubDate>Fri, 03 Jan 2025 17:43:28 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/tags/intro/</guid>
       <description></description>
     </item>
-    
   </channel>
 </rss>

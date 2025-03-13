@@ -7,7 +7,7 @@
 <meta name="author" content="">
 <meta name="description" content="1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
 2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along." />
-<meta name="keywords" content=", gdb, linux" />
+<meta name="keywords" content="mathscantor, gdb, linux" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
 <link rel="canonical" href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/" />
@@ -15,7 +15,7 @@
 
     <title>
         
-            GDB Guide Part 5 - Stepping :: Mathscantor Cybersecurity Blog  — A simple theme for Hugo
+            GDB Guide Part 5 - Stepping :: Mathscantor&#39;s Cybersecurity Blog  — A simple theme for Hugo
         
     </title>
 
@@ -45,12 +45,10 @@
 <meta itemprop="description" content="1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
 2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along."><meta itemprop="datePublished" content="2025-02-23T13:08:30+08:00" />
 <meta itemprop="dateModified" content="2025-02-23T13:08:30+08:00" />
-<meta itemprop="wordCount" content="738"><meta itemprop="image" content="https://mathscantor.github.io"/>
+<meta itemprop="wordCount" content="738"><meta itemprop="image" content="https://mathscantor.github.io/" />
 <meta itemprop="keywords" content="gdb,linux," />
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="https://mathscantor.github.io"/>
-
-<meta name="twitter:title" content="GDB Guide Part 5 - Stepping"/>
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="GDB Guide Part 5 - Stepping"/>
 <meta name="twitter:description" content="1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
 2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along."/>
 
@@ -60,10 +58,11 @@
 <meta property="og:description" content="1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
 2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/" /><meta property="og:image" content="https://mathscantor.github.io"/><meta property="article:section" content="posts" />
+<meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/" /><meta property="og:image" content="https://mathscantor.github.io/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2025-02-23T13:08:30+08:00" />
-<meta property="article:modified_time" content="2025-02-23T13:08:30+08:00" /><meta property="og:site_name" content="Mathscantor Cybersecurity Blog" />
-<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/" /><meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/" /><meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/" /><meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/" /><meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/" />
+<meta property="article:modified_time" content="2025-02-23T13:08:30+08:00" />
+
+
 
 
 
@@ -240,66 +239,8 @@
       <div class="post-content">
         <hr>
         
-          
-<div>
-    <h4>This post is part of a series.</h4>
-    <ul class="list-group">
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">
-                        
-                        GDB Guide Part 1 - Basics
-                    </a>
-                </li>
-            
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">
-                        
-                        GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions
-                    </a>
-                </li>
-            
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">
-                        
-                        GDB Guide Part 3 - Process Maps
-                    </a>
-                </li>
-            
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">
-                        
-                        GDB Guide Part 4 - Examining Memory
-                    </a>
-                </li>
-            
-        
-            
-                <li class="list-group-item active">
-                    
-                    GDB Guide Part 5 - Stepping 
-                </li>
-            
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">
-                        
-                        GDB Guide Part 6 - Automation
-                    </a>
-                </li>
-            
-        
-    </ul>
-</div>
-
+          <div class="post-series"><h3 id="series"> GDB Guide Series:</h3> 
+    <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><b>GDB Guide Part 5 - Stepping</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li></ol></div>
           <hr>
         
         <h2 id="1-introduction">1. Introduction</h2>
@@ -311,125 +252,125 @@ I provide will only be for stepping through instructions and not source lines.</
 <h2 id="2-stepping-in">2. Stepping In</h2>
 <p>To step through one instruction at a time, the command to use will be <code>stepi / si</code>.
 For more information, see the help usage of <code>stepi / si</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help si
-
-stepi, si
-Step one instruction exactly.
-Usage: stepi <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
-Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
-</code></pre></div><p>The following example shows the relevant commands for stepping into 5 instructions after we hit the breakpoint at the start of <em>fib_num()</em>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
-
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b fib_num
-Breakpoint <span style="color:#ae81ff">1</span> at 0x4018bd
-
-<span style="color:#75715e"># Run the program and enter any number</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
-Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
-
-Breakpoint 1, 0x00000000004018bd in fib_num <span style="color:#f92672">()</span>
-
-<span style="color:#75715e"># Inspect 10 instructions from the current instruction</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/10i $pc
-<span style="color:#f92672">=</span>&gt; 0x4018bd &lt;fib_num+8&gt;:        mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,edi
-   0x4018c0 &lt;fib_num+11&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x10<span style="color:#f92672">]</span>,0x0
-   0x4018c7 &lt;fib_num+18&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0xc<span style="color:#f92672">]</span>,0x1
-   0x4018ce &lt;fib_num+25&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x8<span style="color:#f92672">]</span>,0x0
-   0x4018d5 &lt;fib_num+32&gt;:       cmp    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,0x0
-   0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
-   0x4018db &lt;fib_num+38&gt;:       mov    eax,DWORD PTR <span style="color:#f92672">[</span>rbp-0x10<span style="color:#f92672">]</span>
-   0x4018de &lt;fib_num+41&gt;:       jmp    0x40191a &lt;fib_num+101&gt;
-   0x4018e0 &lt;fib_num+43&gt;:       cmp    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,0x1
-   0x4018e4 &lt;fib_num+47&gt;:       jne    0x4018eb &lt;fib_num+54&gt;
-
-<span style="color:#75715e"># Step into 5 instructions</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> si <span style="color:#ae81ff">5</span>
-0x00000000004018d9 in fib_num <span style="color:#f92672">()</span>
-
-<span style="color:#75715e"># Inspect the current instruction</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
-<span style="color:#f92672">=</span>&gt; 0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
-</code></pre></div><h2 id="3-stepping-over">3. Stepping Over</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help si
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>stepi, si
+</span></span><span style="display:flex;"><span>Step one instruction exactly.
+</span></span><span style="display:flex;"><span>Usage: stepi <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
+</span></span></code></pre></div><p>The following example shows the relevant commands for stepping into 5 instructions after we hit the breakpoint at the start of <em>fib_num()</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b fib_num
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x4018bd
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Run the program and enter any number</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
+</span></span><span style="display:flex;"><span>Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Breakpoint 1, 0x00000000004018bd in fib_num <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect 10 instructions from the current instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/10i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x4018bd &lt;fib_num+8&gt;:        mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,edi
+</span></span><span style="display:flex;"><span>   0x4018c0 &lt;fib_num+11&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x10<span style="color:#f92672">]</span>,0x0
+</span></span><span style="display:flex;"><span>   0x4018c7 &lt;fib_num+18&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0xc<span style="color:#f92672">]</span>,0x1
+</span></span><span style="display:flex;"><span>   0x4018ce &lt;fib_num+25&gt;:       mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x8<span style="color:#f92672">]</span>,0x0
+</span></span><span style="display:flex;"><span>   0x4018d5 &lt;fib_num+32&gt;:       cmp    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,0x0
+</span></span><span style="display:flex;"><span>   0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
+</span></span><span style="display:flex;"><span>   0x4018db &lt;fib_num+38&gt;:       mov    eax,DWORD PTR <span style="color:#f92672">[</span>rbp-0x10<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>   0x4018de &lt;fib_num+41&gt;:       jmp    0x40191a &lt;fib_num+101&gt;
+</span></span><span style="display:flex;"><span>   0x4018e0 &lt;fib_num+43&gt;:       cmp    DWORD PTR <span style="color:#f92672">[</span>rbp-0x14<span style="color:#f92672">]</span>,0x1
+</span></span><span style="display:flex;"><span>   0x4018e4 &lt;fib_num+47&gt;:       jne    0x4018eb &lt;fib_num+54&gt;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Step into 5 instructions</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> si <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span>0x00000000004018d9 in fib_num <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect the current instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
+</span></span></code></pre></div><h2 id="3-stepping-over">3. Stepping Over</h2>
 <p>Stepping over is slightly different from stepping as it treats a function/subroutine call as one instruction. To step over instructions, the command to use is <code>nexti / ni</code>.
 To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help ni
-
-nexti, ni
-Step one instruction, but proceed through subroutine calls.
-Usage: nexti <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
-Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
-</code></pre></div><p>The following example shows the relevant commands for stepping over the fib_num call after we hit the breakpoint at the function call to <em>fib_num()</em>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
-
-<span style="color:#75715e"># Diassemble main to find the offset of the call to fib_num()</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disass main
-Dump of assembler code <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">function</span> main:
-   ...
-   0x0000000000401959 &lt;+61&gt;:    mov    rdi,rax
-   0x000000000040195c &lt;+64&gt;:    mov    eax,0x0
-   0x0000000000401961 &lt;+69&gt;:    call   0x404e00 &lt;__isoc99_scanf&gt;
-   0x0000000000401966 &lt;+74&gt;:    mov    eax,DWORD PTR <span style="color:#f92672">[</span>rbp-0xc<span style="color:#f92672">]</span>
-   0x0000000000401969 &lt;+77&gt;:    mov    edi,eax
-   0x000000000040196b &lt;+79&gt;:    call   0x4018b5 &lt;fib_num&gt;
-   0x0000000000401970 &lt;+84&gt;:    mov    esi,eax
-   ...
-End of assembler dump.
-
-<span style="color:#75715e"># Set a breakpoint at the call instruction</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 79<span style="color:#f92672">)</span>
-Breakpoint <span style="color:#ae81ff">1</span> at 0x40196b
-
-<span style="color:#75715e"># Run the program and enter any number</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
-Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
-
-Breakpoint 1, 0x000000000040196b in main <span style="color:#f92672">()</span>
-
-<span style="color:#75715e"># Inspect 5 instructions from the current instruction</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/5i $pc
-<span style="color:#f92672">=</span>&gt; 0x40196b &lt;main+79&gt;:  call   0x4018b5 &lt;fib_num&gt;
-   0x401970 &lt;main+84&gt;:  mov    esi,eax
-   0x401972 &lt;main+86&gt;:  lea    rax,<span style="color:#f92672">[</span>rip+0x9b6d1<span style="color:#f92672">]</span>        <span style="color:#75715e"># 0x49d04a</span>
-   0x401979 &lt;main+93&gt;:  mov    rdi,rax
-   0x40197c &lt;main+96&gt;:  mov    eax,0x0
-
-<span style="color:#75715e"># Current instruction is after fib_num() call.</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
-<span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
-</code></pre></div><h2 id="4-stepping-out">4. Stepping Out</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help ni
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>nexti, ni
+</span></span><span style="display:flex;"><span>Step one instruction, but proceed through subroutine calls.
+</span></span><span style="display:flex;"><span>Usage: nexti <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
+</span></span></code></pre></div><p>The following example shows the relevant commands for stepping over the fib_num call after we hit the breakpoint at the function call to <em>fib_num()</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Diassemble main to find the offset of the call to fib_num()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disass main
+</span></span><span style="display:flex;"><span>Dump of assembler code <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">function</span> main:
+</span></span><span style="display:flex;"><span>   ...
+</span></span><span style="display:flex;"><span>   0x0000000000401959 &lt;+61&gt;:    mov    rdi,rax
+</span></span><span style="display:flex;"><span>   0x000000000040195c &lt;+64&gt;:    mov    eax,0x0
+</span></span><span style="display:flex;"><span>   0x0000000000401961 &lt;+69&gt;:    call   0x404e00 &lt;__isoc99_scanf&gt;
+</span></span><span style="display:flex;"><span>   0x0000000000401966 &lt;+74&gt;:    mov    eax,DWORD PTR <span style="color:#f92672">[</span>rbp-0xc<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>   0x0000000000401969 &lt;+77&gt;:    mov    edi,eax
+</span></span><span style="display:flex;"><span>   0x000000000040196b &lt;+79&gt;:    call   0x4018b5 &lt;fib_num&gt;
+</span></span><span style="display:flex;"><span>   0x0000000000401970 &lt;+84&gt;:    mov    esi,eax
+</span></span><span style="display:flex;"><span>   ...
+</span></span><span style="display:flex;"><span>End of assembler dump.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Set a breakpoint at the call instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 79<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x40196b
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Run the program and enter any number</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
+</span></span><span style="display:flex;"><span>Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Breakpoint 1, 0x000000000040196b in main <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect 5 instructions from the current instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/5i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x40196b &lt;main+79&gt;:  call   0x4018b5 &lt;fib_num&gt;
+</span></span><span style="display:flex;"><span>   0x401970 &lt;main+84&gt;:  mov    esi,eax
+</span></span><span style="display:flex;"><span>   0x401972 &lt;main+86&gt;:  lea    rax,<span style="color:#f92672">[</span>rip+0x9b6d1<span style="color:#f92672">]</span>        <span style="color:#75715e"># 0x49d04a</span>
+</span></span><span style="display:flex;"><span>   0x401979 &lt;main+93&gt;:  mov    rdi,rax
+</span></span><span style="display:flex;"><span>   0x40197c &lt;main+96&gt;:  mov    eax,0x0
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Current instruction is after fib_num() call.</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
+</span></span></code></pre></div><h2 id="4-stepping-out">4. Stepping Out</h2>
 <p>The last method of stepping is to execute everything in the current function and return back to the caller. To do so, use the
 <code>finish</code> command. To see more information on <code>finish</code>, refer to the help usage.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help finish
-
-finish, fin
-Execute <span style="color:#66d9ef">until</span> selected stack frame returns.
-Usage: finish
-Upon <span style="color:#66d9ef">return</span>, the value returned is printed and put in the value history.
-</code></pre></div><p>The following example shows the relevant commands for stepping out of the <em>fib_num()</em> function and getting its return value.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help finish
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>finish, fin
+</span></span><span style="display:flex;"><span>Execute <span style="color:#66d9ef">until</span> selected stack frame returns.
+</span></span><span style="display:flex;"><span>Usage: finish
+</span></span><span style="display:flex;"><span>Upon <span style="color:#66d9ef">return</span>, the value returned is printed and put in the value history.
+</span></span></code></pre></div><p>The following example shows the relevant commands for stepping out of the <em>fib_num()</em> function and getting its return value.
 The</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b fib_num
-Breakpoint <span style="color:#ae81ff">1</span> at 0x4018bd
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
-Starting program: /home/gerald/Desktop/Repositories/hugo-blog/staging.mathscantor.github.io/static/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise 
-Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
-
-Breakpoint 1, 0x00000000004018bd in fib_num <span style="color:#f92672">()</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> finish
-Run till exit from <span style="color:#75715e">#0  0x00000000004018bd in fib_num ()</span>
-0x0000000000401970 in main <span style="color:#f92672">()</span>
-
-<span style="color:#75715e"># See current instruction</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
-<span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
-
-<span style="color:#75715e"># Get the return value of fib_num()</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $rax
-$1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>
-</code></pre></div><h2 id="5-conclusion">5. Conclusion</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b fib_num
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x4018bd
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
+</span></span><span style="display:flex;"><span>Starting program: /home/gerald/Desktop/Repositories/hugo-blog/staging.mathscantor.github.io/static/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise 
+</span></span><span style="display:flex;"><span>Enter Fibonacci Sequence: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Breakpoint 1, 0x00000000004018bd in fib_num <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> finish
+</span></span><span style="display:flex;"><span>Run till exit from <span style="color:#75715e">#0  0x00000000004018bd in fib_num ()</span>
+</span></span><span style="display:flex;"><span>0x0000000000401970 in main <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># See current instruction</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Get the return value of fib_num()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $rax
+</span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>
+</span></span></code></pre></div><h2 id="5-conclusion">5. Conclusion</h2>
 <p>Now that you have made it this far, you have mastered the basics of GDB! In the next few guides, I will be going through more advanced techniques to achieve greater efficiency in dynamic analysis through automation.</p>
 <p>Stay safe and healthy folks!</p>
 <h2 id="6-resources">6. Resources</h2>
@@ -440,66 +381,8 @@ $1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>
 
         
           <hr>
-          
-<div>
-    <h4>This post is part of a series.</h4>
-    <ul class="list-group">
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">
-                        
-                        GDB Guide Part 1 - Basics
-                    </a>
-                </li>
-            
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">
-                        
-                        GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions
-                    </a>
-                </li>
-            
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">
-                        
-                        GDB Guide Part 3 - Process Maps
-                    </a>
-                </li>
-            
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">
-                        
-                        GDB Guide Part 4 - Examining Memory
-                    </a>
-                </li>
-            
-        
-            
-                <li class="list-group-item active">
-                    
-                    GDB Guide Part 5 - Stepping 
-                </li>
-            
-        
-            
-                <li class="list-group-item">
-                    <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">
-                        
-                        GDB Guide Part 6 - Automation
-                    </a>
-                </li>
-            
-        
-    </ul>
-</div>
-
+          <div class="post-series"><h3 id="series"> GDB Guide Series:</h3> 
+    <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><b>GDB Guide Part 5 - Stepping</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li></ol></div>
         
       </div>
     </article>
@@ -657,7 +540,7 @@ $1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>
 
 
 
-<script type="text/javascript" src="/bundle.min.10d839adb239f51bf25fafe01de77c4c8051b60820650f0437db4ba8524c169165e6d0af642adcdd2a86b33443881a6b4ec9a2590c28c32bba079c00ff8ce1a4.js" integrity="sha512-ENg5rbI59RvyX6/gHed8TIBRtgggZQ8EN9tLqFJMFpFl5tCvZCrc3SqGszRDiBprTsmiWQwowyu6B5wA/4zhpA=="></script>
+<script type="text/javascript" src="/bundle.min.7614b61975bea337fbd225d7849a29679d36a6e3585e31c5d3fbc8d49f8df27404da3a8e3bea32e96bc8790c16b228ed563cfb91bbcda56ec698dcb95f4306c7.js" integrity="sha512-dhS2GXW&#43;ozf70iXXhJopZ502puNYXjHF0/vI1J&#43;N8nQE2jqOO&#43;oy6WvIeQwWsijtVjz7kbvNpW7GmNy5X0MGxw=="></script>
 
 
 

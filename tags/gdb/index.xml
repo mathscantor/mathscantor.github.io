@@ -1,74 +1,55 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>gdb on Mathscantor Cybersecurity Blog</title>
+    <title>Gdb on Mathscantor&#39;s Cybersecurity Blog</title>
     <link>https://mathscantor.github.io/tags/gdb/</link>
-    <description>Recent content in gdb on Mathscantor Cybersecurity Blog</description>
+    <description>Recent content in Gdb on Mathscantor&#39;s Cybersecurity Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Sat, 01 Mar 2025 09:09:02 +0800</lastBuildDate><atom:link href="https://mathscantor.github.io/tags/gdb/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 01 Mar 2025 09:09:02 +0800</lastBuildDate>
+    <atom:link href="https://mathscantor.github.io/tags/gdb/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>GDB Guide Part 6 - Automation</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</link>
       <pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</guid>
       <description>1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.</description>
     </item>
-    
     <item>
       <title>GDB Guide Part 5 - Stepping</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</link>
       <pubDate>Sun, 23 Feb 2025 13:08:30 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
-      <description>1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
-2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along.</description>
+      <description>1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.&#xA;2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along.</description>
     </item>
-    
     <item>
       <title>GDB Guide Part 4 - Examining Memory</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
       <pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
-      <description>1. Introduction Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.
-Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with eval.
-2. Examine Command (x/) To examine the process&amp;rsquo;s memory, we will always start of with the prefix x/, followed by whatever we which to examine at a particular address.</description>
+      <description>1. Introduction Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.&#xA;Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with eval.&#xA;2. Examine Command (x/) To examine the process&amp;rsquo;s memory, we will always start of with the prefix x/, followed by whatever we which to examine at a particular address.</description>
     </item>
-    
     <item>
       <title>GDB Guide Part 3 - Process Maps</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
       <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
-      <description>1. Introduction Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.
-2. Overview Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.</description>
+      <description>1. Introduction Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.&#xA;2. Overview Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.</description>
     </item>
-    
     <item>
       <title>GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
       <pubDate>Tue, 21 Jan 2025 12:21:39 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
-      <description>1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
-To ensure this post is not too long-winded, I have decided to only go through the following topics today:
- Breakpoints Linux x86 vs x86_64 Calling Convention  2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.</description>
+      <description>1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.&#xA;To ensure this post is not too long-winded, I have decided to only go through the following topics today:&#xA;Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.</description>
     </item>
-    
     <item>
       <title>GDB Guide Part 1 - Basics</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</link>
       <pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
-      
       <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</guid>
-      <description>1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
-2. Overview Today&amp;rsquo;s guide will show you how to:
- Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions  I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.</description>
+      <description>1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!&#xA;2. Overview Today&amp;rsquo;s guide will show you how to:&#xA;Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.</description>
     </item>
-    
   </channel>
 </rss>

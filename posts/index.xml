@@ -1,20 +1,194 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>Posts on Mathscantor&#39;s Cybersecurity Blog</title>
-        <link>https://mathscantor.github.io/posts/</link>
+        <link>http://localhost:1313/posts/</link>
         <description>Recent content in Posts on Mathscantor&#39;s Cybersecurity Blog</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sat, 01 Mar 2025 09:09:02 +0800</lastBuildDate>
-        <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        <lastBuildDate>Fri, 14 Mar 2025 20:09:42 +0800</lastBuildDate>
+        <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Linux File Monitoring With Fanotify</title>
+            <link>http://localhost:1313/posts/linux-file-monitoring-with-fanotify/</link>
+            <pubDate>Fri, 14 Mar 2025 20:09:42 +0800</pubDate>
+            
+            <guid>http://localhost:1313/posts/linux-file-monitoring-with-fanotify/</guid>
+            <description>1. Introduction Let&amp;rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
+Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
+Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Let&rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.</p>
+<p>Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:</p>
+<ul>
+<li>Real-time security monitoring (e.g., antivirus scanning)</li>
+<li>Auditing and compliance (e.g., logging file accesses)</li>
+<li>File system activity tracking (e.g., synchronizing backups)</li>
+</ul>
+<p>The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the <code>FAN_ALLOW</code> or <code>FAN_DENY</code> response.</p>
+<p>However, we can also use the fanotify API for cyber research purposes! When studying a new target, it is hard to tell exactly what many of the core processes are doing, especially when it comes to file operations. That is why the fanotify API is so powerful as it gives the researcher a broad overview of what the processes are reading from and writing to.</p>
+<p>In this post, I will show you how you can write your own fanotify user-space application to monitor for file/directory events, as long as your kernel was built with fanotify capabilities. <em>Ensure that you have sudo or root privileges too before running your fanotify application</em>.</p>
+<p>You can also check out <a href="https://github.com/mathscantor/filemon"><em>filemon</em></a>, a multithreaded Linux file-monitoring tool which I have created for research purposes. With that out of the way, let&rsquo;s dive right into it!</p>
+<h2 id="2-checking-if-fanotify-is-enabled">2. Checking if Fanotify is Enabled</h2>
+<p>To check if your kernel was built with fanotify enabled, we have to check the configuration options under <em>/boot/config-&lt;KERNEL_VERSION&gt;</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cat /boot/config-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span> | grep FANOTIFY
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>CONFIG_FANOTIFY<span style="color:#f92672">=</span>y
+</span></span><span style="display:flex;"><span>CONFIG_FANOTIFY_ACCESS_PERMISSIONS<span style="color:#f92672">=</span>y
+</span></span></code></pre></div><p>If <code>CONFIG_FANOTIFY_ACCESS_PERMISSIONS=n</code> or not defined, that just means that we will not be able to check for events such as <code>FAN_ACCESS_PERM</code>, <code>FAN_OPEN_PERM</code> and <code>FAN_OPEN_EXEC_PERM</code>.</p>
+<p>As long as <code>CONFIG_FANOTIFY=y</code> is set, we are good to go!</p>
+<h2 id="3-overall-fanotify-api-usage">3. Overall Fanotify API Usage</h2>
+<p>To begin, we need to create a fanotify file descriptor using <em>fanotify_init()</em>, paying special attention to the flags supplied to it (elaborated later).</p>
+<p>We will then mark a file/directory/mount point with <em>fanotify_mark()</em> and proceed to read from the fanotify file descriptors to inspect events.</p>
+<p>The snippets below shows an overview of the APIs involved for different use case of file monitoring:</p>
+<ul>
+<li>Start by initializing a fanotify file descriptor
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Flags will be provided in other examples later
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> fan_fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">fanotify_init</span>(...);
+</span></span></code></pre></div></li>
+<li>Example to monitor a specific file for FAN_OPEN
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD, FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;test.txt&#34;</span>);
+</span></span></code></pre></div></li>
+<li>Example to monitor a directory (non-recursive, excluding files) for FAN_OPEN
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_ONLYDIR, FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/tmp/testdir&#34;</span>);
+</span></span></code></pre></div></li>
+<li>Example to monitor a directory (non-recursive, including files) for FAN_OPEN
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD, FAN_EVENT_ON_CHILD <span style="color:#f92672">|</span> FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/tmp/testdir&#34;</span>);
+</span></span></code></pre></div></li>
+<li>Example to monitor the &ldquo;/&rdquo; mount point (recursive, including files and new directories) for FAN_OPEN
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_MOUNT, FAN_EVENT_ON_CHILD <span style="color:#f92672">|</span> FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Only on newer kernel versions (since 4.20)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_FILESYSTEM, FAN_EVENT_ON_CHILD <span style="color:#f92672">|</span> FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
+</span></span></code></pre></div></li>
+</ul>
+<p>Now that you have a better understanding on the overall APIs, we need to look deeper into which specific flags and masks to use. I have sunk countless hours through trial and error (so that you don&rsquo;t have to 😊) in order to find the optimal set of flags and masks for monitoring specific events.</p>
+<h2 id="4-inspecting-read-write-execute-events">4. Inspecting Read, Write, Execute Events</h2>
+<p>The <a href="https://man7.org/linux/man-pages/man7/fanotify.7.html">fanotify(7)</a> man page has provided a template example for inspecting read, write and execute events.</p>
+<p>Instead of specifying the <code>FAN_NONBLOCK</code> flag in <em>fanotify_init()</em>, we should omit it in order to capture all events. If <code>FAN_NONBLOCK</code> is specified, there is a chance that certain events may slip under the radar if our application cannot read it in time.</p>
+<p><a name="flags"></a> Therefore, with the modification applied, our initialization should look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> fan_fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">fanotify_init</span>(FAN_CLOEXEC <span style="color:#f92672">|</span> FAN_CLASS_CONTENT, O_RDONLY <span style="color:#f92672">|</span> O_LARGEFILE);
+</span></span></code></pre></div><p>After getting a valid fanotify file descriptor (not -1), we can mark a file/directory/mount point. In this example, I will just be marking the &ldquo;/&rdquo; mount point with <code>FAN_MARK_MOUNT</code> as it is backwards compatible with older kernel versions.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">uint64_t</span> masks <span style="color:#f92672">=</span> FAN_EVENT_ON_CHILD <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 FAN_ONDIR <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 FAN_ACCESS <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 FAN_OPEN <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 FAN_MODIFY <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 FAN_OPEN_EXEC <span style="color:#f92672">|</span> <span style="color:#960050;background-color:#1e0010">\</span>  <span style="color:#75715e">// Only from Linux 5.0 onwards
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                 FAN_CLOSE_WRITE <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 FAN_CLOSE_NOWRITE; 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_MOUNT, masks, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
+</span></span></code></pre></div><p>We can do a <em>poll()</em> on our fanotify file descriptor to wait for incoming events and parse them accordingly.
+For the sake of simplicity, The overall code should look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> pollfd pfd;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">ssize_t</span> buflen <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">8192</span>] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">0</span>};
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> fanotify_event_metadata <span style="color:#f92672">*</span>metadata;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pfd.fd <span style="color:#f92672">=</span> fan_fd;
+</span></span><span style="display:flex;"><span>pfd.events <span style="color:#f92672">=</span> POLLIN;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> ret <span style="color:#f92672">=</span> <span style="color:#a6e22e">poll</span>(<span style="color:#f92672">&amp;</span>fd, <span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>); <span style="color:#75715e">// -1 for no TIMEOUT
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;poll&#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">exit</span>(EXIT_FAILURE);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (;;) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (pfd.revents <span style="color:#f92672">&amp;</span> POLLIN) {
+</span></span><span style="display:flex;"><span>    buflen <span style="color:#f92672">=</span> <span style="color:#a6e22e">read</span>(fan_fd, buf, <span style="color:#66d9ef">sizeof</span>(buf));
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (buflen <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>) <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>    metadata <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> fanotify_event_metadata <span style="color:#f92672">*</span>)buf;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">FAN_EVENT_OK</span>(metadata, buflen)) {
+</span></span><span style="display:flex;"><span>      ...
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (metadata<span style="color:#f92672">-&gt;</span>mask <span style="color:#f92672">&amp;</span> FAN_ACCESS)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;FAN_ACCESS&#34;</span>);
+</span></span><span style="display:flex;"><span>      ...
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// next event
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#a6e22e">close</span>(metadata<span style="color:#f92672">-&gt;</span>fd);
+</span></span><span style="display:flex;"><span>      metadata <span style="color:#f92672">=</span> <span style="color:#a6e22e">FAN_EVENT_NEXT</span>(metadata, buflen);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="5-inspecting-create-delete-move-events">5. Inspecting Create, Delete, Move Events</h2>
+<p>In the same <a href="https://man7.org/linux/man-pages/man7/fanotify.7.html">fanotify(7)</a> man page, they provided an additional example of fanotify being used with a group that identifies objects by file handles.</p>
+<p>As usual, we will initialize a fanotify file descriptor but this time, we will use the flags meant for file handles.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> fan_fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">fanotify_init</span>(FAN_CLASS_NOTIF <span style="color:#f92672">|</span> FAN_REPORT_DFID_NAME, O_RDWR);
+</span></span></code></pre></div><p>After getting a valid fanotify file descriptor (not -1), we can mark a file/directory/mount point. In this example, I will just be marking the &ldquo;/&rdquo; mount point with <code>FAN_MARK_FILESYSTEM</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">uint64_t</span> masks <span style="color:#f92672">=</span> FAN_ONDIR <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 <span style="color:#75715e">/* All subsequent masks only from Linux 5.1 onwards */</span>
+</span></span><span style="display:flex;"><span>                 FAN_CREATE <span style="color:#f92672">|</span> <span style="color:#960050;background-color:#1e0010">\</span> 
+</span></span><span style="display:flex;"><span>                 FAN_DELETE <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 FAN_MOVED_FROM <span style="color:#f92672">|</span> \
+</span></span><span style="display:flex;"><span>                 FAN_MOVED_TO;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_FIOLESYSTEM, masks, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
+</span></span></code></pre></div><blockquote>
+<p>⚠️ Warning</p>
+<ul>
+<li>Do note that older kernels (&lt; 4.20) will not be able to use this feature, and hence will not be able to monitor for create, delete and move events.</li>
+<li>Cannot use <code>FAN_MARK_MOUNT</code> for a file descriptor that uses <code>FAN_CLASS_NOTIF | FAN_REPORT_DFID_NAME</code>.</li>
+</ul>
+</blockquote>
+<p>Similarly, we will do a <em>poll()</em> on the fanotify file descriptor just like how we did it in the <a href="/posts/linux-file-monitoring-with-fanotify/#4-inspecting-read-write-execute-events">previous section</a>. If you want to get the file name, you will need to make use of <code>struct fanotify_event_info_fid</code> and <code>struct file_handle</code>.</p>
+<p>The snippet below shows how you are able to retrieve the file name:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> fanotify_event_metadata <span style="color:#f92672">*</span>metadata;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> fanotify_event_info_fid <span style="color:#f92672">*</span>fid;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>file_name <span style="color:#f92672">=</span> NULL;
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">FAN_EVENT_OK</span>(metadata, buflen)) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  fid <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> fanotify_event_info_fid <span style="color:#f92672">*</span>) (metadata <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  file_handle <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> file_handle <span style="color:#f92672">*</span>) fid<span style="color:#f92672">-&gt;</span>handle;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (fid<span style="color:#f92672">-&gt;</span>hdr.info_type <span style="color:#f92672">==</span> FAN_EVENT_INFO_TYPE_FID <span style="color:#f92672">||</span> fid<span style="color:#f92672">-&gt;</span>hdr.info_type <span style="color:#f92672">==</span> FAN_EVENT_INFO_TYPE_DFID) {
+</span></span><span style="display:flex;"><span>      file_name <span style="color:#f92672">=</span> NULL;
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (fid<span style="color:#f92672">-&gt;</span>hdr.info_type <span style="color:#f92672">==</span> FAN_EVENT_INFO_TYPE_DFID_NAME) {
+</span></span><span style="display:flex;"><span>      file_name <span style="color:#f92672">=</span> file_handle<span style="color:#f92672">-&gt;</span>f_handle <span style="color:#f92672">+</span> file_handle<span style="color:#f92672">-&gt;</span>handle_bytes;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><h2 id="6--bonus---allowdeny-file-operations">6. ⭐ Bonus - Allow/Deny File Operations</h2>
+<p>If you are creating an application that prevents all users (including root) to read or execute certain files, you will need the same <a href="/posts/linux-file-monitoring-with-fanotify/#flags">flags</a> as the <em>fanotify_init()</em> example shown in Section 4. After getting a valid fanotify file descriptor (not -1), we can mark a file/directory/mount point.</p>
+<p>In this example, I will be marking just 1 file - &ldquo;/home/gerald/example.txt&rdquo; and deny any who tries to open this file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> fanotify_response response;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD, FAN_OPEN_PERM, AT_FDCWD, <span style="color:#e6db74">&#34;/home/gerald/example.txt&#34;</span>);
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">FAN_EVENT_OK</span>(metadata, buflen)) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (metadata<span style="color:#f92672">-&gt;</span>mask <span style="color:#f92672">&amp;</span> FAN_OPEN_PERM) {
+</span></span><span style="display:flex;"><span>    response.fd <span style="color:#f92672">=</span> metadata<span style="color:#f92672">-&gt;</span>fd;
+</span></span><span style="display:flex;"><span>    response.response <span style="color:#f92672">=</span> FAN_DENY;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">write</span>(fan_fd, <span style="color:#f92672">&amp;</span>response, <span style="color:#66d9ef">sizeof</span>(response));
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// next event
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">close</span>(metadata<span style="color:#f92672">-&gt;</span>fd);
+</span></span><span style="display:flex;"><span>  metadata <span style="color:#f92672">=</span> <span style="color:#a6e22e">FAN_EVENT_NEXT</span>(metadata, buflen);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><h2 id="7-conclusion">7. Conclusion</h2>
+<p>If everything made sense to you so far, great! If not, I would highly recommend re-visiting the sections you were unsure on, and trying the fanotify APIs for yourself!</p>
+<h2 id="8-resources">8. Resources</h2>
+<ol>
+<li><a href="https://github.com/mathscantor/filemon">filemon</a> - Multithreaded Linux File Monitoring Tool</li>
+<li><a href="https://man7.org/linux/man-pages/man7/fanotify.7.html">fanotify(7) man page</a> - Official fanotify man page</li>
+<li><a href="https://man7.org/linux/man-pages/man2/fanotify_init.2.html">fanotify_init(2) man page</a> - Official fanotify_init man page</li>
+<li><a href="https://man7.org/linux/man-pages/man2/fanotify_mark.2.html">fanotify_mark(2) man page</a> - Official fanotify_mark man page</li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>GDB Guide Part 6 - Automation</title>
-            <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</link>
+            <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part6-automation/</link>
             <pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</guid>
+            <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part6-automation/</guid>
             <description>1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands.
@@ -116,10 +290,10 @@ the file descriptor.Since we do not want the write calls from printf, we can ign
         
         <item>
             <title>GDB Guide Part 5 - Stepping</title>
-            <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</link>
+            <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part5-stepping/</link>
             <pubDate>Sun, 23 Feb 2025 13:08:30 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
+            <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
             <description>1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
 2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along.</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
@@ -262,10 +436,10 @@ The</p>
         
         <item>
             <title>GDB Guide Part 4 - Examining Memory</title>
-            <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
+            <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
             <pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
+            <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
             <description>1. Introduction Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.
 Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with eval.
 2. Examine Command (x/) To examine the process&amp;rsquo;s memory, we will always start of with the prefix x/, followed by whatever we which to examine at a particular address.</description>
@@ -328,10 +502,10 @@ Note that on x86-64, <code>$pc</code> is just an alias for <code>$rip</code>, wh
         
         <item>
             <title>GDB Guide Part 3 - Process Maps</title>
-            <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
+            <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
             <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
+            <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
             <description>1. Introduction Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.
 2. Overview Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
@@ -434,10 +608,10 @@ However, I think it is also important to cover some background on dynamic and st
         
         <item>
             <title>GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</title>
-            <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
+            <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
             <pubDate>Tue, 21 Jan 2025 12:21:39 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
+            <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
             <description>1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
 To ensure this post is not too long-winded, I have decided to only go through the following topics today:
 Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.</description>
@@ -628,10 +802,10 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
         
         <item>
             <title>GDB Guide Part 1 - Basics</title>
-            <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</link>
+            <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part1-basics/</link>
             <pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</guid>
+            <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part1-basics/</guid>
             <description>1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
 2. Overview Today&amp;rsquo;s guide will show you how to:
 Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.</description>
@@ -822,10 +996,10 @@ which is a lot more user-friendly.</p>
         
         <item>
             <title>Writing Packets to Pcapng in C</title>
-            <link>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</link>
+            <link>http://localhost:1313/posts/writing-packets-to-pcapng-in-c/</link>
             <pubDate>Fri, 17 Jan 2025 10:56:44 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</guid>
+            <guid>http://localhost:1313/posts/writing-packets-to-pcapng-in-c/</guid>
             <description>1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.
 Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
@@ -1088,10 +1262,10 @@ stay safe and keep being awesome. Over and out!
         
         <item>
             <title>Transferring Python Packages</title>
-            <link>https://mathscantor.github.io/posts/transferring-python-packages/</link>
+            <link>http://localhost:1313/posts/transferring-python-packages/</link>
             <pubDate>Fri, 10 Jan 2025 08:38:41 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/transferring-python-packages/</guid>
+            <guid>http://localhost:1313/posts/transferring-python-packages/</guid>
             <description>1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!
 If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
@@ -1181,10 +1355,10 @@ Adios for now!</p>
         
         <item>
             <title>Installing Linux Packages Offline</title>
-            <link>https://mathscantor.github.io/posts/installing-packages-offline/</link>
+            <link>http://localhost:1313/posts/installing-packages-offline/</link>
             <pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/installing-packages-offline/</guid>
+            <guid>http://localhost:1313/posts/installing-packages-offline/</guid>
             <description>1. Introduction Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.
 For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.
 Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.</description>
@@ -1337,10 +1511,10 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
         
         <item>
             <title>Getting Root Shell Mikrotik RouterOS</title>
-            <link>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</link>
+            <link>http://localhost:1313/posts/getting-root-shell-mikrotik-routeros/</link>
             <pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</guid>
+            <guid>http://localhost:1313/posts/getting-root-shell-mikrotik-routeros/</guid>
             <description>1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
 For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface.</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
@@ -1505,10 +1679,10 @@ I hope you learnt a lot and had fun along the way. Cheers and see you in the nex
         
         <item>
             <title>Welcome Stranger</title>
-            <link>https://mathscantor.github.io/posts/welcome/</link>
+            <link>http://localhost:1313/posts/welcome/</link>
             <pubDate>Fri, 03 Jan 2025 17:43:28 +0800</pubDate>
             
-            <guid>https://mathscantor.github.io/posts/welcome/</guid>
+            <guid>http://localhost:1313/posts/welcome/</guid>
             <description>Introduction Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.
 Goals The aim of this blog is to teach other researchers tricks and tips that they may not have known.</description>
             <content type="html"><![CDATA[<h2 id="introduction">Introduction</h2>

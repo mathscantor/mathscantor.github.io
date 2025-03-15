@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>File-Monitoring on Mathscantor&#39;s Cybersecurity Blog</title>
-    <link>http://localhost:1313/tags/file-monitoring/</link>
+    <link>https://mathscantor.github.io/tags/file-monitoring/</link>
     <description>Recent content in File-Monitoring on Mathscantor&#39;s Cybersecurity Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
     <lastBuildDate>Fri, 14 Mar 2025 20:09:42 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/file-monitoring/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://mathscantor.github.io/tags/file-monitoring/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Linux File Monitoring With Fanotify</title>
-      <link>http://localhost:1313/posts/linux-file-monitoring-with-fanotify/</link>
+      <link>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</link>
       <pubDate>Fri, 14 Mar 2025 20:09:42 +0800</pubDate>
-      <guid>http://localhost:1313/posts/linux-file-monitoring-with-fanotify/</guid>
+      <guid>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</guid>
       <description>1. Introduction Let&amp;rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.&#xA;Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:&#xA;Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.</description>
     </item>
   </channel>

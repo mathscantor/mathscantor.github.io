@@ -48,7 +48,7 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
 For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.
 Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems."><meta itemprop="datePublished" content="2025-01-05T11:45:27+08:00" />
 <meta itemprop="dateModified" content="2025-01-05T11:45:27+08:00" />
-<meta itemprop="wordCount" content="872"><meta itemprop="image" content="https://mathscantor.github.io/" />
+<meta itemprop="wordCount" content="871"><meta itemprop="image" content="https://mathscantor.github.io/" />
 <meta itemprop="keywords" content="linux,ubuntu,centos,offline-package-installation," />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="Installing Linux Packages Offline"/>
@@ -213,7 +213,7 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
         <i class="fa-solid fa-clock"></i>
         5 minutes
         <i class="fa-solid fa-clipboard"></i>
-        872 Words
+        871 Words
         
       </p>
       <p>
@@ -274,12 +274,75 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
 </span></span><span style="display:flex;"><span>deb http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
 </span></span><span style="display:flex;"><span>deb-src http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
 </span></span><span style="display:flex;"><span>....
-</span></span></code></pre></div><blockquote>
-<p>💡 Tip</p>
-<ul>
-<li>Depending on the Ubuntu version you are using, the distro name will be different. In my case, my Ubuntu internet-connected machine is 22.04, and hence mine is jammy.</li>
-</ul>
-</blockquote>
+</span></span></code></pre></div><div class="alert tip">
+    <div class="alert-content">
+      <strong class="alert-title">Tip</strong>
+      <div class="alert-body">Depending on the Ubuntu version you are using, the distro name will be different. In my case, my Ubuntu internet-connected machine is 22.04, and hence mine is jammy.</div>
+    </div>
+</div>
+
+<style>
+   
+  .alert {
+    position: relative;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 5px solid;  
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s, color 0.3s;
+    background-color: transparent;  
+  }
+
+   
+  .alert::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: inherit;  
+  }
+
+   
+  @media (prefers-color-scheme: light) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ff6f00; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #2196f3; }
+    .alert.tip .alert-title, .alert.tip::before { color: #43a047; }
+    .alert.important .alert-title, .alert.important::before { color: #9c27b0; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ff6f00; }
+    .alert.caution .alert-title, .alert.caution::before { color: #e53935; }
+  }
+
+   
+  @media (prefers-color-scheme: dark) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ffb300; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #bbdefb; }
+    .alert.tip .alert-title, .alert.tip::before { color: #a5d6a7; }
+    .alert.important .alert-title, .alert.important::before { color: #e1bee7; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ffd54f; }
+    .alert.caution .alert-title, .alert.caution::before { color: #ff8a80; }
+  }
+
+   
+  .alert.note::before { content: "\f05a";   }
+  .alert.tip::before { content: "\f0eb";   }
+  .alert.important::before { content: "\f06a";   }
+  .alert.warning::before { content: "\f071";   }
+  .alert.caution::before { content: "\f057";   }
+</style>
+
 <h3 id="22-downloading-main-package-with-dependencies">2.2 Downloading Main Package with Dependencies</h3>
 <ol>
 <li>

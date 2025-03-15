@@ -48,7 +48,7 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
 Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
 Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e."><meta itemprop="datePublished" content="2025-03-14T20:09:42+08:00" />
 <meta itemprop="dateModified" content="2025-03-14T20:09:42+08:00" />
-<meta itemprop="wordCount" content="1293"><meta itemprop="image" content="https://mathscantor.github.io/" />
+<meta itemprop="wordCount" content="1292"><meta itemprop="image" content="https://mathscantor.github.io/" />
 <meta itemprop="keywords" content="linux,fanotify,file-monitoring," />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="Linux File Monitoring With Fanotify"/>
@@ -203,7 +203,7 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
         <i class="fa-solid fa-clock"></i>
         7 minutes
         <i class="fa-solid fa-clipboard"></i>
-        1293 Words
+        1292 Words
         
       </p>
       <p>
@@ -351,13 +351,79 @@ For the sake of simplicity, The overall code should look like this:</p>
 </span></span><span style="display:flex;"><span>                 FAN_MOVED_TO;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_FIOLESYSTEM, masks, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
-</span></span></code></pre></div><blockquote>
-<p>⚠️ Warning</p>
-<ul>
+</span></span></code></pre></div><div class="alert warning">
+    <div class="alert-content">
+      <strong class="alert-title">Warning</strong>
+      <div class="alert-body"><ul>
 <li>Do note that older kernels (&lt; 4.20) will not be able to use this feature, and hence will not be able to monitor for create, delete and move events.</li>
 <li>Cannot use <code>FAN_MARK_MOUNT</code> for a file descriptor that uses <code>FAN_CLASS_NOTIF | FAN_REPORT_DFID_NAME</code>.</li>
 </ul>
-</blockquote>
+</div>
+    </div>
+</div>
+
+<style>
+   
+  .alert {
+    position: relative;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 5px solid;  
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s, color 0.3s;
+    background-color: transparent;  
+  }
+
+   
+  .alert::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: inherit;  
+  }
+
+   
+  @media (prefers-color-scheme: light) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ff6f00; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #2196f3; }
+    .alert.tip .alert-title, .alert.tip::before { color: #43a047; }
+    .alert.important .alert-title, .alert.important::before { color: #9c27b0; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ff6f00; }
+    .alert.caution .alert-title, .alert.caution::before { color: #e53935; }
+  }
+
+   
+  @media (prefers-color-scheme: dark) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ffb300; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #bbdefb; }
+    .alert.tip .alert-title, .alert.tip::before { color: #a5d6a7; }
+    .alert.important .alert-title, .alert.important::before { color: #e1bee7; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ffd54f; }
+    .alert.caution .alert-title, .alert.caution::before { color: #ff8a80; }
+  }
+
+   
+  .alert.note::before { content: "\f05a";   }
+  .alert.tip::before { content: "\f0eb";   }
+  .alert.important::before { content: "\f06a";   }
+  .alert.warning::before { content: "\f071";   }
+  .alert.caution::before { content: "\f057";   }
+</style>
+
 <p>Similarly, we will do a <em>poll()</em> on the fanotify file descriptor just like how we did it in the <a href="/posts/linux-file-monitoring-with-fanotify/#4-inspecting-read-write-execute-events">previous section</a>. If you want to get the file name, you will need to make use of <code>struct fanotify_event_info_fid</code> and <code>struct file_handle</code>.</p>
 <p>The snippet below shows how you are able to retrieve the file name:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>...

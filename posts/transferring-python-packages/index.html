@@ -46,7 +46,7 @@ If you are unfamiliar with Python environments, they are basically a self-contai
 <meta itemprop="description" content="1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!
 If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free."><meta itemprop="datePublished" content="2025-01-10T08:38:41+08:00" />
 <meta itemprop="dateModified" content="2025-01-10T08:38:41+08:00" />
-<meta itemprop="wordCount" content="590"><meta itemprop="image" content="https://mathscantor.github.io/" />
+<meta itemprop="wordCount" content="589"><meta itemprop="image" content="https://mathscantor.github.io/" />
 <meta itemprop="keywords" content="python,offline-package-installation," />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="Transferring Python Packages"/>
@@ -208,7 +208,7 @@ If you are unfamiliar with Python environments, they are basically a self-contai
         <i class="fa-solid fa-clock"></i>
         3 minutes
         <i class="fa-solid fa-clipboard"></i>
-        590 Words
+        589 Words
         
       </p>
       <p>
@@ -263,14 +263,80 @@ If you were to face conflicting python packages on the base environment, things 
 <li>Install python packages into the environment</li>
 <li>Transfer python environments with the <code>conda</code> command</li>
 </ul>
-<blockquote>
-<p>❗ <strong>Important</strong></p>
-<ul>
+<div class="alert important">
+    <div class="alert-content">
+      <strong class="alert-title">Important</strong>
+      <div class="alert-body"><ul>
 <li>Before we proceed, is is also important to know the target machine&rsquo;s processor architecture and OS version.</li>
 <li>Sections 2 to 5.1 have to be done on a similar machine to the target machine.</li>
 <li>If the preperation machine is too different from the target machine, the transfer will fail!</li>
 </ul>
-</blockquote>
+</div>
+    </div>
+</div>
+
+<style>
+   
+  .alert {
+    position: relative;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 5px solid;  
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s, color 0.3s;
+    background-color: transparent;  
+  }
+
+   
+  .alert::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: inherit;  
+  }
+
+   
+  @media (prefers-color-scheme: light) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ff6f00; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #2196f3; }
+    .alert.tip .alert-title, .alert.tip::before { color: #43a047; }
+    .alert.important .alert-title, .alert.important::before { color: #9c27b0; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ff6f00; }
+    .alert.caution .alert-title, .alert.caution::before { color: #e53935; }
+  }
+
+   
+  @media (prefers-color-scheme: dark) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ffb300; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #bbdefb; }
+    .alert.tip .alert-title, .alert.tip::before { color: #a5d6a7; }
+    .alert.important .alert-title, .alert.important::before { color: #e1bee7; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ffd54f; }
+    .alert.caution .alert-title, .alert.caution::before { color: #ff8a80; }
+  }
+
+   
+  .alert.note::before { content: "\f05a";   }
+  .alert.tip::before { content: "\f0eb";   }
+  .alert.important::before { content: "\f06a";   }
+  .alert.warning::before { content: "\f071";   }
+  .alert.caution::before { content: "\f057";   }
+</style>
+
 <h2 id="2-installing-miniconda">2. Installing Miniconda</h2>
 <h3 id="21-windows">2.1 Windows</h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>PS C:\Users\gerald&gt; curl https<span style="color:#960050;background-color:#1e0010">:</span>//repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -o miniconda.exe

@@ -44,7 +44,7 @@
 <meta itemprop="name" content="GDB Guide Part 6 - Automation">
 <meta itemprop="description" content="1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command."><meta itemprop="datePublished" content="2025-03-01T09:09:02+08:00" />
 <meta itemprop="dateModified" content="2025-03-01T09:09:02+08:00" />
-<meta itemprop="wordCount" content="664"><meta itemprop="image" content="https://mathscantor.github.io/" />
+<meta itemprop="wordCount" content="659"><meta itemprop="image" content="https://mathscantor.github.io/" />
 <meta itemprop="keywords" content="gdb,linux," />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="GDB Guide Part 6 - Automation"/>
@@ -193,7 +193,7 @@
         <i class="fa-solid fa-clock"></i>
         4 minutes
         <i class="fa-solid fa-clipboard"></i>
-        664 Words
+        659 Words
         
       </p>
       <p>
@@ -287,10 +287,11 @@ To do so, we will write all our commands into a gdb script, called automation-ex
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># After setting the breakpoint and  commands, resume the process.</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">continue</span>
-</span></span></code></pre></div><p>In order to attach to the process and run the commands from our file, we need to supply gdb <code>--batch</code> and <code>-x</code>.
-According to the gdb manual page,</p>
-<blockquote>
-<p><code>--batch</code></p>
+</span></span></code></pre></div><p>In order to attach to the process and run the commands from our file, we need to supply gdb <code>--batch</code> and <code>-x</code>.</p>
+<div class="alert note">
+    <div class="alert-content">
+      <strong class="alert-title">Note</strong>
+      <div class="alert-body"><p><code>--batch</code></p>
 <ul>
 <li>Run  in  batch  mode.  Exit with status 0 after processing all the  command files specified with -x (and .gdbinit, if not  inhibited).  Exit  with  nonzero status if an error occurs in executing the GDB commands in the command files.</li>
 </ul>
@@ -298,7 +299,72 @@ According to the gdb manual page,</p>
 <ul>
 <li>Execute GDB commands from file.</li>
 </ul>
-</blockquote>
+</div>
+    </div>
+</div>
+
+<style>
+   
+  .alert {
+    position: relative;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 5px solid;  
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s, color 0.3s;
+    background-color: transparent;  
+  }
+
+   
+  .alert::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: inherit;  
+  }
+
+   
+  @media (prefers-color-scheme: light) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ff6f00; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #2196f3; }
+    .alert.tip .alert-title, .alert.tip::before { color: #43a047; }
+    .alert.important .alert-title, .alert.important::before { color: #9c27b0; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ff6f00; }
+    .alert.caution .alert-title, .alert.caution::before { color: #e53935; }
+  }
+
+   
+  @media (prefers-color-scheme: dark) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ffb300; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #bbdefb; }
+    .alert.tip .alert-title, .alert.tip::before { color: #a5d6a7; }
+    .alert.important .alert-title, .alert.important::before { color: #e1bee7; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ffd54f; }
+    .alert.caution .alert-title, .alert.caution::before { color: #ff8a80; }
+  }
+
+   
+  .alert.note::before { content: "\f05a";   }
+  .alert.tip::before { content: "\f0eb";   }
+  .alert.important::before { content: "\f06a";   }
+  .alert.warning::before { content: "\f071";   }
+  .alert.caution::before { content: "\f057";   }
+</style>
+
 <p>Thus, our gdb arguments will look like this:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb --batch -x automation-exercise.gdb -p $PID
 </span></span></code></pre></div>

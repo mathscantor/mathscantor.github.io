@@ -46,7 +46,7 @@ Therefore, I thought it would be good to share some insights on writing a simple
 <meta itemprop="description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.
 Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file."><meta itemprop="datePublished" content="2025-01-17T10:56:44+08:00" />
 <meta itemprop="dateModified" content="2025-01-17T10:56:44+08:00" />
-<meta itemprop="wordCount" content="1116"><meta itemprop="image" content="https://mathscantor.github.io/" />
+<meta itemprop="wordCount" content="1115"><meta itemprop="image" content="https://mathscantor.github.io/" />
 <meta itemprop="keywords" content="c-c&#43;&#43;,packet-capture," />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://mathscantor.github.io/" /><meta name="twitter:title" content="Writing Packets to Pcapng in C"/>
@@ -200,7 +200,7 @@ Therefore, I thought it would be good to share some insights on writing a simple
         <i class="fa-solid fa-clock"></i>
         6 minutes
         <i class="fa-solid fa-clipboard"></i>
-        1116 Words
+        1115 Words
         
       </p>
       <p>
@@ -266,14 +266,80 @@ The PcapNG file structure can be found on the <a href="https://pcapng.com/">Offi
 </ul>
 </li>
 </ol>
-<p>In addition, <strong>the entire structure must be word-aligned</strong> (divisible by 4 bytes). This means that padding is necessary if it&rsquo;s not word-aligned.</p>
-<blockquote>
-<p>❗ <strong>Important</strong></p>
-<ul>
+<p>In addition, <strong>the entire structure must be word-aligned</strong> (divisible by 4 bytes). This means that padding is necessary if it&rsquo;s not word-aligned.
+<div class="alert important">
+    <div class="alert-content">
+      <strong class="alert-title">Important</strong>
+      <div class="alert-body"><ul>
 <li>Ensure that you pad with <code>0x00</code> just before the redundant block total length section.</li>
 <li>Do not pad <code>0x00</code> at the end of each block!</li>
 </ul>
-</blockquote>
+</div>
+    </div>
+</div>
+
+<style>
+   
+  .alert {
+    position: relative;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 5px solid;  
+    font-family: Arial, sans-serif;
+    transition: border-color 0.3s, color 0.3s;
+    background-color: transparent;  
+  }
+
+   
+  .alert::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: inherit;  
+  }
+
+   
+  @media (prefers-color-scheme: light) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ff6f00; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #2196f3; }
+    .alert.tip .alert-title, .alert.tip::before { color: #43a047; }
+    .alert.important .alert-title, .alert.important::before { color: #9c27b0; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ff6f00; }
+    .alert.caution .alert-title, .alert.caution::before { color: #e53935; }
+  }
+
+   
+  @media (prefers-color-scheme: dark) {
+    .alert.note { border-color: #2196f3; }
+    .alert.tip { border-color: #43a047; }
+    .alert.important { border-color: #9c27b0; }
+    .alert.warning { border-color: #ffb300; }
+    .alert.caution { border-color: #e53935; }
+
+    .alert.note .alert-title, .alert.note::before { color: #bbdefb; }
+    .alert.tip .alert-title, .alert.tip::before { color: #a5d6a7; }
+    .alert.important .alert-title, .alert.important::before { color: #e1bee7; }
+    .alert.warning .alert-title, .alert.warning::before { color: #ffd54f; }
+    .alert.caution .alert-title, .alert.caution::before { color: #ff8a80; }
+  }
+
+   
+  .alert.note::before { content: "\f05a";   }
+  .alert.tip::before { content: "\f0eb";   }
+  .alert.important::before { content: "\f06a";   }
+  .alert.warning::before { content: "\f071";   }
+  .alert.caution::before { content: "\f057";   }
+</style>
+</p>
 <h2 id="3-section-header-block-shb">3. Section Header Block (SHB)</h2>
 <img class="center" alt="shb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/shb-structure.png">
 <div style="text-align: center;"><p>Figure 2. SHB Structure</p></div>

@@ -184,11 +184,11 @@
   <ul>
     <li><a href="#1-introduction">1. Introduction</a></li>
     <li><a href="#2-example-program">2. Example Program</a></li>
-    <li><a href="#2-stepping-in">2. Stepping In</a></li>
-    <li><a href="#3-stepping-over">3. Stepping Over</a></li>
-    <li><a href="#4-stepping-out">4. Stepping Out</a></li>
-    <li><a href="#5-conclusion">5. Conclusion</a></li>
-    <li><a href="#6-resources">6. Resources</a></li>
+    <li><a href="#3-stepping-in">3. Stepping In</a></li>
+    <li><a href="#4-stepping-over">4. Stepping Over</a></li>
+    <li><a href="#5-stepping-out">5. Stepping Out</a></li>
+    <li><a href="#6-conclusion">6. Conclusion</a></li>
+    <li><a href="#7-resources">7. Resources</a></li>
   </ul>
 </nav>
     </aside>
@@ -251,7 +251,7 @@ In most cases while doing cyber security research, we will not have access to sy
 I provide will only be for stepping through instructions and not source lines.</p>
 <h2 id="2-example-program">2. Example Program</h2>
 <p>For this part of the tutorial, either compile <a href="/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise.c">stepping-exercise.c</a> or download the static binary <a href="/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise">stepping-exercise</a> to follow along.</p>
-<h2 id="2-stepping-in">2. Stepping In</h2>
+<h2 id="3-stepping-in">3. Stepping In</h2>
 <p>To step through one instruction at a time, the command to use will be <code>stepi / si</code>.
 For more information, see the help usage of <code>stepi / si</code>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help si
@@ -293,7 +293,7 @@ For more information, see the help usage of <code>stepi / si</code>.</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect the current instruction</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
 </span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
-</span></span></code></pre></div><h2 id="3-stepping-over">3. Stepping Over</h2>
+</span></span></code></pre></div><h2 id="4-stepping-over">4. Stepping Over</h2>
 <p>Stepping over is slightly different from stepping as it treats a function/subroutine call as one instruction. To step over instructions, the command to use is <code>nexti / ni</code>.
 To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help ni
@@ -341,7 +341,7 @@ To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Current instruction is after fib_num() call.</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
 </span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
-</span></span></code></pre></div><h2 id="4-stepping-out">4. Stepping Out</h2>
+</span></span></code></pre></div><h2 id="5-stepping-out">5. Stepping Out</h2>
 <p>The last method of stepping is to execute everything in the current function and return back to the caller. To do so, use the
 <code>finish</code> command. To see more information on <code>finish</code>, refer to the help usage.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help finish
@@ -372,10 +372,10 @@ The</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Get the return value of fib_num()</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $rax
 </span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>
-</span></span></code></pre></div><h2 id="5-conclusion">5. Conclusion</h2>
+</span></span></code></pre></div><h2 id="6-conclusion">6. Conclusion</h2>
 <p>Now that you have made it this far, you have mastered the basics of GDB! In the next few guides, I will be going through more advanced techniques to achieve greater efficiency in dynamic analysis through automation.</p>
 <p>Stay safe and healthy folks!</p>
-<h2 id="6-resources">6. Resources</h2>
+<h2 id="7-resources">7. Resources</h2>
 <ol>
 <li><a href="/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise.c">stepping-exercise.c</a></li>
 <li><a href="/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise">stepping-exercise</a></li>

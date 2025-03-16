@@ -2,95 +2,95 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Mathscantor&#39;s Cybersecurity Blog</title>
-    <link>https://mathscantor.github.io/</link>
+    <link>http://localhost:1313/</link>
     <description>Recent content on Mathscantor&#39;s Cybersecurity Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
     <lastBuildDate>Fri, 14 Mar 2025 20:09:42 +0800</lastBuildDate>
-    <atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Linux File Monitoring With Fanotify</title>
-      <link>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</link>
+      <link>http://localhost:1313/posts/linux-file-monitoring-with-fanotify/</link>
       <pubDate>Fri, 14 Mar 2025 20:09:42 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</guid>
+      <guid>http://localhost:1313/posts/linux-file-monitoring-with-fanotify/</guid>
       <description>1. Introduction Let&amp;rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.&#xA;Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:&#xA;Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.</description>
     </item>
     <item>
       <title>GDB Guide Part 6 - Automation</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</link>
+      <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part6-automation/</link>
       <pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</guid>
+      <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part6-automation/</guid>
       <description>1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.</description>
     </item>
     <item>
       <title>GDB Guide Part 5 - Stepping</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</link>
+      <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part5-stepping/</link>
       <pubDate>Sun, 23 Feb 2025 13:08:30 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
+      <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
       <description>1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.&#xA;2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along.</description>
     </item>
     <item>
       <title>GDB Guide Part 4 - Examining Memory</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
+      <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
       <pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
+      <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
       <description>1. Introduction Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.&#xA;Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with eval.&#xA;2. Examine Command (x/) To examine the process&amp;rsquo;s memory, we will always start of with the prefix x/, followed by whatever we which to examine at a particular address.</description>
     </item>
     <item>
       <title>GDB Guide Part 3 - Process Maps</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
+      <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
       <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
+      <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
       <description>1. Introduction Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.&#xA;2. Overview Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.</description>
     </item>
     <item>
       <title>GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
+      <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
       <pubDate>Tue, 21 Jan 2025 12:21:39 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
+      <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
       <description>1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.&#xA;To ensure this post is not too long-winded, I have decided to only go through the following topics today:&#xA;Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.</description>
     </item>
     <item>
       <title>GDB Guide Part 1 - Basics</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</link>
+      <link>http://localhost:1313/posts/gdb-guides/gdb-guide-part1-basics/</link>
       <pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</guid>
+      <guid>http://localhost:1313/posts/gdb-guides/gdb-guide-part1-basics/</guid>
       <description>1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!&#xA;2. Overview Today&amp;rsquo;s guide will show you how to:&#xA;Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.</description>
     </item>
     <item>
       <title>Writing Packets to Pcapng in C</title>
-      <link>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</link>
+      <link>http://localhost:1313/posts/writing-packets-to-pcapng-in-c/</link>
       <pubDate>Fri, 17 Jan 2025 10:56:44 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</guid>
+      <guid>http://localhost:1313/posts/writing-packets-to-pcapng-in-c/</guid>
       <description>1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.&#xA;Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.</description>
     </item>
     <item>
       <title>Transferring Python Packages</title>
-      <link>https://mathscantor.github.io/posts/transferring-python-packages/</link>
+      <link>http://localhost:1313/posts/transferring-python-packages/</link>
       <pubDate>Fri, 10 Jan 2025 08:38:41 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/transferring-python-packages/</guid>
+      <guid>http://localhost:1313/posts/transferring-python-packages/</guid>
       <description>1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!&#xA;If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.</description>
     </item>
     <item>
       <title>Installing Linux Packages Offline</title>
-      <link>https://mathscantor.github.io/posts/installing-packages-offline/</link>
+      <link>http://localhost:1313/posts/installing-packages-offline/</link>
       <pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/installing-packages-offline/</guid>
+      <guid>http://localhost:1313/posts/installing-packages-offline/</guid>
       <description>1. Introduction Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.&#xA;For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.&#xA;Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.</description>
     </item>
     <item>
       <title>Getting Root Shell Mikrotik RouterOS</title>
-      <link>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</link>
+      <link>http://localhost:1313/posts/getting-root-shell-mikrotik-routeros/</link>
       <pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</guid>
+      <guid>http://localhost:1313/posts/getting-root-shell-mikrotik-routeros/</guid>
       <description>1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.&#xA;For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface.</description>
     </item>
     <item>
       <title>Welcome Stranger</title>
-      <link>https://mathscantor.github.io/posts/welcome/</link>
+      <link>http://localhost:1313/posts/welcome/</link>
       <pubDate>Fri, 03 Jan 2025 17:43:28 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/welcome/</guid>
+      <guid>http://localhost:1313/posts/welcome/</guid>
       <description>Introduction Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.&#xA;Goals The aim of this blog is to teach other researchers tricks and tips that they may not have known.</description>
     </item>
   </channel>

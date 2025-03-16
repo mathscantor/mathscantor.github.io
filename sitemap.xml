@@ -2,96 +2,96 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://mathscantor.github.io/tags/fanotify/</loc>
+    <loc>http://localhost:1313/tags/fanotify/</loc>
     <lastmod>2025-03-14T20:09:42+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/file-monitoring/</loc>
+    <loc>http://localhost:1313/tags/file-monitoring/</loc>
     <lastmod>2025-03-14T20:09:42+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/linux/</loc>
+    <loc>http://localhost:1313/tags/linux/</loc>
     <lastmod>2025-03-14T20:09:42+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</loc>
+    <loc>http://localhost:1313/posts/linux-file-monitoring-with-fanotify/</loc>
     <lastmod>2025-03-14T20:09:42+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/</loc>
+    <loc>http://localhost:1313/</loc>
     <lastmod>2025-03-14T20:09:42+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/</loc>
+    <loc>http://localhost:1313/posts/</loc>
     <lastmod>2025-03-14T20:09:42+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/</loc>
+    <loc>http://localhost:1313/tags/</loc>
     <lastmod>2025-03-14T20:09:42+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/gdb/</loc>
+    <loc>http://localhost:1313/tags/gdb/</loc>
     <lastmod>2025-03-01T09:09:02+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/series/gdb-guide/</loc>
+    <loc>http://localhost:1313/series/gdb-guide/</loc>
     <lastmod>2025-03-01T09:09:02+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</loc>
+    <loc>http://localhost:1313/posts/gdb-guides/gdb-guide-part6-automation/</loc>
     <lastmod>2025-03-01T09:09:02+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/series/</loc>
+    <loc>http://localhost:1313/series/</loc>
     <lastmod>2025-03-01T09:09:02+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</loc>
+    <loc>http://localhost:1313/posts/gdb-guides/gdb-guide-part5-stepping/</loc>
     <lastmod>2025-02-23T13:08:30+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</loc>
+    <loc>http://localhost:1313/posts/gdb-guides/gdb-guide-part4-examining-memory/</loc>
     <lastmod>2025-02-05T13:05:09+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</loc>
+    <loc>http://localhost:1313/posts/gdb-guides/gdb-guide-part3-process-maps/</loc>
     <lastmod>2025-01-29T08:58:52+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</loc>
+    <loc>http://localhost:1313/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</loc>
     <lastmod>2025-01-21T12:21:39+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</loc>
+    <loc>http://localhost:1313/posts/gdb-guides/gdb-guide-part1-basics/</loc>
     <lastmod>2025-01-19T10:37:22+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/c-c&#43;&#43;/</loc>
+    <loc>http://localhost:1313/tags/c-c&#43;&#43;/</loc>
     <lastmod>2025-01-17T10:56:44+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/packet-capture/</loc>
+    <loc>http://localhost:1313/tags/packet-capture/</loc>
     <lastmod>2025-01-17T10:56:44+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</loc>
+    <loc>http://localhost:1313/posts/writing-packets-to-pcapng-in-c/</loc>
     <lastmod>2025-01-17T10:56:44+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/offline-package-installation/</loc>
+    <loc>http://localhost:1313/tags/offline-package-installation/</loc>
     <lastmod>2025-01-10T08:38:41+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/python/</loc>
+    <loc>http://localhost:1313/tags/python/</loc>
     <lastmod>2025-01-10T08:38:41+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/transferring-python-packages/</loc>
+    <loc>http://localhost:1313/posts/transferring-python-packages/</loc>
     <lastmod>2025-01-10T08:38:41+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/centos/</loc>
+    <loc>http://localhost:1313/tags/centos/</loc>
     <lastmod>2025-01-05T11:45:27+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/installing-packages-offline/</loc>
+    <loc>http://localhost:1313/posts/installing-packages-offline/</loc>
     <lastmod>2025-01-05T11:45:27+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/ubuntu/</loc>
+    <loc>http://localhost:1313/tags/ubuntu/</loc>
     <lastmod>2025-01-05T11:45:27+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</loc>
+    <loc>http://localhost:1313/posts/getting-root-shell-mikrotik-routeros/</loc>
     <lastmod>2025-01-03T20:26:00+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/jailbreak/</loc>
+    <loc>http://localhost:1313/tags/jailbreak/</loc>
     <lastmod>2025-01-03T20:26:00+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/mikrotik/</loc>
+    <loc>http://localhost:1313/tags/mikrotik/</loc>
     <lastmod>2025-01-03T20:26:00+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/intro/</loc>
+    <loc>http://localhost:1313/tags/intro/</loc>
     <lastmod>2025-01-03T17:43:28+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/welcome/</loc>
+    <loc>http://localhost:1313/posts/welcome/</loc>
     <lastmod>2025-01-03T17:43:28+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/blog/</loc>
+    <loc>http://localhost:1313/blog/</loc>
   </url>
 </urlset>

@@ -353,8 +353,11 @@ For the sake of simplicity, The overall code should look like this:</p>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_FIOLESYSTEM, masks, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
 </span></span></code></pre></div><div class="alert warning">
     <div class="alert-content">
-      <strong class="alert-title">Warning</strong>
-      <div class="alert-body"><ul>
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Warning</strong>
+        </div>
+        <div class="alert-body"><ul>
 <li>Do note that older kernels (&lt; 4.20) will not be able to use this feature, and hence will not be able to monitor for create, delete and move events.</li>
 <li>Cannot use <code>FAN_MARK_MOUNT</code> for a file descriptor that uses <code>FAN_CLASS_NOTIF | FAN_REPORT_DFID_NAME</code>.</li>
 </ul>
@@ -366,24 +369,32 @@ For the sake of simplicity, The overall code should look like this:</p>
    
   .alert {
     position: relative;
-    padding: 20px;
+    padding: 15px;
     margin: 20px 0;
-    border-left: 5px solid;  
+    border-left: 5px solid;
     font-family: Arial, sans-serif;
     transition: border-color 0.3s, color 0.3s;
-    background-color: transparent;  
+    background-color: transparent;
   }
 
    
-  .alert::before {
+  .alert-content {
+    display: flex;
+    flex-direction: column;  
+  }
+
+   
+  .alert-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+   
+  .alert-icon {
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
-    position: absolute;
-    left: -40px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 24px;
-    color: inherit;  
+    font-size: 20px;
   }
 
    
@@ -394,11 +405,11 @@ For the sake of simplicity, The overall code should look like this:</p>
     .alert.warning { border-color: #ff6f00; }
     .alert.caution { border-color: #e53935; }
 
-    .alert.note .alert-title, .alert.note::before { color: #2196f3; }
-    .alert.tip .alert-title, .alert.tip::before { color: #43a047; }
-    .alert.important .alert-title, .alert.important::before { color: #9c27b0; }
-    .alert.warning .alert-title, .alert.warning::before { color: #ff6f00; }
-    .alert.caution .alert-title, .alert.caution::before { color: #e53935; }
+    .alert.note .alert-title, .alert.note .alert-icon { color: #2196f3; }
+    .alert.tip .alert-title, .alert.tip .alert-icon { color: #43a047; }
+    .alert.important .alert-title, .alert.important .alert-icon { color: #9c27b0; }
+    .alert.warning .alert-title, .alert.warning .alert-icon { color: #ff6f00; }
+    .alert.caution .alert-title, .alert.caution .alert-icon { color: #e53935; }
   }
 
    
@@ -406,22 +417,23 @@ For the sake of simplicity, The overall code should look like this:</p>
     .alert.note { border-color: #2196f3; }
     .alert.tip { border-color: #43a047; }
     .alert.important { border-color: #9c27b0; }
-    .alert.warning { border-color: #ffb300; }
+    .alert.warning { border-color: #ff6f00; }
     .alert.caution { border-color: #e53935; }
 
-    .alert.note .alert-title, .alert.note::before { color: #bbdefb; }
-    .alert.tip .alert-title, .alert.tip::before { color: #a5d6a7; }
-    .alert.important .alert-title, .alert.important::before { color: #e1bee7; }
-    .alert.warning .alert-title, .alert.warning::before { color: #ffd54f; }
-    .alert.caution .alert-title, .alert.caution::before { color: #ff8a80; }
+    .alert.note .alert-title, .alert.note .alert-icon { color: #bbdefb; }
+    .alert.tip .alert-title, .alert.tip .alert-icon { color: #a5d6a7; }
+    .alert.important .alert-title, .alert.important .alert-icon { color: #e1bee7; }
+    .alert.warning .alert-title, .alert.warning .alert-icon { color: #ffd54f; }
+    .alert.caution .alert-title, .alert.caution .alert-icon { color: #ff8a80; }
   }
 
    
-  .alert.note::before { content: "\f05a";   }
-  .alert.tip::before { content: "\f0eb";   }
-  .alert.important::before { content: "\f06a";   }
-  .alert.warning::before { content: "\f071";   }
-  .alert.caution::before { content: "\f057";   }
+  .alert.note .alert-icon::before { content: "\f05a"; }  
+  .alert.tip .alert-icon::before { content: "\f0eb"; }  
+  .alert.important .alert-icon::before { content: "\f06a"; }  
+  .alert.warning .alert-icon::before { content: "\f071"; }  
+  .alert.caution .alert-icon::before { content: "\f057"; }  
+
 </style>
 
 <p>Similarly, we will do a <em>poll()</em> on the fanotify file descriptor just like how we did it in the <a href="/posts/linux-file-monitoring-with-fanotify/#4-inspecting-read-write-execute-events">previous section</a>. If you want to get the file name, you will need to make use of <code>struct fanotify_event_info_fid</code> and <code>struct file_handle</code>.</p>

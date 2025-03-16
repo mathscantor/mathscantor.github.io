@@ -265,8 +265,11 @@ If you were to face conflicting python packages on the base environment, things 
 </ul>
 <div class="alert important">
     <div class="alert-content">
-      <strong class="alert-title">Important</strong>
-      <div class="alert-body"><ul>
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Important</strong>
+        </div>
+        <div class="alert-body"><ul>
 <li>Before we proceed, is is also important to know the target machine&rsquo;s processor architecture and OS version.</li>
 <li>Sections 2 to 5.1 have to be done on a similar machine to the target machine.</li>
 <li>If the preperation machine is too different from the target machine, the transfer will fail!</li>
@@ -279,24 +282,32 @@ If you were to face conflicting python packages on the base environment, things 
    
   .alert {
     position: relative;
-    padding: 20px;
+    padding: 15px;
     margin: 20px 0;
-    border-left: 5px solid;  
+    border-left: 5px solid;
     font-family: Arial, sans-serif;
     transition: border-color 0.3s, color 0.3s;
-    background-color: transparent;  
+    background-color: transparent;
   }
 
    
-  .alert::before {
+  .alert-content {
+    display: flex;
+    flex-direction: column;  
+  }
+
+   
+  .alert-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+   
+  .alert-icon {
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
-    position: absolute;
-    left: -40px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 24px;
-    color: inherit;  
+    font-size: 20px;
   }
 
    
@@ -307,11 +318,11 @@ If you were to face conflicting python packages on the base environment, things 
     .alert.warning { border-color: #ff6f00; }
     .alert.caution { border-color: #e53935; }
 
-    .alert.note .alert-title, .alert.note::before { color: #2196f3; }
-    .alert.tip .alert-title, .alert.tip::before { color: #43a047; }
-    .alert.important .alert-title, .alert.important::before { color: #9c27b0; }
-    .alert.warning .alert-title, .alert.warning::before { color: #ff6f00; }
-    .alert.caution .alert-title, .alert.caution::before { color: #e53935; }
+    .alert.note .alert-title, .alert.note .alert-icon { color: #2196f3; }
+    .alert.tip .alert-title, .alert.tip .alert-icon { color: #43a047; }
+    .alert.important .alert-title, .alert.important .alert-icon { color: #9c27b0; }
+    .alert.warning .alert-title, .alert.warning .alert-icon { color: #ff6f00; }
+    .alert.caution .alert-title, .alert.caution .alert-icon { color: #e53935; }
   }
 
    
@@ -319,22 +330,23 @@ If you were to face conflicting python packages on the base environment, things 
     .alert.note { border-color: #2196f3; }
     .alert.tip { border-color: #43a047; }
     .alert.important { border-color: #9c27b0; }
-    .alert.warning { border-color: #ffb300; }
+    .alert.warning { border-color: #ff6f00; }
     .alert.caution { border-color: #e53935; }
 
-    .alert.note .alert-title, .alert.note::before { color: #bbdefb; }
-    .alert.tip .alert-title, .alert.tip::before { color: #a5d6a7; }
-    .alert.important .alert-title, .alert.important::before { color: #e1bee7; }
-    .alert.warning .alert-title, .alert.warning::before { color: #ffd54f; }
-    .alert.caution .alert-title, .alert.caution::before { color: #ff8a80; }
+    .alert.note .alert-title, .alert.note .alert-icon { color: #bbdefb; }
+    .alert.tip .alert-title, .alert.tip .alert-icon { color: #a5d6a7; }
+    .alert.important .alert-title, .alert.important .alert-icon { color: #e1bee7; }
+    .alert.warning .alert-title, .alert.warning .alert-icon { color: #ffd54f; }
+    .alert.caution .alert-title, .alert.caution .alert-icon { color: #ff8a80; }
   }
 
    
-  .alert.note::before { content: "\f05a";   }
-  .alert.tip::before { content: "\f0eb";   }
-  .alert.important::before { content: "\f06a";   }
-  .alert.warning::before { content: "\f071";   }
-  .alert.caution::before { content: "\f057";   }
+  .alert.note .alert-icon::before { content: "\f05a"; }  
+  .alert.tip .alert-icon::before { content: "\f0eb"; }  
+  .alert.important .alert-icon::before { content: "\f06a"; }  
+  .alert.warning .alert-icon::before { content: "\f071"; }  
+  .alert.caution .alert-icon::before { content: "\f057"; }  
+
 </style>
 
 <h2 id="2-installing-miniconda">2. Installing Miniconda</h2>

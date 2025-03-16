@@ -124,7 +124,8 @@ For the sake of simplicity, The overall code should look like this:</p>
 </span></span><span style="display:flex;"><span>                 FAN_MOVED_TO;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_FIOLESYSTEM, masks, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
-</span></span></code></pre></div><div class="alert warning">
+</span></span></code></pre></div><link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert warning">
     <div class="alert-content">
         <div class="alert-header">
             <span class="alert-icon"></span>
@@ -137,7 +138,6 @@ For the sake of simplicity, The overall code should look like this:</p>
 </div>
     </div>
 </div>
-
 <style>
    
   .alert {
@@ -318,6 +318,7 @@ To do so, we will write all our commands into a gdb script, called automation-ex
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># After setting the breakpoint and  commands, resume the process.</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">continue</span>
 </span></span></code></pre></div><p>In order to attach to the process and run the commands from our file, we need to supply gdb <code>--batch</code> and <code>-x</code>.</p>
+<link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert note">
     <div class="alert-content">
         <div class="alert-header">
@@ -335,7 +336,6 @@ To do so, we will write all our commands into a gdb script, called automation-ex
 </div>
     </div>
 </div>
-
 <style>
    
   .alert {
@@ -785,7 +785,8 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 <p>You can set a breakpoint with the following syntax:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break <span style="color:#f92672">[</span>Function<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break *<span style="color:#f92672">[</span>Address<span style="color:#f92672">]</span>
-</span></span></code></pre></div><div class="alert tip">
+</span></span></code></pre></div><link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert tip">
     <div class="alert-content">
         <div class="alert-header">
             <span class="alert-icon"></span>
@@ -794,7 +795,6 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
         <div class="alert-body">You can use the shorthand &lsquo;b&rsquo; instead of &ldquo;break&rdquo;</div>
     </div>
 </div>
-
 <style>
    
   .alert {
@@ -1259,6 +1259,7 @@ The PcapNG file structure can be found on the <a href="https://pcapng.com/">Offi
 </li>
 </ol>
 <p>In addition, <strong>the entire structure must be word-aligned</strong> (divisible by 4 bytes). This means that padding is necessary if it&rsquo;s not word-aligned.
+<link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert important">
     <div class="alert-content">
         <div class="alert-header">
@@ -1272,7 +1273,6 @@ The PcapNG file structure can be found on the <a href="https://pcapng.com/">Offi
 </div>
     </div>
 </div>
-
 <style>
    
   .alert {
@@ -1591,6 +1591,7 @@ If you were to face conflicting python packages on the base environment, things 
 <li>Install python packages into the environment</li>
 <li>Transfer python environments with the <code>conda</code> command</li>
 </ul>
+<link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert important">
     <div class="alert-content">
         <div class="alert-header">
@@ -1605,7 +1606,6 @@ If you were to face conflicting python packages on the base environment, things 
 </div>
     </div>
 </div>
-
 <style>
    
   .alert {
@@ -1767,7 +1767,8 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
 </span></span><span style="display:flex;"><span>deb http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
 </span></span><span style="display:flex;"><span>deb-src http://sg.archive.ubuntu.com/ubuntu/ jammy main restricted
 </span></span><span style="display:flex;"><span>....
-</span></span></code></pre></div><div class="alert tip">
+</span></span></code></pre></div><link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert tip">
     <div class="alert-content">
         <div class="alert-header">
             <span class="alert-icon"></span>
@@ -1776,7 +1777,6 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
         <div class="alert-body">Depending on the Ubuntu version you are using, the distro name will be different. In my case, my Ubuntu internet-connected machine is 22.04, and hence mine is jammy.</div>
     </div>
 </div>
-
 <style>
    
   .alert {

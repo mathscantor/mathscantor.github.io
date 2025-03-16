@@ -1,36 +1,67 @@
-/* Base alert styling */
+/* Base alert Styling */
 .alert {
-    padding: 10px 15px;
-    margin: 15px 0;
-    border-left: 5px solid;
-    border-radius: 4px;
-    font-size: 0.95rem;
+position: relative;
+padding: 15px;
+margin: 20px 0;
+border-left: 5px solid;
+font-family: Arial, sans-serif;
+transition: border-color 0.3s, color 0.3s;
+background-color: transparent;
 }
 
-/* Tip (Green) */
-.alert.tip {
-    border-color: #28a745;
-    background-color: #e6f7eb;
-    color: #155724;
+/* Flexbox layout for content */
+.alert-content {
+display: flex;
+flex-direction: column; /* Stack title and body */
 }
 
-/* Note (Blue) */
-.alert.note {
-    border-color: #007bff;
-    background-color: #e7f1ff;
-    color: #004085;
+/* Header contains icon + title on one row */
+.alert-header {
+display: flex;
+align-items: center;
+gap: 10px;
 }
 
-/* Warning (Yellow) */
-.alert.warning {
-    border-color: #ffc107;
-    background-color: #fff3cd;
-    color: #856404;
+/* Icon Styling */
+.alert-icon {
+font-family: "Font Awesome 5 Free";
+font-weight: 900;
+font-size: 20px;
 }
 
-/* Caution (Red) */
-.alert.caution {
-    border-color: #dc3545;
-    background-color: #f8d7da;
-    color: #721c24;
+/* Light theme styles */
+@media (prefers-color-scheme: light) {
+.alert.note { border-color: #2196f3; }
+.alert.tip { border-color: #43a047; }
+.alert.important { border-color: #9c27b0; }
+.alert.warning { border-color: #ff6f00; }
+.alert.caution { border-color: #e53935; }
+
+.alert.note .alert-title, .alert.note .alert-icon { color: #2196f3; }
+.alert.tip .alert-title, .alert.tip .alert-icon { color: #43a047; }
+.alert.important .alert-title, .alert.important .alert-icon { color: #9c27b0; }
+.alert.warning .alert-title, .alert.warning .alert-icon { color: #ff6f00; }
+.alert.caution .alert-title, .alert.caution .alert-icon { color: #e53935; }
 }
+
+/* Dark theme styles */
+@media (prefers-color-scheme: dark) {
+.alert.note { border-color: #2196f3; }
+.alert.tip { border-color: #43a047; }
+.alert.important { border-color: #9c27b0; }
+.alert.warning { border-color: #ff6f00; }
+.alert.caution { border-color: #e53935; }
+
+.alert.note .alert-title, .alert.note .alert-icon { color: #2196f3; }
+.alert.tip .alert-title, .alert.tip .alert-icon { color: #43a047; }
+.alert.important .alert-title, .alert.important .alert-icon { color: #9c27b0; }
+.alert.warning .alert-title, .alert.warning .alert-icon { color: #ff6f00; }
+.alert.caution .alert-title, .alert.caution .alert-icon { color: #e53935; }
+}
+
+/* Icons */
+.alert.note .alert-icon::before { content: "\f05a"; } /* Info icon */
+.alert.tip .alert-icon::before { content: "\f0eb"; } /* Lightbulb icon */
+.alert.important .alert-icon::before { content: "\f06a"; } /* Exclamation icon */
+.alert.warning .alert-icon::before { content: "\f071"; } /* Warning icon */
+.alert.caution .alert-icon::before { content: "\f057"; } /* Error icon */

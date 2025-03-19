@@ -6,8 +6,93 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Fri, 14 Mar 2025 20:09:42 +0800</lastBuildDate>
+        <lastBuildDate>Wed, 19 Mar 2025 22:15:30 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>GDB Guide Part 7 - Custom Commands</title>
+            <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</link>
+            <pubDate>Wed, 19 Mar 2025 22:15:30 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</guid>
+            <description>1. Introduction Today&amp;rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, GEF (GDB Enhanced Features) provides many QoL features that aid dynamic analysis.
+However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&amp;rsquo;s capabilities.</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Today&rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, <a href="https://github.com/hugsy/gef">GEF (GDB Enhanced Features)</a> provides many QoL features that aid dynamic analysis.</p>
+<p>However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&rsquo;s capabilities.</p>
+<h2 id="2-gdb-syntax">2. GDB Syntax</h2>
+<p>For example, if you needed to do a set of repetitive commands over and over again, you can just define them under a user-defined command.</p>
+<p>The following example shows how you can define a new command called &ldquo;test_command&rdquo;, where it takes one step-into, examine the current instruction and then printing information on the RDI register.
+<a name="test_command"></a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> define test_command
+</span></span><span style="display:flex;"><span>&gt; si
+</span></span><span style="display:flex;"><span>&gt; x/i $pc 
+</span></span><span style="display:flex;"><span>&gt; info registers rdi
+</span></span><span style="display:flex;"><span>&gt; end
+</span></span></code></pre></div><video width=100% controls>
+    <source src="/posts/gdb-guides/gdb-guide-part7-custom-commands/videos/gdb-syntax.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+<h2 id="3-python">3. Python</h2>
+<p>To create a new custom command in python, all you need to do is create a new class that inherits from the <em>gdb.Command</em> class.
+Let&rsquo;s break this down step by step!</p>
+<h3 id="31-setting-new-class">3.1 Setting New Class</h3>
+<p>Preferably, we want to name our python class based on the command that we are creating. For example, if we want the custom command to be &ldquo;get_base_addr&rdquo;, then
+the class should be called <em>GetBaseAddr</em>.</p>
+<p>The snippet below shows the overall layout of what your class should look like as a start:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TestCommand</span>(gdb<span style="color:#f92672">.</span>Command):
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self):
+</span></span><span style="display:flex;"><span>      self<span style="color:#f92672">.</span>__command_name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;test_command&#34;</span>
+</span></span><span style="display:flex;"><span>      super(TestCommand, self)<span style="color:#f92672">.</span>__init__(self<span style="color:#f92672">.</span>__command_name, gdb<span style="color:#f92672">.</span>COMMAND_USER)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>TestCommand()
+</span></span></code></pre></div><h3 id="32-defining-invoke-function">3.2 Defining Invoke Function</h3>
+<p>Still within the same class, we will also need to define our <em>invoke()</em> function which contains all the logic of our user-defined command.</p>
+<p>The snippet below replicates what we did <a href="/posts/gdb-guides/gdb-guide-part7-custom-commands/#test_command">previously</a>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">invoke</span>(self, args: str, from_tty: bool <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>    gdb<span style="color:#f92672">.</span>execute(<span style="color:#e6db74">&#34;si&#34;</span>)
+</span></span><span style="display:flex;"><span>    gdb<span style="color:#f92672">.</span>execute(<span style="color:#e6db74">&#34;x/i $pc&#34;</span>)
+</span></span><span style="display:flex;"><span>    gdb<span style="color:#f92672">.</span>execute(<span style="color:#e6db74">&#34;info registers rdi&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span>
+</span></span></code></pre></div><link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert tip">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Tip</strong>
+        </div>
+        <div class="alert-body"><ul>
+<li>You can pass arguments to invoke which will be taken in as a full string. You will need to parse it yourself.</li>
+<li>You can redirect the output to a variable to do further processing.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Example to put the mappings into a list</span>
+</span></span><span style="display:flex;"><span>mappings <span style="color:#f92672">=</span> gdb<span style="color:#f92672">.</span>execute(<span style="color:#e6db74">&#34;info proc mappings&#34;</span>, to_string<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)<span style="color:#f92672">.</span>split(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>)[<span style="color:#ae81ff">4</span>:]
+</span></span></code></pre></div></li>
+</ul>
+</div>
+    </div>
+</div>
+
+<h3 id="33-importing-command--running">3.3 Importing Command &amp; Running</h3>
+<p>Once the above 2 steps are done correctly, you will be able to import your new command in by doing the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> source test_command.py
+</span></span></code></pre></div><p>If there are any syntax errors, go back and fix the python code and import it in again. When GDB doesn&rsquo;t complain, it means your custom command has been
+successfully imported! The name of your command will follow what you have defined previously in <code>self.__command_name</code>.</p>
+<video width=100% controls>
+    <source src="/posts/gdb-guides/gdb-guide-part7-custom-commands/videos/python-class.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+<h2 id="4-conclusion">4. Conclusion</h2>
+<p>Now that you have reached this stage of the tutorial, great job making it this far!</p>
+<p>If you are interested in more useful python extensions for GDB, you may check out some of the <a href="https://github.com/mathscantor/mGDB/tree/main/gdb_scripts/py_commands">commands</a> I wrote to help researchers debug their targets faster.</p>
+<h2 id="5-resources">5. Resources</h2>
+<ol>
+<li><a href="https://github.com/hugsy/gef">GEF (GDB Enhanced Features)</a></li>
+<li><a href="https://github.com/mathscantor/mGDB/tree/main/gdb_scripts/py_commands">Useful Python Extensions</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Linux File Monitoring With Fanotify</title>

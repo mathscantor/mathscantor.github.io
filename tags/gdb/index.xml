@@ -7,8 +7,15 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Sat, 01 Mar 2025 09:09:02 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 19 Mar 2025 22:15:30 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/tags/gdb/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>GDB Guide Part 7 - Custom Commands</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</link>
+      <pubDate>Wed, 19 Mar 2025 22:15:30 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</guid>
+      <description>1. Introduction Today&amp;rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, GEF (GDB Enhanced Features) provides many QoL features that aid dynamic analysis.&#xA;However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&amp;rsquo;s capabilities.</description>
+    </item>
     <item>
       <title>GDB Guide Part 6 - Automation</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</link>

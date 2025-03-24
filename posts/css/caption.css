@@ -1,0 +1,7 @@
+.caption {
+    display: block; /* Makes sure it takes full width */
+    text-align: center; /* Centers the text */
+    font-style: italic;
+    margin-top: 5px;
+    font-size: 0.85em;
+}

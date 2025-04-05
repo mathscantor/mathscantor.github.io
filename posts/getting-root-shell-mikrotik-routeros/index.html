@@ -27,7 +27,7 @@ For those that have already done their hands-on spinning up a Mikrotik RouterOS 
 
 
 
-<link rel="stylesheet" href="/main.89a15ea4946f31142d54d2c2e1405d2553c89feddc00bf0e86a64e6ea10e6033.css">
+<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
 
 
 
@@ -275,7 +275,7 @@ Do also note that the walkthrough is based on a older version of Mikrotik Router
 <img alt="vmware-guest-operating-system" src="/posts/getting-root-shell-mikrotik-routeros/images/vmware-guest-operating-system.png"></p>
 <p>Follow the instructions of the installation, and on success you will be prompted to login. By default the administrator username is &lsquo;admin&rsquo; with no password.</p>
 <p>If everything is okay up till this point, you will be able to see the RouterOS CLI.</p>
-<p><img alt="vmware-guest-operating-system" src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png"></p>
+<p><img alt="mikrotik-admin-shell" src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png"></p>
 <p>After logging in as admin, we need to assign an IP address to our VM. For this example, I have assigned 172.16.205.150/24 as my RouterOS IP. Please change the values according to your own setup.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>admin@MikroTik &gt; /ip address add address<span style="color:#f92672">=</span>172.16.205.150/24 interface<span style="color:#f92672">=</span>ether1<span style="color:#f92672">]</span>
 </span></span></code></pre></div><p>After wards, do a simple ping test from your host to see if it is reachable.</p>

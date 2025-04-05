@@ -28,7 +28,7 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
 
 
 
-<link rel="stylesheet" href="/main.89a15ea4946f31142d54d2c2e1405d2553c89feddc00bf0e86a64e6ea10e6033.css">
+<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
 
 
 
@@ -50,7 +50,7 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
 Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.">
   <meta itemprop="datePublished" content="2025-01-19T10:37:22+08:00">
   <meta itemprop="dateModified" content="2025-01-19T10:37:22+08:00">
-  <meta itemprop="wordCount" content="932">
+  <meta itemprop="wordCount" content="990">
   <meta itemprop="image" content="https://mathscantor.github.io/">
   <meta itemprop="keywords" content="Gdb,Linux">
 
@@ -236,7 +236,7 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
         <i class="fa-solid fa-clock"></i>
         5 minutes
         <i class="fa-solid fa-clipboard"></i>
-        932 Words
+        990 Words
         
       </p>
       <p>
@@ -294,38 +294,48 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
 <p>I will be providing an example C file <a href="/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c">here</a> for you to compile so that you may follow the walkthrough and deepen your understanding.</p>
 <p>To compile test.c:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test
-</span></span></code></pre></div><h2 id="3-attaching-to-a-process">3. Attaching to a Process</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling Test Program<br><br></span>
+<h2 id="3-attaching-to-a-process">3. Attaching to a Process</h2>
 <p>There are two ways to go about doing this. The first which is the simplest, is to run GDB with the binary path as its parameter.
 The second way to do this is to attach to an already running process via its PID.</p>
 <h3 id="31-via-binary">3.1 Via Binary</h3>
 <p>If you have chosen this method, it means that you know the binary full path and also the parameters to run the binary.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb $BINARY_PATH
-</span></span></code></pre></div><p>Afterwards, run the binary with its parameters.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching before Process Begins<br><br></span>
+<p>Afterwards, run the binary with its parameters.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r $param1 $param2 ....
-</span></span></code></pre></div><h3 id="32-via-pid">3.2 Via PID</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Running with Parameters<br><br></span>
+<h3 id="32-via-pid">3.2 Via PID</h3>
 <p>Alternatively, you can also attach to a running process via its PID in several ways as well.</p>
 <ol>
 <li>
 <p>You can start either GDB first, then do <code>attach $PID</code>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> attach $pid
-</span></span></code></pre></div></li>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> attach $pid
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching via PID - Method 1<br><br></span>
+</li>
 <li>
 <p>OR, you can start GDB with the <code>-p</code> parameter.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb -p <span style="color:#e6db74">`</span>pidof $PROC_NAME<span style="color:#e6db74">`</span>
-</span></span></code></pre></div></li>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching via PID - Method 2<br><br></span>
+</li>
 </ol>
 <h3 id="33-test-example">3.3 Test Example</h3>
 <p>I have created a video for those who are more visual learners, using a compiled test.c as an example for GDB to attach to.</p>
-
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part1-basics/videos/attach-to-process.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Attaching to Test Program - Short Demo<br><br></span></p>
 <h2 id="4-useful-gdb-configurations">4. Useful GDB Configurations</h2>
 <p>I would recommend the following configurations right from the get-go when doing dynamic analysis.</p>
 <ol>
@@ -363,7 +373,8 @@ The second way to do this is to attach to an already running process via its PID
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># set print pretty off</span>
 </span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>next <span style="color:#f92672">=</span> 0x0, flags <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>sweet <span style="color:#f92672">=</span> 1, sour <span style="color:#f92672">=</span> 1<span style="color:#f92672">}</span>, meat <span style="color:#f92672">=</span> 0x54 <span style="color:#e6db74">&#34;Pork&#34;</span><span style="color:#f92672">}</span>
-</span></span></code></pre></div></li>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Pretty Print On/Off<br><br></span></li>
 </ul>
 </li>
 <li>
@@ -396,7 +407,9 @@ The second way to do this is to attach to an already running process via its PID
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Print an array of registers</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers rdi rsi rdx rcx 
-</span></span></code></pre></div><h3 id="52-via-print--printf">5.2 Via <code>print</code> / <code>printf</code></h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">GDB command - info registers<br><br></span>
+<h3 id="52-via-print--printf">5.2 Via <code>print</code> / <code>printf</code></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Print rax value</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $rax
 </span></span><span style="display:flex;"><span>
@@ -405,16 +418,18 @@ The second way to do this is to attach to an already running process via its PID
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Printf rdi, rsi, rdx, rcx</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> printf <span style="color:#e6db74">&#34;rdi = %d\nrsi = %d\nrdx = %d\nrcx = %d\n&#34;</span>, $rdi, $rsi, $rdx, $rcx
-</span></span></code></pre></div><h3 id="53-test-example">5.3 Test Example</h3>
-
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">GDB command - print / printf<br><br></span>
+<h3 id="53-test-example">5.3 Test Example</h3>
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part1-basics/videos/get-register-info.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Showing Registers&rsquo; Values - Short Demo<br><br></span></p>
 <h2 id="6-looking-at-disassembly">6. Looking at Disassembly</h2>
 <p>Looking at disassembly provides us more information such as offsets and instruction sets.
 Of course, you need not use GDB&rsquo;s disassembly feature for static analysis and can always use <a href="https://github.com/NationalSecurityAgency/ghidra">Ghidra</a> or IDA (<a href="https://hex-rays.com/ida-free">Free Version</a> or <a href="https://hex-rays.com/ida-pro">Pro</a>)
@@ -443,16 +458,18 @@ which is a lot more user-friendly.</p>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Show the byte values of all instructions</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble /r <span style="color:#f92672">[</span>...<span style="color:#f92672">]</span>
-</span></span></code></pre></div><h3 id="61-test-example">6.1 Test Example</h3>
-
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">GDB command - disassemble<br><br></span>
+<h3 id="61-test-example">6.1 Test Example</h3>
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part1-basics/videos/viewing-disassembly.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Viewing Disassembly - Short Demo<br><br></span></p>
 <h2 id="7-conclusion">7. Conclusion</h2>
 <p>I figured this is a good stopping point and of course, we are not yet done! I barely scratched the surface just for the basics! Stay tuned for part 2, where I will teach you more about Linux calling conventions, setting breakpoints etc.</p>
 <h2 id="8-references">8. References</h2>

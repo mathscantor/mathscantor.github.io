@@ -26,7 +26,7 @@
 
 
 
-<link rel="stylesheet" href="/main.89a15ea4946f31142d54d2c2e1405d2553c89feddc00bf0e86a64e6ea10e6033.css">
+<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
 
 
 
@@ -46,7 +46,7 @@
   <meta itemprop="description" content="1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.">
   <meta itemprop="datePublished" content="2025-03-01T09:09:02+08:00">
   <meta itemprop="dateModified" content="2025-03-01T09:09:02+08:00">
-  <meta itemprop="wordCount" content="659">
+  <meta itemprop="wordCount" content="695">
   <meta itemprop="image" content="https://mathscantor.github.io/">
   <meta itemprop="keywords" content="Gdb,Linux">
 
@@ -208,7 +208,7 @@
         <i class="fa-solid fa-clock"></i>
         4 minutes
         <i class="fa-solid fa-clipboard"></i>
-        659 Words
+        695 Words
         
       </p>
       <p>
@@ -258,24 +258,24 @@
 Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation
 will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your
 sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.</p>
-<p>At this point you may ask, &ldquo;If we can debug processes, doesn&rsquo;t that mean we are already root and we control the VM?&rdquo;. Unfortunately, we often share
-test beds with other researchers and we have to becareful how we debug processes, as it can be very disruptive for other people.</p>
+<p>At this point you may ask, &ldquo;If we can debug processes, doesn&rsquo;t that mean we are already root, and we control the VM?&rdquo;. Unfortunately, we often share
+test beds with other researchers, and we have to be careful how we debug processes, as it can be very disruptive for other people.</p>
 <h2 id="2-test-program">2. Test Program</h2>
-<p>To make you appreciate this tutorial better, I generated a test program using chatgpt to create a watchdog and a watched child process.
+<p>To make you appreciate this tutorial better, I generated a test program using ChatGPT to create a watchdog and a watched child process.
 In the video below, I demonstrated that the moment the watched process&rsquo;s execution is paused, it will be killed by the watchdog.</p>
-
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part6-automation/videos/watchdog-kills-process.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demo - Watchdog Kills Unresponsive Watched Process<br><br></span></p>
 <p>It is recommended to get the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise.c">source file</a> or the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise">static binary</a> to follow along from this section onwards.</p>
 <h2 id="3-assigning-commands-to-breakpoints">3. Assigning Commands to Breakpoints</h2>
 <p>To assign a set of commands to any breakpoint, use <code>commands</code>.
-According to the gdb manual:</p>
+According to the GDB manual:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>(gdb) help commands
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>Set commands to be executed when the given breakpoints are hit.
@@ -287,8 +287,10 @@ According to the gdb manual:</p>
 </span></span><span style="display:flex;"><span>Type a line containing <span style="color:#e6db74">&#34;end&#34;</span> to indicate the end of them.
 </span></span><span style="display:flex;"><span>Give <span style="color:#e6db74">&#34;silent&#34;</span> as the first line to make the breakpoint silent;
 </span></span><span style="display:flex;"><span>then no output is printed when it is hit, except what the commands print.
-</span></span></code></pre></div><p>Let&rsquo;s test this out in practice by inspecting the the 3 arguments supplied to the <em>write</em> function call.
-To do so, we will write all our commands into a gdb script, called automation-exercise.gdb.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Commands Usage<br><br></span>
+<p>Let&rsquo;s test this out in practice by inspecting 3 arguments supplied to the <em>write</em> function call.
+To do so, we will write all our commands into a GDB script, called automation-exercise.gdb.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>set pag off
 </span></span><span style="display:flex;"><span>set output-radix <span style="color:#ae81ff">16</span>
 </span></span><span style="display:flex;"><span>set confirm off
@@ -302,7 +304,9 @@ To do so, we will write all our commands into a gdb script, called automation-ex
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># After setting the breakpoint and  commands, resume the process.</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">continue</span>
-</span></span></code></pre></div><p>In order to attach to the process and run the commands from our file, we need to supply gdb <code>--batch</code> and <code>-x</code>.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">GDB Script - automation-exercise.gdb<br><br></span>
+<p>In order to attach to the process and run the commands from our file, we need to supply our GDB command with <code>--batch</code> and <code>-x</code> arguments.</p>
 <link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert note">
     <div class="alert-content">
@@ -312,7 +316,7 @@ To do so, we will write all our commands into a gdb script, called automation-ex
         </div>
         <div class="alert-body"><p><code>--batch</code></p>
 <ul>
-<li>Run  in  batch  mode.  Exit with status 0 after processing all the  command files specified with -x (and .gdbinit, if not  inhibited).  Exit  with  nonzero status if an error occurs in executing the GDB commands in the command files.</li>
+<li>Run  in  batch  mode.  Exit with status 0 after processing all the  command files specified with -x (and .gdbinit, if not inhibited).  Exit  with  nonzero status if an error occurs in executing the GDB commands in the command files.</li>
 </ul>
 <p><code>-x file</code></p>
 <ul>
@@ -322,30 +326,32 @@ To do so, we will write all our commands into a gdb script, called automation-ex
     </div>
 </div>
 
-<p>Thus, our gdb arguments will look like this:</p>
+<p>Thus, our GDB arguments will look like this:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb --batch -x automation-exercise.gdb -p $PID
-</span></span></code></pre></div>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching GDB to Process with Script<br><br></span>
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part6-automation/videos/breakpoint-write-commands-info-registers.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
-<p>Just for practice, edit the above gdb script to only print out messages sent from the child process to the watchdog.
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demo - Automating the GDB Commands on <em>write()</em> Function Calls<br><br></span></p>
+<p>Just for practice, edit the above GDB script to only print out messages sent from the child process to the watchdog.
 As a start, you need to find out which argument is the one that contains the buffer. You can also filter out irrelevant write calls by
-the file descriptor.Since we do not want the write calls from printf, we can ignore it if the file descriptor is 1 (stdout fd is 1).</p>
+the file descriptor. Since we do not want <em>write()</em> calls from <em>printf()</em>, filter out <em>write()</em> calls whose file descriptor is 1 (stdout fd is 1).</p>
 <p>If you have done everything right, your output will look something similar to the example shown below.</p>
-
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part6-automation/videos/extra-exercise.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demo - Extra Exercise Answer<br><br></span></p>
 <p>If you still cannot figure it out, that&rsquo;s alright. Here&rsquo;s the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise-extras.gdb">answer</a> to the extra exercise.</p>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>After today&rsquo;s exercise, I hope you have gained more confidence in debugging targets that cannot have their executions paused indefinitely. In the next post, I will be sharing more about more automation techinques by defining your own custom commands.</p>

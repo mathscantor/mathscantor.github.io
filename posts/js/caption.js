@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Caption numbering script loaded!"); // Debugging
 
-    const types = ["figure", "table", "listing"];
-    let counters = { figure: 0, table: 0, listing: 0 };
+    const types = ["figure", "table", "listing", "video"];
+    let counters = { figure: 0, table: 0, listing: 0, video: 0 };
 
     const captions = document.querySelectorAll(".caption");
 

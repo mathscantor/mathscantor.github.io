@@ -29,10 +29,14 @@ However, GEF is not what I want to talk about today. Instead of using GEF, we wi
 </span></span><span style="display:flex;"><span>&gt; x/i $pc 
 </span></span><span style="display:flex;"><span>&gt; info registers rdi
 </span></span><span style="display:flex;"><span>&gt; end
-</span></span></code></pre></div><video width=100% controls>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example of User-Defined Commands<br><br></span>
+<video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part7-custom-commands/videos/gdb-syntax.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demo - Using User-Defined Commands<br><br></span>
 <h2 id="3-python">3. Python</h2>
 <p>To create a new custom command in python, all you need to do is create a new class that inherits from the <em>gdb.Command</em> class.
 Let&rsquo;s break this down step by step!</p>
@@ -48,7 +52,9 @@ the class should be called <em>GetBaseAddr</em>.</p>
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span>
 </span></span><span style="display:flex;"><span>  
 </span></span><span style="display:flex;"><span>TestCommand()
-</span></span></code></pre></div><h3 id="32-defining-invoke-function">3.2 Defining Invoke Function</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Python Class Overall Template<br><br></span>
+<h3 id="32-defining-invoke-function">3.2 Defining Invoke Function</h3>
 <p>Still within the same class, we will also need to define our <em>invoke()</em> function which contains all the logic of our user-defined command.</p>
 <p>The snippet below replicates what we did <a href="/posts/gdb-guides/gdb-guide-part7-custom-commands/#test_command">previously</a>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">invoke</span>(self, args: str, from_tty: bool <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
@@ -56,7 +62,9 @@ the class should be called <em>GetBaseAddr</em>.</p>
 </span></span><span style="display:flex;"><span>    gdb<span style="color:#f92672">.</span>execute(<span style="color:#e6db74">&#34;x/i $pc&#34;</span>)
 </span></span><span style="display:flex;"><span>    gdb<span style="color:#f92672">.</span>execute(<span style="color:#e6db74">&#34;info registers rdi&#34;</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span>
-</span></span></code></pre></div><link href="/posts/css/alert.css" rel="stylesheet">
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example of <em>invoke()</em> Function Logic<br><br></span>
+<link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert tip">
     <div class="alert-content">
         <div class="alert-header">
@@ -83,6 +91,8 @@ successfully imported! The name of your command will follow what you have define
     <source src="/posts/gdb-guides/gdb-guide-part7-custom-commands/videos/python-class.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demo - Running Python User-Defined Command<br><br></span>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>Now that you have reached this stage of the tutorial, great job making it this far!</p>
 <p>If you are interested in more useful python extensions for GDB, you may check out some of the <a href="https://github.com/mathscantor/mGDB/tree/main/gdb_scripts/py_commands">commands</a> I wrote to help researchers debug their targets faster.</p>
@@ -288,24 +298,24 @@ For the sake of simplicity, The overall code should look like this:</p>
 Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation
 will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your
 sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.</p>
-<p>At this point you may ask, &ldquo;If we can debug processes, doesn&rsquo;t that mean we are already root and we control the VM?&rdquo;. Unfortunately, we often share
-test beds with other researchers and we have to becareful how we debug processes, as it can be very disruptive for other people.</p>
+<p>At this point you may ask, &ldquo;If we can debug processes, doesn&rsquo;t that mean we are already root, and we control the VM?&rdquo;. Unfortunately, we often share
+test beds with other researchers, and we have to be careful how we debug processes, as it can be very disruptive for other people.</p>
 <h2 id="2-test-program">2. Test Program</h2>
-<p>To make you appreciate this tutorial better, I generated a test program using chatgpt to create a watchdog and a watched child process.
+<p>To make you appreciate this tutorial better, I generated a test program using ChatGPT to create a watchdog and a watched child process.
 In the video below, I demonstrated that the moment the watched process&rsquo;s execution is paused, it will be killed by the watchdog.</p>
-
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part6-automation/videos/watchdog-kills-process.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demo - Watchdog Kills Unresponsive Watched Process<br><br></span></p>
 <p>It is recommended to get the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise.c">source file</a> or the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise">static binary</a> to follow along from this section onwards.</p>
 <h2 id="3-assigning-commands-to-breakpoints">3. Assigning Commands to Breakpoints</h2>
 <p>To assign a set of commands to any breakpoint, use <code>commands</code>.
-According to the gdb manual:</p>
+According to the GDB manual:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>(gdb) help commands
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>Set commands to be executed when the given breakpoints are hit.
@@ -317,8 +327,10 @@ According to the gdb manual:</p>
 </span></span><span style="display:flex;"><span>Type a line containing <span style="color:#e6db74">&#34;end&#34;</span> to indicate the end of them.
 </span></span><span style="display:flex;"><span>Give <span style="color:#e6db74">&#34;silent&#34;</span> as the first line to make the breakpoint silent;
 </span></span><span style="display:flex;"><span>then no output is printed when it is hit, except what the commands print.
-</span></span></code></pre></div><p>Let&rsquo;s test this out in practice by inspecting the the 3 arguments supplied to the <em>write</em> function call.
-To do so, we will write all our commands into a gdb script, called automation-exercise.gdb.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Commands Usage<br><br></span>
+<p>Let&rsquo;s test this out in practice by inspecting 3 arguments supplied to the <em>write</em> function call.
+To do so, we will write all our commands into a GDB script, called automation-exercise.gdb.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>set pag off
 </span></span><span style="display:flex;"><span>set output-radix <span style="color:#ae81ff">16</span>
 </span></span><span style="display:flex;"><span>set confirm off
@@ -332,7 +344,9 @@ To do so, we will write all our commands into a gdb script, called automation-ex
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># After setting the breakpoint and  commands, resume the process.</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">continue</span>
-</span></span></code></pre></div><p>In order to attach to the process and run the commands from our file, we need to supply gdb <code>--batch</code> and <code>-x</code>.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">GDB Script - automation-exercise.gdb<br><br></span>
+<p>In order to attach to the process and run the commands from our file, we need to supply our GDB command with <code>--batch</code> and <code>-x</code> arguments.</p>
 <link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert note">
     <div class="alert-content">
@@ -342,7 +356,7 @@ To do so, we will write all our commands into a gdb script, called automation-ex
         </div>
         <div class="alert-body"><p><code>--batch</code></p>
 <ul>
-<li>Run  in  batch  mode.  Exit with status 0 after processing all the  command files specified with -x (and .gdbinit, if not  inhibited).  Exit  with  nonzero status if an error occurs in executing the GDB commands in the command files.</li>
+<li>Run  in  batch  mode.  Exit with status 0 after processing all the  command files specified with -x (and .gdbinit, if not inhibited).  Exit  with  nonzero status if an error occurs in executing the GDB commands in the command files.</li>
 </ul>
 <p><code>-x file</code></p>
 <ul>
@@ -352,30 +366,32 @@ To do so, we will write all our commands into a gdb script, called automation-ex
     </div>
 </div>
 
-<p>Thus, our gdb arguments will look like this:</p>
+<p>Thus, our GDB arguments will look like this:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb --batch -x automation-exercise.gdb -p $PID
-</span></span></code></pre></div>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching GDB to Process with Script<br><br></span>
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part6-automation/videos/breakpoint-write-commands-info-registers.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
-<p>Just for practice, edit the above gdb script to only print out messages sent from the child process to the watchdog.
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demo - Automating the GDB Commands on <em>write()</em> Function Calls<br><br></span></p>
+<p>Just for practice, edit the above GDB script to only print out messages sent from the child process to the watchdog.
 As a start, you need to find out which argument is the one that contains the buffer. You can also filter out irrelevant write calls by
-the file descriptor.Since we do not want the write calls from printf, we can ignore it if the file descriptor is 1 (stdout fd is 1).</p>
+the file descriptor. Since we do not want <em>write()</em> calls from <em>printf()</em>, filter out <em>write()</em> calls whose file descriptor is 1 (stdout fd is 1).</p>
 <p>If you have done everything right, your output will look something similar to the example shown below.</p>
-
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part6-automation/videos/extra-exercise.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demo - Extra Exercise Answer<br><br></span></p>
 <p>If you still cannot figure it out, that&rsquo;s alright. Here&rsquo;s the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise-extras.gdb">answer</a> to the extra exercise.</p>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>After today&rsquo;s exercise, I hope you have gained more confidence in debugging targets that cannot have their executions paused indefinitely. In the next post, I will be sharing more about more automation techinques by defining your own custom commands.</p>
@@ -412,7 +428,9 @@ For more information, see the help usage of <code>stepi / si</code>.</p>
 </span></span><span style="display:flex;"><span>Step one instruction exactly.
 </span></span><span style="display:flex;"><span>Usage: stepi <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
-</span></span></code></pre></div><p>The following example shows the relevant commands for stepping into 5 instructions after we hit the breakpoint at the start of <em>fib_num()</em>:</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Step-Into Usage<br><br></span>
+<p>The following example shows the relevant commands for stepping into 5 instructions after we hit the breakpoint at the start of <em>fib_num()</em>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
 </span></span><span style="display:flex;"><span>
@@ -445,7 +463,9 @@ For more information, see the help usage of <code>stepi / si</code>.</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect the current instruction</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
 </span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
-</span></span></code></pre></div><h2 id="4-stepping-over">4. Stepping Over</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example Usage of Stepping Into<br><br></span>
+<h2 id="4-stepping-over">4. Stepping Over</h2>
 <p>Stepping over is slightly different from stepping as it treats a function/subroutine call as one instruction. To step over instructions, the command to use is <code>nexti / ni</code>.
 To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help ni
@@ -454,7 +474,9 @@ To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 </span></span><span style="display:flex;"><span>Step one instruction, but proceed through subroutine calls.
 </span></span><span style="display:flex;"><span>Usage: nexti <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
-</span></span></code></pre></div><p>The following example shows the relevant commands for stepping over the fib_num call after we hit the breakpoint at the function call to <em>fib_num()</em>:</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Step-Over Usage<br><br></span>
+<p>The following example shows the relevant commands for stepping over the fib_num call after we hit the breakpoint at the function call to <em>fib_num()</em>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
 </span></span><span style="display:flex;"><span>
@@ -490,11 +512,17 @@ To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 </span></span><span style="display:flex;"><span>   0x401979 &lt;main+93&gt;:  mov    rdi,rax
 </span></span><span style="display:flex;"><span>   0x40197c &lt;main+96&gt;:  mov    eax,0x0
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Step over once</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> ni
+</span></span><span style="display:flex;"><span>0x0000000000401970 in main <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Current instruction is after fib_num() call.</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
 </span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
-</span></span></code></pre></div><h2 id="5-stepping-out">5. Stepping Out</h2>
-<p>The last method of stepping is to execute everything in the current function and return back to the caller. To do so, use the
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example Usage of Stepping Over<br><br></span>
+<h2 id="5-stepping-out">5. Stepping Out</h2>
+<p>The last method of stepping is to execute everything in the current function and return to the caller. To do so, use the
 <code>finish</code> command. To see more information on <code>finish</code>, refer to the help usage.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> help finish
 </span></span><span style="display:flex;"><span>
@@ -502,7 +530,9 @@ To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 </span></span><span style="display:flex;"><span>Execute <span style="color:#66d9ef">until</span> selected stack frame returns.
 </span></span><span style="display:flex;"><span>Usage: finish
 </span></span><span style="display:flex;"><span>Upon <span style="color:#66d9ef">return</span>, the value returned is printed and put in the value history.
-</span></span></code></pre></div><p>The following example shows the relevant commands for stepping out of the <em>fib_num()</em> function and getting its return value.
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Step-Out Usage<br><br></span>
+<p>The following example shows the relevant commands for stepping out of the <em>fib_num()</em> function and getting its return value.
 The</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
@@ -524,7 +554,9 @@ The</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Get the return value of fib_num()</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $rax
 </span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>
-</span></span></code></pre></div><h2 id="6-conclusion">6. Conclusion</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example Usage of Step Out<br><br></span>
+<h2 id="6-conclusion">6. Conclusion</h2>
 <p>Now that you have made it this far, you have mastered the basics of GDB! In the next few guides, I will be going through more advanced techniques to achieve greater efficiency in dynamic analysis through automation.</p>
 <p>Stay safe and healthy folks!</p>
 <h2 id="7-resources">7. Resources</h2>
@@ -555,29 +587,39 @@ Today, we will be taking a look into the examination of process memory using GDB
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>0x7ffd2d856f1b: 0x48    0x65    0x6c    0x6c    0x6f    0x20    0x57    0x6f
 </span></span><span style="display:flex;"><span>0x7ffd2d856f23: 0x72    0x6c    0x64    0x21    0x00    0x00    0x7f    0xfb
-</span></span></code></pre></div><h3 id="22-half-words-2-bytes">2.2 Half Words (2 Bytes)</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Examining 16 Bytes from Address<br><br></span>
+<h3 id="22-half-words-2-bytes">2.2 Half Words (2 Bytes)</h3>
 <p>This example shows you how to display 8 half words from 0x7ffd2d856f1b.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/8hx 0x7ffd2d856f1b
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>0x7ffd2d856f1b: 0x6548  0x6c6c  0x206f  0x6f57  0x6c72  0x2164  0x0000  0xfb7f
-</span></span></code></pre></div><h3 id="23-words-4-bytes">2.3 Words (4 Bytes)</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Examining 8 Half Words from Address<br><br></span>
+<h3 id="23-words-4-bytes">2.3 Words (4 Bytes)</h3>
 <p>This example shows you how to display 4 words from 0x7ffd2d856f1b.
 When dealing with 32 bit binaries, it will be useful to display the memory as a word if there is a pointer at the address of examination.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/4wx 0x7ffd2d856f1b
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>0x7ffd2d856f1b: 0x6c6c6548      0x6f57206f      0x21646c72      0xfb7f0000
-</span></span></code></pre></div><h3 id="24-giant-words-8-bytes">2.4 Giant Words (8 Bytes)</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Examining 4 Words from Address<br><br></span>
+<h3 id="24-giant-words-8-bytes">2.4 Giant Words (8 Bytes)</h3>
 <p>This example shows you how to display 2 giant words from 0x7ffd2d856f1b.
 For 64 bit binaries, it will be useful to display the memory as a giant word if there is a pointer at the address of examination.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/2gx 0x7ffd2d856f1b
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>0x7ffd2d856f1b: 0x6f57206f6c6c6548      0xfb7f000021646c72
-</span></span></code></pre></div><h3 id="25-strings">2.5 Strings</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Examining 2 Giant Words from Address<br><br></span>
+<h3 id="25-strings">2.5 Strings</h3>
 <p>This example shows you how to display the bytes as ASCII characters. This command will iteratively convert the byte from the starting address until it hits a <code>0x00</code> byte.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s 0x7ffd2d856f1b
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>0x7ffd2d856f1b: <span style="color:#e6db74">&#34;Hello World!&#34;</span>
-</span></span></code></pre></div><h3 id="26-instructions">2.6 Instructions</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Examining String from Address<br><br></span>
+<h3 id="26-instructions">2.6 Instructions</h3>
 <p>This example shows you how to display 5 instructions from the current instruction.
 Note that on x86-64, <code>$pc</code> is just an alias for <code>$rip</code>, which is the instruction pointer.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/5i $pc
@@ -587,7 +629,9 @@ Note that on x86-64, <code>$pc</code> is just an alias for <code>$rip</code>, wh
 </span></span><span style="display:flex;"><span>   0x5ecd0af2e1d9 &lt;func_1+16&gt;:  mov    %rsi,-0x10<span style="color:#f92672">(</span>%rbp<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>   0x5ecd0af2e1dd &lt;func_1+20&gt;:  mov    -0x8<span style="color:#f92672">(</span>%rbp<span style="color:#f92672">)</span>,%rax
 </span></span><span style="display:flex;"><span>   0x5ecd0af2e1e1 &lt;func_1+24&gt;:  mov    %rax,%rsi
-</span></span></code></pre></div><h2 id="3-creative-usage-of-eval">3. Creative usage of eval</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Examining 5 Instructions from Instruction Pointer<br><br></span>
+<h2 id="3-creative-usage-of-eval">3. Creative usage of eval</h2>
 <p>If you want to automate your GDB script and set different sizes when examining bytes, you can do the following using <em>eval</em>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $num_bytes <span style="color:#f92672">=</span> <span style="color:#ae81ff">16</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $addr <span style="color:#f92672">=</span> 0x7ffd2d856f1b
@@ -595,7 +639,9 @@ Note that on x86-64, <code>$pc</code> is just an alias for <code>$rip</code>, wh
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>0x7ffd2d856f1b: 0x48    0x65    0x6c    0x6c    0x6f    0x20    0x57    0x6f
 </span></span><span style="display:flex;"><span>0x7ffd2d856f23: 0x72    0x6c    0x64    0x21    0x00    0x00    0x7f    0xfb
-</span></span></code></pre></div><h2 id="4-conclusion">4. Conclusion</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Eval Usage Example<br><br></span>
+<h2 id="4-conclusion">4. Conclusion</h2>
 <p>That is it folks. T&rsquo;was short and mundane, but I hope you found the eval usage meaningful to use in your everyday work. Gotta go rest in bed now.
 <img alt="sumikko-bedtime-loop" src="/posts/gdb-guides/gdb-guide-part4-examining-memory/images/sumikko-bedtime-loop.gif"></p>
 ]]></content>
@@ -618,24 +664,32 @@ However, I think it is also important to cover some background on dynamic and st
 <h2 id="3-dynamic-executables">3. Dynamic Executables</h2>
 <p>Firstly, we will compile our test file without any fanciful GCC flags.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test_d
-</span></span></code></pre></div><p>We can then use the <em>ldd</em> command to inspect the libraries that it depends on.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling a Dynamically Linked Binary<br><br></span>
+<p>We can then use the <em>ldd</em> command to inspect the libraries that it depends on.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ldd test_d
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Output</span>
 </span></span><span style="display:flex;"><span>  linux-vdso.so.1 <span style="color:#f92672">(</span>0x00007ffe93378000<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>  libc.so.6 <span style="color:#f92672">=</span>&gt; /lib/x86_64-linux-gnu/libc.so.6 <span style="color:#f92672">(</span>0x000076a082a00000<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>  /lib64/ld-linux-x86-64.so.2 <span style="color:#f92672">(</span>0x000076a082d7a000<span style="color:#f92672">)</span>
-</span></span></code></pre></div><p>Looking at the output above, it seems at first glance, that we require 3 libraries. However, <em>linux-vdso.so.1</em>, is just a virtual shared object that doesn&rsquo;t have any physical file on the disk. It&rsquo;s actually part of the kernel that&rsquo;s exported into every program&rsquo;s address space when it&rsquo;s loaded.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Showing Shared Library Dependencies<br><br></span>
+<p>Looking at the output above, it seems at first glance, that we require 3 libraries. However, <em>linux-vdso.so.1</em>, is just a virtual shared object that doesn&rsquo;t have any physical file on the disk. It&rsquo;s actually part of the kernel that&rsquo;s exported into every program&rsquo;s address space when it&rsquo;s loaded.</p>
 <p>Thus, our test binary actually only loads <em>libc.so.6</em> and <em>ld-linux-x86-64.so.2</em> upon running.</p>
 <h2 id="4-static-executables">4. Static Executables</h2>
 <p>To compile a static executable, we will require additional GCC flags that tell the compiler to cramp all the different library functions into one single binary.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc -static test.c -o test_s
-</span></span></code></pre></div><p>Again, we can use the <em>ldd</em> command to check that it is now a standalone executable.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling a Statically Linked Binary<br><br></span>
+<p>Again, we can use the <em>ldd</em> command to check that it is now a standalone executable.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ldd test_s
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Output</span>
 </span></span><span style="display:flex;"><span>  not a dynamic executable
-</span></span></code></pre></div><h2 id="5-process-maps">5. Process Maps</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Proving that It is Standalone<br><br></span>
+<h2 id="5-process-maps">5. Process Maps</h2>
 <p>Process Maps are basically a mapping of memory regions to certain sections of a binary or library. Understanding Process Maps will play a crucial part in doing dynamic analysis on a stripped binary. A stripped binary means that it does not contain any symbols and thus, we cannot simply set breakpoints on a function name.</p>
 <p>To inspect the memory regions, we can either do it via the old-school method by looking at /proc/$PID/maps or using GDB.</p>
 <h3 id="51-via-procpidmaps">5.1 Via /proc/pid/maps</h3>
@@ -667,7 +721,9 @@ However, I think it is also important to cover some background on dynamic and st
 </span></span><span style="display:flex;"><span>7ffc8cb04000-7ffc8cb08000 r--p <span style="color:#ae81ff">00000000</span> 00:00 <span style="color:#ae81ff">0</span>           <span style="color:#f92672">[</span>vvar<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>7ffc8cb08000-7ffc8cb0a000 r-xp <span style="color:#ae81ff">00000000</span> 00:00 <span style="color:#ae81ff">0</span>           <span style="color:#f92672">[</span>vdso<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>ffffffffff600000-ffffffffff601000 --xp <span style="color:#ae81ff">00000000</span> 00:00 <span style="color:#ae81ff">0</span>   <span style="color:#f92672">[</span>vsyscall<span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>From the output above, we know the following base addresses:</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Showing Process Maps - /proc/pid/maps<br><br></span>
+<p>From the output above, we know the following base addresses:</p>
 <ol>
 <li><em>test_d</em> &ndash;&gt; <code>0x615276507000</code></li>
 <li><em>libc.so.6</em> &ndash;&gt; <code>0x741be5800000</code></li>
@@ -678,7 +734,9 @@ However, I think it is also important to cover some background on dynamic and st
 <p>GDB also has a feature to look at the Process Maps via <code>info proc mappings</code>.</p>
 <p>For this example, we shall run <em>test_s</em> and attach to it using another terminal.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb -p <span style="color:#e6db74">`</span>pidof test_s<span style="color:#e6db74">`</span>
-</span></span></code></pre></div><p>Then, run the following command to inspect the Process Maps:</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching to Static Test Process<br><br></span>
+<p>Then, run the following command to inspect the Process Maps:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info proc mappings
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>process <span style="color:#ae81ff">24816</span>
@@ -696,7 +754,9 @@ However, I think it is also important to cover some background on dynamic and st
 </span></span><span style="display:flex;"><span>      0x7fffc29b1000     0x7fffc29b5000     0x4000        0x0  r--p   <span style="color:#f92672">[</span>vvar<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>      0x7fffc29b5000     0x7fffc29b7000     0x2000        0x0  r-xp   <span style="color:#f92672">[</span>vdso<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>  0xffffffffff600000 0xffffffffff601000     0x1000        0x0  --xp   <span style="color:#f92672">[</span>vsyscall<span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>From the output above, we know that the base address of <em>test_s</em> is <code>0x400000</code>.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Showing Process Maps - info proc mappings<br><br></span>
+<p>From the output above, we know that the base address of <em>test_s</em> is <code>0x400000</code>.</p>
 <p>As practice, you can do the same with <em>test_d</em> and get the base address of itself and its libraries.</p>
 <h2 id="6-conclusion">6. Conclusion</h2>
 <p>With the memory regions mapped out, we will be able to debug stripped binaries easily. Stay tuned for part 4 where I will be going through on how we can debug our stripped test program. Adios!</p>
@@ -727,10 +787,7 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 <p>A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &ldquo;break&rdquo;) the program&rsquo;s execution when it reaches a certain point.</p>
 <p>When you set a breakpoint at a specific line of code or address, GDB will make the program stop executing by inserting a <code>int 3</code> instruction just before that point is reached.</p>
 <h3 id="21-setting-breakpoints">2.1 Setting Breakpoints</h3>
-<p>You can set a breakpoint with the following syntax:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break <span style="color:#f92672">[</span>Function<span style="color:#f92672">]</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break *<span style="color:#f92672">[</span>Address<span style="color:#f92672">]</span>
-</span></span></code></pre></div><link href="/posts/css/alert.css" rel="stylesheet">
+<p><link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert tip">
     <div class="alert-content">
         <div class="alert-header">
@@ -741,6 +798,11 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
     </div>
 </div>
 
+You can set a breakpoint with the following syntax:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break <span style="color:#f92672">[</span>Function<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break *<span style="color:#f92672">[</span>Address<span style="color:#f92672">]</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Breakpoints - Syntax<br><br></span>
 <h3 id="22-regex-breakpoints">2.2 Regex Breakpoints</h3>
 <p>Apart from setting breakpoint at specific functions or addresses, there&rsquo;s another cool trick to break on functions that match a regular expression.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Break on every function available</span>
@@ -751,7 +813,9 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Break on function that ends with &#34;nc_1&#34;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> rbreak .nc_1$
-</span></span></code></pre></div><h3 id="23-viewing-breakpoints">2.3 Viewing Breakpoints</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Breakpoints via Regex<br><br></span>
+<h3 id="23-viewing-breakpoints">2.3 Viewing Breakpoints</h3>
 <p>When you have too many breakpoints and things start to get a little messy, you can list down your current breakpoints by doing the following command:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info breakpoints
 </span></span><span style="display:flex;"><span>
@@ -759,10 +823,14 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 </span></span><span style="display:flex;"><span>Num     Type           Disp Enb Address            What
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span>       breakpoint     keep y   0x000062086fb611d1 &lt;func_1+8&gt;
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span>       breakpoint     keep y   0x000062086fb61203 &lt;func_2+8&gt;
-</span></span></code></pre></div><h3 id="24-deleting-breakpoints">2.4 Deleting Breakpoints</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Listing Breakpoints<br><br></span>
+<h3 id="24-deleting-breakpoints">2.4 Deleting Breakpoints</h3>
 <p>If you have finished debugging at one of the breakpoints, you can delete them via the following command:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> delete breakpoints <span style="color:#f92672">[</span>Breakpoint Number<span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>If you need to delete more than one breakpoint, here are some other examples:</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Deleting Breakpoints - Syntax<br><br></span>
+<p>If you need to delete more than one breakpoint, here are some other examples:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># If no number is specified, it will delete all breakpoints</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> delete breakpoints 
 </span></span><span style="display:flex;"><span>
@@ -771,33 +839,45 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Delete breakpoints 1 to 6</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> delete breakpoints 1-6
-</span></span></code></pre></div><h3 id="25-disabling--enabling-breakpoints">2.5 Disabling / Enabling Breakpoints</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Deleting Breakpoints - Examples<br><br></span>
+<h3 id="25-disabling--enabling-breakpoints">2.5 Disabling / Enabling Breakpoints</h3>
 <p>Depending on the situation, you may also want to consider disabling and re-enabling certain breakpoints.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disable breakpoints <span style="color:#f92672">[</span>Breakpoint Number<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> enable breakpoints <span style="color:#f92672">[</span>Breakpoint Number<span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>If you need to disable / enable more than one breakpoint, you can follow the syntax in <a href="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/#24-deleting-breakpoints">Section 2.4</a></p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Disabling/Enabling Breakpoints - Syntax<br><br></span>
+<p>If you need to disable / enable more than one breakpoint, you can follow the syntax in <a href="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/#24-deleting-breakpoints">Section 2.4</a></p>
 <h3 id="26-conditional-breakpoints">2.6 Conditional Breakpoints</h3>
 <p>At times you will find that your breakpoint keeps getting triggered by random sources and is generating too much noise.
 In that case, you may consider adding a <code>condition</code> clause to the breakpoint.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> condition <span style="color:#f92672">[</span>Breakpoint Number<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>....<span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>The example below demonstrates how to set a conditional breakpoint to <em>func_1()</em>, such that this breakpoint only triggers if <code>valueAt(EBP + 0xC) == 0xD</code></p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Conditions to Breakpoints - Syntax<br><br></span>
+<p>The example below demonstrates how to set a conditional breakpoint to <em>func_1()</em>, such that this breakpoint only triggers if <code>valueAt(EBP + 0xC) == 0xD</code></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b func_1
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> condition <span style="color:#ae81ff">1</span> <span style="color:#f92672">{</span>unsigned long<span style="color:#f92672">}(</span>$ebp+0xc<span style="color:#f92672">)</span> <span style="color:#f92672">==</span> 0xd
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Alternatively</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> condition <span style="color:#ae81ff">1</span> *<span style="color:#f92672">(</span>unsigned long *<span style="color:#f92672">)(</span>$ebp+0xc<span style="color:#f92672">)</span> <span style="color:#f92672">==</span> 0xd
-</span></span></code></pre></div><h2 id="3-linux-calling-conventions">3. Linux Calling Conventions</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Conditional Breakpoint - Example<br><br></span>
+<h2 id="3-linux-calling-conventions">3. Linux Calling Conventions</h2>
 <p>Depending on the architecture, the way registers are &ldquo;loaded&rdquo; in memory will be different.
 Bear in mind that this section will not cover ARM. Perhaps in the future, I will do a separate post about it. For now, we will keep things simple and stick to x86(32 bit) and x86_64(64 bit) architectures.</p>
 <h3 id="31-32-bit---x86">3.1 32 Bit - x86</h3>
 <p>You can read the full details <a href="https://en.wikipedia.org/wiki/X86_calling_conventions">here</a>, but if you just want the gist of it, the following diagram summarizes the x86 calling convention.</p>
 <img class="center" alt="epb-structure" src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_calling_convention.png">
-<div style="text-align: center;"><p>Figure 1. x86 Stack Frame</p></div>
+<br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">x86 Stack Frame<br><br></span>
 <p>Following the above diagram as an example, if we have a function that takes in 3 parameters, the 3rd parameter will get pushed onto the stack first, followed by the 2nd then the 1st. 4 bytes after the address of EBP, it contains the return address after the function call.</p>
 <p>Unlike 64 bit binaries, <strong>addresses are only stored as a 4-byte value</strong>.</p>
 <p>We can actually test this out by compiling our <a href="/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c">test.c</a> program shown previously in part 1 of the tutorial, as a 32 bit ELF binary.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc -m32 test.c -o test32
-</span></span></code></pre></div><p>To practice what we have learned earlier, let us set a breakpoint on <em>func_2()</em> and print out its parameters and return address.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling 32-Bit Binary<br><br></span>
+<p>To practice what we have learned earlier, let us set a breakpoint on <em>func_2()</em> and print out its parameters and return address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Set the GDB configuration</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pagination off
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set confirm off
@@ -817,21 +897,25 @@ Bear in mind that this section will not cover ARM. Perhaps in the future, I will
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>char *<span style="color:#f92672">)</span>$param_1
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>unsigned long<span style="color:#f92672">)</span>$param_2
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>void *<span style="color:#f92672">)</span>$return_addr
-</span></span></code></pre></div>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Printing Parameters of <em>func_2()</em> - x86<br><br></span>
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/videos/x86-calling-convention-example.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demonstrating x86 Calling Convention<br><br></span></p>
 <h3 id="32-64-bit---x86_64">3.2 64 Bit - x86_64</h3>
 <p>The <a href="http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html#:~:text=Calling%20Convention&text=The%20caller%20uses%20registers%20to,off%20the%20stack%20in%20order.">MIT documentation</a> on 64-bit Linux does get straight to the point but lack concrete examples. Instead, I found out this other <a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">blog post</a>
 talking about it and found it a lot more comprehensible. You could give it a read if you have the time.</p>
 <p>For those of you who just want the TLDR, refer to the diagram below.</p>
 <img class="center" alt="epb-structure" src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_64_calling_convention.png">
-<div style="text-align: center;"><p>Figure 2. x86_64 Stack Frame</p></div>
+<br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">x86_64 Stack Frame<br><br></span>
 <p>At the start of the function, the following parameters will be stored in its respective registers:</p>
 <ol>
 <li><code>RDI</code> &mdash; Param 1</li>
@@ -856,12 +940,16 @@ talking about it and found it a lot more comprehensible. You could give it a rea
 </span></span><span style="display:flex;"><span>   0x00005988a0e0c1e3 &lt;+26&gt;:    mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x1c<span style="color:#f92672">]</span>,r8d
 </span></span><span style="display:flex;"><span>   0x00005988a0e0c1e7 &lt;+30&gt;:    mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x20<span style="color:#f92672">]</span>,r9d
 </span></span><span style="display:flex;"><span>   0x00005988a0e0c1eb &lt;+34&gt;:    mov    rax,QWORD PTR <span style="color:#f92672">[</span>rbp-0x8<span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>Upon entry into <em>test_func()</em>, RIP is at <code>&lt;test_func+0&gt;</code>. At this point, all the parameter values are still stored in the 6 registers.
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">x86_64 Instruction Set at Start of test_func()<br><br></span>
+<p>Upon entry into <em>test_func()</em>, RIP is at <code>&lt;test_func+0&gt;</code>. At this point, all the parameter values are still stored in the 6 registers.
 However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame will be similar to the one shown in Figure 2.</p>
 <p>Enough talking and let&rsquo;s get to work!</p>
 <p>Similar to the GDB exercise shown in <a href="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/#31-32-bit---x86">Section 3.1</a>, we will do the same here for a 64-bit binary. In case you haven&rsquo;t compiled already, please run the following command to compile a 64-bit ELF binary:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test
-</span></span></code></pre></div><p>Again, we shall do the same to set a breakpoint on <em>func_2()</em> and print out its parameters and return address.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling a x86_64 Test Binary<br><br></span>
+<p>Again, we shall do the same to set a breakpoint on <em>func_2()</em> and print out its parameters and return address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Set the GDB configuration</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pagination off
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set confirm off
@@ -881,15 +969,17 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>char *<span style="color:#f92672">)</span>$param_1
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>unsigned long<span style="color:#f92672">)</span>$param_2
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>void *<span style="color:#f92672">)</span>$return_addr
-</span></span></code></pre></div>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Printing Parameters of <em>func_2()</em> - x86_64<br><br></span>
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/videos/x86-64-calling-convention-example.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Demonstrating x86_64 Calling Convention<br><br></span></p>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>Good job making it this far! There won&rsquo;t be any more new posts for a while from now as Chinese New Year is around the corner.</p>
 <p>Until then, keep practicing and stay awesome!</p>
@@ -928,38 +1018,48 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
 <p>I will be providing an example C file <a href="/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c">here</a> for you to compile so that you may follow the walkthrough and deepen your understanding.</p>
 <p>To compile test.c:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test
-</span></span></code></pre></div><h2 id="3-attaching-to-a-process">3. Attaching to a Process</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling Test Program<br><br></span>
+<h2 id="3-attaching-to-a-process">3. Attaching to a Process</h2>
 <p>There are two ways to go about doing this. The first which is the simplest, is to run GDB with the binary path as its parameter.
 The second way to do this is to attach to an already running process via its PID.</p>
 <h3 id="31-via-binary">3.1 Via Binary</h3>
 <p>If you have chosen this method, it means that you know the binary full path and also the parameters to run the binary.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb $BINARY_PATH
-</span></span></code></pre></div><p>Afterwards, run the binary with its parameters.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching before Process Begins<br><br></span>
+<p>Afterwards, run the binary with its parameters.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r $param1 $param2 ....
-</span></span></code></pre></div><h3 id="32-via-pid">3.2 Via PID</h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Running with Parameters<br><br></span>
+<h3 id="32-via-pid">3.2 Via PID</h3>
 <p>Alternatively, you can also attach to a running process via its PID in several ways as well.</p>
 <ol>
 <li>
 <p>You can start either GDB first, then do <code>attach $PID</code>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> attach $pid
-</span></span></code></pre></div></li>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> attach $pid
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching via PID - Method 1<br><br></span>
+</li>
 <li>
 <p>OR, you can start GDB with the <code>-p</code> parameter.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb -p <span style="color:#e6db74">`</span>pidof $PROC_NAME<span style="color:#e6db74">`</span>
-</span></span></code></pre></div></li>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching via PID - Method 2<br><br></span>
+</li>
 </ol>
 <h3 id="33-test-example">3.3 Test Example</h3>
 <p>I have created a video for those who are more visual learners, using a compiled test.c as an example for GDB to attach to.</p>
-
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part1-basics/videos/attach-to-process.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Attaching to Test Program - Short Demo<br><br></span></p>
 <h2 id="4-useful-gdb-configurations">4. Useful GDB Configurations</h2>
 <p>I would recommend the following configurations right from the get-go when doing dynamic analysis.</p>
 <ol>
@@ -997,7 +1097,8 @@ The second way to do this is to attach to an already running process via its PID
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># set print pretty off</span>
 </span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>next <span style="color:#f92672">=</span> 0x0, flags <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>sweet <span style="color:#f92672">=</span> 1, sour <span style="color:#f92672">=</span> 1<span style="color:#f92672">}</span>, meat <span style="color:#f92672">=</span> 0x54 <span style="color:#e6db74">&#34;Pork&#34;</span><span style="color:#f92672">}</span>
-</span></span></code></pre></div></li>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Pretty Print On/Off<br><br></span></li>
 </ul>
 </li>
 <li>
@@ -1030,7 +1131,9 @@ The second way to do this is to attach to an already running process via its PID
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Print an array of registers</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers rdi rsi rdx rcx 
-</span></span></code></pre></div><h3 id="52-via-print--printf">5.2 Via <code>print</code> / <code>printf</code></h3>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">GDB command - info registers<br><br></span>
+<h3 id="52-via-print--printf">5.2 Via <code>print</code> / <code>printf</code></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Print rax value</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $rax
 </span></span><span style="display:flex;"><span>
@@ -1039,16 +1142,18 @@ The second way to do this is to attach to an already running process via its PID
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Printf rdi, rsi, rdx, rcx</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> printf <span style="color:#e6db74">&#34;rdi = %d\nrsi = %d\nrdx = %d\nrcx = %d\n&#34;</span>, $rdi, $rsi, $rdx, $rcx
-</span></span></code></pre></div><h3 id="53-test-example">5.3 Test Example</h3>
-
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">GDB command - print / printf<br><br></span>
+<h3 id="53-test-example">5.3 Test Example</h3>
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part1-basics/videos/get-register-info.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Showing Registers&rsquo; Values - Short Demo<br><br></span></p>
 <h2 id="6-looking-at-disassembly">6. Looking at Disassembly</h2>
 <p>Looking at disassembly provides us more information such as offsets and instruction sets.
 Of course, you need not use GDB&rsquo;s disassembly feature for static analysis and can always use <a href="https://github.com/NationalSecurityAgency/ghidra">Ghidra</a> or IDA (<a href="https://hex-rays.com/ida-free">Free Version</a> or <a href="https://hex-rays.com/ida-pro">Pro</a>)
@@ -1077,16 +1182,18 @@ which is a lot more user-friendly.</p>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Show the byte values of all instructions</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble /r <span style="color:#f92672">[</span>...<span style="color:#f92672">]</span>
-</span></span></code></pre></div><h3 id="61-test-example">6.1 Test Example</h3>
-
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">GDB command - disassemble<br><br></span>
+<h3 id="61-test-example">6.1 Test Example</h3>
+<p>
  
-
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part1-basics/videos/viewing-disassembly.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 
-
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video">Viewing Disassembly - Short Demo<br><br></span></p>
 <h2 id="7-conclusion">7. Conclusion</h2>
 <p>I figured this is a good stopping point and of course, we are not yet done! I barely scratched the surface just for the basics! Stay tuned for part 2, where I will teach you more about Linux calling conventions, setting breakpoints etc.</p>
 <h2 id="8-references">8. References</h2>
@@ -1660,7 +1767,7 @@ Do also note that the walkthrough is based on a older version of Mikrotik Router
 <img alt="vmware-guest-operating-system" src="/posts/getting-root-shell-mikrotik-routeros/images/vmware-guest-operating-system.png"></p>
 <p>Follow the instructions of the installation, and on success you will be prompted to login. By default the administrator username is &lsquo;admin&rsquo; with no password.</p>
 <p>If everything is okay up till this point, you will be able to see the RouterOS CLI.</p>
-<p><img alt="vmware-guest-operating-system" src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png"></p>
+<p><img alt="mikrotik-admin-shell" src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png"></p>
 <p>After logging in as admin, we need to assign an IP address to our VM. For this example, I have assigned 172.16.205.150/24 as my RouterOS IP. Please change the values according to your own setup.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>admin@MikroTik &gt; /ip address add address<span style="color:#f92672">=</span>172.16.205.150/24 interface<span style="color:#f92672">=</span>ether1<span style="color:#f92672">]</span>
 </span></span></code></pre></div><p>After wards, do a simple ping test from your host to see if it is reachable.</p>

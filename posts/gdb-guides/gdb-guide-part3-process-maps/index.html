@@ -27,7 +27,7 @@
 
 
 
-<link rel="stylesheet" href="/main.89a15ea4946f31142d54d2c2e1405d2553c89feddc00bf0e86a64e6ea10e6033.css">
+<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
 
 
 
@@ -48,7 +48,7 @@
 2. Overview Today’s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.">
   <meta itemprop="datePublished" content="2025-01-29T08:58:52+08:00">
   <meta itemprop="dateModified" content="2025-01-29T08:58:52+08:00">
-  <meta itemprop="wordCount" content="766">
+  <meta itemprop="wordCount" content="802">
   <meta itemprop="image" content="https://mathscantor.github.io/">
   <meta itemprop="keywords" content="Gdb,Linux">
 
@@ -219,7 +219,7 @@
         <i class="fa-solid fa-clock"></i>
         4 minutes
         <i class="fa-solid fa-clipboard"></i>
-        766 Words
+        802 Words
         
       </p>
       <p>
@@ -273,24 +273,32 @@ However, I think it is also important to cover some background on dynamic and st
 <h2 id="3-dynamic-executables">3. Dynamic Executables</h2>
 <p>Firstly, we will compile our test file without any fanciful GCC flags.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test_d
-</span></span></code></pre></div><p>We can then use the <em>ldd</em> command to inspect the libraries that it depends on.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling a Dynamically Linked Binary<br><br></span>
+<p>We can then use the <em>ldd</em> command to inspect the libraries that it depends on.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ldd test_d
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Output</span>
 </span></span><span style="display:flex;"><span>  linux-vdso.so.1 <span style="color:#f92672">(</span>0x00007ffe93378000<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>  libc.so.6 <span style="color:#f92672">=</span>&gt; /lib/x86_64-linux-gnu/libc.so.6 <span style="color:#f92672">(</span>0x000076a082a00000<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>  /lib64/ld-linux-x86-64.so.2 <span style="color:#f92672">(</span>0x000076a082d7a000<span style="color:#f92672">)</span>
-</span></span></code></pre></div><p>Looking at the output above, it seems at first glance, that we require 3 libraries. However, <em>linux-vdso.so.1</em>, is just a virtual shared object that doesn&rsquo;t have any physical file on the disk. It&rsquo;s actually part of the kernel that&rsquo;s exported into every program&rsquo;s address space when it&rsquo;s loaded.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Showing Shared Library Dependencies<br><br></span>
+<p>Looking at the output above, it seems at first glance, that we require 3 libraries. However, <em>linux-vdso.so.1</em>, is just a virtual shared object that doesn&rsquo;t have any physical file on the disk. It&rsquo;s actually part of the kernel that&rsquo;s exported into every program&rsquo;s address space when it&rsquo;s loaded.</p>
 <p>Thus, our test binary actually only loads <em>libc.so.6</em> and <em>ld-linux-x86-64.so.2</em> upon running.</p>
 <h2 id="4-static-executables">4. Static Executables</h2>
 <p>To compile a static executable, we will require additional GCC flags that tell the compiler to cramp all the different library functions into one single binary.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc -static test.c -o test_s
-</span></span></code></pre></div><p>Again, we can use the <em>ldd</em> command to check that it is now a standalone executable.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling a Statically Linked Binary<br><br></span>
+<p>Again, we can use the <em>ldd</em> command to check that it is now a standalone executable.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ldd test_s
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e"># Output</span>
 </span></span><span style="display:flex;"><span>  not a dynamic executable
-</span></span></code></pre></div><h2 id="5-process-maps">5. Process Maps</h2>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Proving that It is Standalone<br><br></span>
+<h2 id="5-process-maps">5. Process Maps</h2>
 <p>Process Maps are basically a mapping of memory regions to certain sections of a binary or library. Understanding Process Maps will play a crucial part in doing dynamic analysis on a stripped binary. A stripped binary means that it does not contain any symbols and thus, we cannot simply set breakpoints on a function name.</p>
 <p>To inspect the memory regions, we can either do it via the old-school method by looking at /proc/$PID/maps or using GDB.</p>
 <h3 id="51-via-procpidmaps">5.1 Via /proc/pid/maps</h3>
@@ -322,7 +330,9 @@ However, I think it is also important to cover some background on dynamic and st
 </span></span><span style="display:flex;"><span>7ffc8cb04000-7ffc8cb08000 r--p <span style="color:#ae81ff">00000000</span> 00:00 <span style="color:#ae81ff">0</span>           <span style="color:#f92672">[</span>vvar<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>7ffc8cb08000-7ffc8cb0a000 r-xp <span style="color:#ae81ff">00000000</span> 00:00 <span style="color:#ae81ff">0</span>           <span style="color:#f92672">[</span>vdso<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>ffffffffff600000-ffffffffff601000 --xp <span style="color:#ae81ff">00000000</span> 00:00 <span style="color:#ae81ff">0</span>   <span style="color:#f92672">[</span>vsyscall<span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>From the output above, we know the following base addresses:</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Showing Process Maps - /proc/pid/maps<br><br></span>
+<p>From the output above, we know the following base addresses:</p>
 <ol>
 <li><em>test_d</em> &ndash;&gt; <code>0x615276507000</code></li>
 <li><em>libc.so.6</em> &ndash;&gt; <code>0x741be5800000</code></li>
@@ -333,7 +343,9 @@ However, I think it is also important to cover some background on dynamic and st
 <p>GDB also has a feature to look at the Process Maps via <code>info proc mappings</code>.</p>
 <p>For this example, we shall run <em>test_s</em> and attach to it using another terminal.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb -p <span style="color:#e6db74">`</span>pidof test_s<span style="color:#e6db74">`</span>
-</span></span></code></pre></div><p>Then, run the following command to inspect the Process Maps:</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching to Static Test Process<br><br></span>
+<p>Then, run the following command to inspect the Process Maps:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info proc mappings
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>process <span style="color:#ae81ff">24816</span>
@@ -351,7 +363,9 @@ However, I think it is also important to cover some background on dynamic and st
 </span></span><span style="display:flex;"><span>      0x7fffc29b1000     0x7fffc29b5000     0x4000        0x0  r--p   <span style="color:#f92672">[</span>vvar<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>      0x7fffc29b5000     0x7fffc29b7000     0x2000        0x0  r-xp   <span style="color:#f92672">[</span>vdso<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>  0xffffffffff600000 0xffffffffff601000     0x1000        0x0  --xp   <span style="color:#f92672">[</span>vsyscall<span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>From the output above, we know that the base address of <em>test_s</em> is <code>0x400000</code>.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Showing Process Maps - info proc mappings<br><br></span>
+<p>From the output above, we know that the base address of <em>test_s</em> is <code>0x400000</code>.</p>
 <p>As practice, you can do the same with <em>test_d</em> and get the base address of itself and its libraries.</p>
 <h2 id="6-conclusion">6. Conclusion</h2>
 <p>With the memory regions mapped out, we will be able to debug stripped binaries easily. Stay tuned for part 4 where I will be going through on how we can debug our stripped test program. Adios!</p>

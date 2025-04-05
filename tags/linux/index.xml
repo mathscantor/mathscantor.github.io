@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Wed, 19 Mar 2025 22:15:30 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 05 Apr 2025 09:20:03 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>eBPF Malware Techniques Part 1 - Introduction</title>
+      <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</link>
+      <pubDate>Sat, 05 Apr 2025 09:20:03 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</guid>
+      <description>1. Background As a cybersecurity researcher, understanding both traditional and modern methods of kernel-level code execution is crucial. Two prominent techniques you&amp;rsquo;ll encounter are LKM (Loadable Kernel Module) rootkits and eBPF-based applications.&#xA;eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows safe, user-defined code to run in kernel context. Originally intended for packet filtering, eBPF has evolved into a generic in-kernel virtual machine — enabling dynamic tracing, monitoring, networking, and even security enforcement.</description>
+    </item>
     <item>
       <title>GDB Guide Part 7 - Custom Commands</title>
       <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</link>

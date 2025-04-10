@@ -229,7 +229,7 @@ Therefore, I thought it would be good to share some insights on writing a simple
     <div class="post-info">
       <p>
         <i class="fa-solid fa-clock"></i>
-        6 minutes
+        6 Minutes
         <i class="fa-solid fa-clipboard"></i>
         1115 Words
         
@@ -245,6 +245,34 @@ Therefore, I thought it would be good to share some insights on writing a simple
         
       </p>
       <p>
+      <p>
+        <i class="fa-solid fa-eye"></i>
+        <span id="stats"></span>
+<script>
+(function() {
+  var r = new XMLHttpRequest();
+  r.addEventListener('load', function() {
+    var statsEl = document.getElementById("stats");
+    if (!statsEl) return;
+
+    try {
+      var count = JSON.parse(this.responseText).count_unique;
+      console.log(count);
+      statsEl.innerText = count == 1
+        ? "1 View"
+        : count + " Views";
+    } catch (e) {
+      console.error("GoatCounter stats error:", e);
+    }
+  });
+
+  r.open('GET', 'https://mathscantor.goatcounter.com/counter/' +
+    encodeURIComponent(location.pathname.replace(/(\/)?$/, '')) + '.json');
+  r.send();
+})();
+</script>
+
+      </p>
       
     <p>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>

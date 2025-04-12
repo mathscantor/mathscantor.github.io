@@ -6,8 +6,266 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sat, 05 Apr 2025 09:20:03 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 11 Apr 2025 23:45:35 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>eBPF Malware Techniques Part 2 - Setting Appropriate Hooks</title>
+            <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</link>
+            <pubDate>Fri, 11 Apr 2025 23:42:35 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</guid>
+            <description>1. Introduction In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.
+To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.</p>
+<p>To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.</p>
+<p>Thus, today’s focus will be on understanding the different types of hooks available, and when to use each to best achieve your goals:</p>
+<ol>
+<li><em>tracepoints</em>,</li>
+<li><em>kprobe</em> / <em>kretprobe</em></li>
+<li><em>fentry</em> / <em>fexit</em></li>
+<li><em>uprobe</em> / <em>uretprobe</em></li>
+</ol>
+<p>Also, this part of the walkthrough will be purely based on the <em>libbpf</em> framework with snippets taken from <a href="https://github.com/libbpf/libbpf-bootstrap">libbpf-bootstrap</a> and <a href="https://github.com/iovisor/bcc/tree/master/libbpf-tools">bcc/libbpf-tools</a>.</p>
+<h2 id="2-tracepoints">2. Tracepoints</h2>
+<p>A tracepoint is a statically defined hook embedded within the Linux kernel. These are intentionally placed by kernel developers to expose important events or state changes — such as when a syscall is entered or exited, a scheduler event occurs, or memory is allocated.</p>
+<p>Each tracepoint has a stable name, a well-defined structure, and exposes typed arguments that your eBPF programs can read. This makes them incredibly useful for observability and introspection.</p>
+<h3 id="21-checking-available-tracepoints">2.1 Checking Available Tracepoints</h3>
+<p>A great starting point is to look at <em>/sys/kernel/debug/tracing/available_events</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cat /sys/kernel/debug/tracing/available_events
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>sched:sched_prepare_exec
+</span></span><span style="display:flex;"><span>sched:sched_process_exec
+</span></span><span style="display:flex;"><span>sched:sched_process_fork
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>syscalls:sys_exit_openat
+</span></span><span style="display:flex;"><span>syscalls:sys_enter_openat
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Checking for Available Tracepoints<br><br></span>
+<p>This command prints out all <em>tracepoints</em> currently available in your kernel. It&rsquo;s basically a buffet of potential targets. You’ll see categories like <em>syscalls</em>, <em>irq</em>, <em>sched</em>, <em>kmem</em>, and more.</p>
+<p>If your goal is to monitor or manipulate user-level process behavior, the syscall <em>tracepoints</em> are particularly juicy. Why is this so? Let&rsquo;s take a look at a simple example of the <em>ls</em> process with <em>strace</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ strace ls
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>openat<span style="color:#f92672">(</span>AT_FDCWD, <span style="color:#e6db74">&#34;.&#34;</span>, O_RDONLY|O_NONBLOCK|O_CLOEXEC|O_DIRECTORY<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>fstat<span style="color:#f92672">(</span>3, <span style="color:#f92672">{</span>st_mode<span style="color:#f92672">=</span>S_IFDIR|0750, st_size<span style="color:#f92672">=</span>798, ...<span style="color:#f92672">})</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>getdents64<span style="color:#f92672">(</span>3, 0x557cefd81710 /* <span style="color:#ae81ff">46</span> entries */, 32768<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1496</span>
+</span></span><span style="display:flex;"><span>getdents64<span style="color:#f92672">(</span>3, 0x557cefd81710 /* <span style="color:#ae81ff">0</span> entries */, 32768<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>close<span style="color:#f92672">(</span>3<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Truncated Output of Strace on <em>ls</em> Process<br><br></span>
+<p>We can see that the <em>ls</em> process is using the <em>getdents64</em> syscall for directory listing. If your goal was to hide certain files/directories, then you will have to target <code>syscalls:sys_enter_getdents64</code> and <code>syscalls:sys_exit_getdents64</code>. (Further exploration done in later part of this series)</p>
+<p>Using the <em>libbpf</em> framework, your hookpoint will look something similar to this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tp/syscalls/sys_enter_getdents64&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">handle_getdents_enter</span>(<span style="color:#66d9ef">struct</span> trace_event_raw_sys_enter <span style="color:#f92672">*</span>ctx) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tp/syscalls/sys_exit_getdents64&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">handle_getdents_exit</span>(<span style="color:#66d9ef">struct</span> trace_event_raw_sys_exit <span style="color:#f92672">*</span>ctx) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example of <em>getdents64</em> Hooks<br><br></span>
+<h3 id="22-understanding-tracepoint-args">2.2 Understanding Tracepoint Args</h3>
+<p>Each tracepoint has its arguments format stored in the following format:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>/sys/kernel/debug/tracing/events/&lt;tp_type&gt;/&lt;tp_name&gt;/format
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Tracepoint Format Path<br><br></span>
+<p>To illustrate this, I am using back <code>syscalls:sys_enter_getdents64</code> as my example.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_getdents64/format
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>name: sys_enter_getdents64
+</span></span><span style="display:flex;"><span>ID: <span style="color:#ae81ff">908</span>
+</span></span><span style="display:flex;"><span>format:
+</span></span><span style="display:flex;"><span>	field:unsigned short common_type;	offset:0;	size:2;	signed:0;
+</span></span><span style="display:flex;"><span>	field:unsigned char common_flags;	offset:2;	size:1;	signed:0;
+</span></span><span style="display:flex;"><span>	field:unsigned char common_preempt_count;	offset:3;	size:1;	signed:0;
+</span></span><span style="display:flex;"><span>	field:int common_pid;	offset:4;	size:4;	signed:1;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	field:int __syscall_nr;	offset:8;	size:4;	signed:1;
+</span></span><span style="display:flex;"><span>	field:unsigned int fd;	offset:16;	size:8;	signed:0;
+</span></span><span style="display:flex;"><span>	field:struct linux_dirent64 * dirent;	offset:24;	size:8;	signed:0;
+</span></span><span style="display:flex;"><span>	field:unsigned int count;	offset:32;	size:8;	signed:0;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print fmt: <span style="color:#e6db74">&#34;fd: 0x%08lx, dirent: 0x%08lx, count: 0x%08lx&#34;</span>, <span style="color:#f92672">((</span>unsigned long<span style="color:#f92672">)(</span>REC-&gt;fd<span style="color:#f92672">))</span>, <span style="color:#f92672">((</span>unsigned long<span style="color:#f92672">)(</span>REC-&gt;dirent<span style="color:#f92672">))</span>, <span style="color:#f92672">((</span>unsigned long<span style="color:#f92672">)(</span>REC-&gt;count<span style="color:#f92672">))</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Format of syscalls:sys_enter_getdents64<br><br></span>
+<p>The first argument of the <em>getdents64</em> syscall only starts after <code>int __syscall_nr</code>. So essentially, we are really only concerned with the following syscall parameters:</p>
+<ol>
+<li><code>unsigned int fd</code> – The file descriptor for the directory being read</li>
+<li><code>struct linux_dirent64 *dirent</code> – A pointer to the buffer where directory entries will be stored</li>
+<li><code>int count</code> – The maximum number of bytes to read into the buffer</li>
+</ol>
+<p>These arguments are passed to the tracepoint handler and can be accessed in your eBPF program via the <code>args</code> array of the <code>trace_event_raw_sys_enter</code> struct.</p>
+<p>That’s why, when writing your eBPF handler for this tracepoint, it may look something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tp/syscalls/sys_enter_getdents64&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">handle_getdents_enter</span>(<span style="color:#66d9ef">struct</span> trace_event_raw_sys_enter <span style="color:#f92672">*</span>ctx) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> fd <span style="color:#f92672">=</span> ctx<span style="color:#f92672">-&gt;</span>args[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>dirent <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>)ctx<span style="color:#f92672">-&gt;</span>args[<span style="color:#ae81ff">1</span>];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> count <span style="color:#f92672">=</span> ctx<span style="color:#f92672">-&gt;</span>args[<span style="color:#ae81ff">2</span>];
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Accessing Arguments Through <em>trace_event_raw_sys_enter</em> Struct<br><br></span>
+<p>Alternatively, you can also define your own struct for cleaner argument access:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Self-Defined Struct
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> sys_enter_getdents64_format {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> h;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int32_t</span> __syscall_nr;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint64_t</span> fd;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>dirent;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint64_t</span> count;
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tp/syscalls/sys_enter_getdents64&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">handle_getdents_enter</span>(<span style="color:#66d9ef">struct</span> sys_enter_getdents64_format <span style="color:#f92672">*</span>format) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">uint64_t</span> fd <span style="color:#f92672">=</span> format<span style="color:#f92672">-&gt;</span>fd;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>dirent <span style="color:#f92672">=</span> format<span style="color:#f92672">-&gt;</span>dirent;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">uint64_t</span> count <span style="color:#f92672">=</span> format<span style="color:#f92672">-&gt;</span>count;
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Accessing Arguments Through Self-Defined Struct<br><br></span>
+<h2 id="3-kprobe--kretprobe">3. Kprobe / Kretprobe</h2>
+<p>So far, we&rsquo;ve explored <em>tracepoints</em> — stable and well-documented hooks that expose syscall arguments cleanly. But what if you want more power or need to hook internal kernel functions that don’t have <em>tracepoints</em>? This is where <em>kprobes</em> come in.</p>
+<p>A <em>kprobe</em> lets you dynamically instrument almost any kernel function — not just syscalls or tracepoints. When that function is called, your <em>kprobe</em> hook gets executed right at the start (before the actual function logic runs).</p>
+<p>A <em>kretprobe</em> is its sibling: it runs after the kernel function finishes executing, giving you access to the return value.</p>
+<h3 id="31-checking-available-kprobes">3.1 Checking Available Kprobes</h3>
+<p>The good news is — the kernel exposes a full list of available <em>kprobe</em> targets through the ftrace interface. Just run:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cat /sys/kernel/debug/tracing/available_filter_functions
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Listing Available Kprobe Targets<br><br></span>
+<p>This will spit out thousands of functions, all which are fair game for <em>kprobes</em>, assuming your kernel was built with <em>CONFIG_KPROBES</em> and BPF support.</p>
+<p>For example, to find file deletion logic, you might want to search for functions that contain the &ldquo;unlinkat&rdquo; substring:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ grep -i unlink /sys/kernel/debug/tracing/available_filter_functions
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>vfs_unlink
+</span></span><span style="display:flex;"><span>do_unlinkat
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Listing Kprobe Targets Related to File Deletion<br><br></span>
+<h3 id="32-understanding-kprobe-args">3.2 Understanding Kprobe Args</h3>
+<p>In order to start writing out eBPF <em>kprobe</em> hooks, we need to identify the function prototype / definition of our <em>kprobe</em> target from the <a href="https://github.com/torvalds/linux">kernel source</a>.</p>
+<p>Using <code>do_unlinkat</code> as an example, its function prototype is found in &ldquo;<em>fs/internal.h</em>&rdquo;.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">do_unlinkat</span>(<span style="color:#66d9ef">int</span> dfd, <span style="color:#66d9ef">struct</span> filename <span style="color:#f92672">*</span>name);
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Function Prototype of <em>do_unlinkat()</em><br><br></span>
+<p>And with that, we are able to write our <em>kprobe</em> / <em>kretprobe</em> hook pairs as such:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;kprobe/do_unlinkat&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_KPROBE</span>(do_unlinkat_entry, <span style="color:#66d9ef">int</span> dfd, <span style="color:#66d9ef">struct</span> filename <span style="color:#f92672">*</span>name) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;kretprobe/do_unlinkat&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_KRETPROBE</span>(do_unlinkat_exit, <span style="color:#66d9ef">long</span> ret) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example of Kprobe/Kretprobe on <em>do_unlinkat()</em><br><br></span>
+<p><em>BPF_KPROBE</em> is actually a macro that simplifies defining the function signature for a <em>kprobe</em>, by defining the lower-level <code>struct pt_regs *ctx</code> so you don’t have to manually extract arguments from CPU registers.</p>
+<p>This macro is defined in &ldquo;<em>bpf_tracing.h</em>&rdquo;, which is generated during the build process (typically src/.output/bpf/bpf_tracing.h or a similar path, depending on your setup).</p>
+<p>The macro expects two parts:</p>
+<ol>
+<li>The first argument is your handler function name — this can be anything you choose, as long as it matches the function signature.</li>
+<li>The following arguments must match the parameters of the kernel function you&rsquo;re hooking onto.</li>
+</ol>
+<h2 id="4-fentry--fexit">4. Fentry / Fexit</h2>
+<p>Now that you’ve seen how to use kprobes and kretprobes, let’s talk about their modern, more efficient cousins: fentry and fexit.</p>
+<blockquote>
+<p><a href="https://docs.ebpf.io/linux/program-type/BPF_PROG_TYPE_TRACING/#fentry">Fentry eBPF Docs</a>:</p>
+<ul>
+<li>Fentry programs are similar in function to a kprobe attached to a functions first instruction. This program type is invoked before control passes to the function to allow for tracing/observation.</li>
+<li>Kprobes do not have to be attached at the entry point of a function, kprobes can be installed at any point in the function, whereas fentry programs are always attached at the entry point of a function.</li>
+<li>Fentry programs are attached using a BPF trampoline which causes less overhead than kprobes</li>
+</ul>
+</blockquote>
+<p>If you’re targeting a kernel function like <em>do_unlinkat()</em>, you can hook onto it using <em>fentry</em> (which runs at function entry) and <em>fexit</em> (which runs at function return) — just like <em>kprobe</em> and <em>kretprobe</em>.</p>
+<p>Here’s what that looks like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;fentry/do_unlinkat&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_PROG</span>(do_unlinkat_entry, <span style="color:#66d9ef">int</span> dfd, <span style="color:#66d9ef">struct</span> filename <span style="color:#f92672">*</span>name) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;fexit/do_unlinkat&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_PROG</span>(do_unlinkat_exit, <span style="color:#66d9ef">int</span> dfd, <span style="color:#66d9ef">struct</span> filename <span style="color:#f92672">*</span>name, <span style="color:#66d9ef">long</span> ret) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example of Fentry/Fexit on <em>do_unlinkat()</em><br><br></span>
+<p>There are lots of similarities to <em>kprobes</em>, the only difference being the macro and the function exit handler&rsquo;s arguments. Instead of <em>BPF_KPROBE</em>, we have to use <em>BPF_PROG</em> which is designed for <em>fentry</em>, <em>fexit</em> and BTF-enabled tracepoints (not covered in this series).</p>
+<p>It does the same convenience wrapping — but this time around an <code>unsigned long long *ctx</code> argument, which holds the function arguments as a generic array. Again, you write the function prototype as if you&rsquo;re calling the real kernel function, and the macro handles the underlying casting.</p>
+<h2 id="5-uprobe--uretprobe">5. Uprobe &amp; Uretprobe</h2>
+<p>So far, we&rsquo;ve mainly explored kernel-space hooks — tracing functions inside the Linux kernel using <em>tracepoints</em>, <em>kprobe</em>/<em>kretprobe</em>, <em>fentry</em>/<em>fexit</em>. But, what if you want to observe user-space applications instead?</p>
+<p>That’s where <em>uprobe</em> and <em>uretprobe</em> come in.</p>
+<p><em>Uprobes</em> allow you to hook onto the entry and exit of user-space functions — much like <em>kprobes</em>, but for binaries like <em>/usr/bin/bash</em> or shared libraries like <em>/lib64/libc.so.6</em>. This is incredibly useful for directly messing around with user-space applications. You may think of this as <em>ptrace</em> on steroids as this <em>uprobes</em> can apply to all processes, including new ones that either run the binary or calls the target function from the shared library.</p>
+<p>A classic example is <em>bashreadline</em> — where we trace user-entered shell commands by hooking onto the readline() function, which is used by interactive shells to read user input.</p>
+<p>A full example of this can be found in the <a href="https://github.com/iovisor/bcc/tree/master/libbpf-tools">libbpf-tools</a> <em>bashreadline</em> program from the iovisor repository. As the example they provided only showed the usage of <em>uretprobe</em>, I have taken the liberty to show you what it will look like if you included a <em>uprobe</em> for it.</p>
+<p>At a glance, a simplified version of what these hooks look like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;uprobe&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_UPROBE</span>(printline, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>prompt) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;uretprobe&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_URETPROBE</span>(printret, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>ret) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Example of uprobe/uretprobe<br><br></span>
+<p>In the original libbpf-tools example, you’ll notice that the program uses slightly more descriptive section names like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;uretprobe/readline&#34;</span>)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Bashreadline Original Section Header<br><br></span>
+<p>But this is purely a naming convention for clarity! The section string could be just <code>SEC(&quot;uretprobe&quot;)</code> or <code>SEC(&quot;uprobe&quot;)</code> — the real magic happens at attach time, when you tell the kernel which binary and which offset to monitor.</p>
+<p>This is usually done by using a helper function to resolve the function’s offset inside the ELF binary — for example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>func_off <span style="color:#f92672">=</span> <span style="color:#a6e22e">get_elf_func_offset</span>(readline_so_path, 
+</span></span><span style="display:flex;"><span>                   <span style="color:#a6e22e">find_readline_function_name</span>(readline_so_path));
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Getting Function Offset of <em>readline()</em> / <em>internal_readline_teardown()</em>&quot;<br><br></span>
+<p>And then attach our <em>uprobe</em> and <em>uretprobe</em> like so:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>obj<span style="color:#f92672">-&gt;</span>links.printline <span style="color:#f92672">=</span> <span style="color:#a6e22e">bpf_program__attach_uprobe</span>(obj<span style="color:#f92672">-&gt;</span>progs.printline, 
+</span></span><span style="display:flex;"><span>                      false,  <span style="color:#75715e">// false = uprobe (function entry)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                      <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>,     <span style="color:#75715e">// -1 = all processes
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                      readline_so_path, func_off);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>obj<span style="color:#f92672">-&gt;</span>links.printret <span style="color:#f92672">=</span> <span style="color:#a6e22e">bpf_program__attach_uprobe</span>(obj<span style="color:#f92672">-&gt;</span>progs.printret, 
+</span></span><span style="display:flex;"><span>                      true,  <span style="color:#75715e">// true = uretprobe (function exit)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                      <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>,    <span style="color:#75715e">// all processes
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                      readline_so_path, func_off);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Getting Function Offset of <em>readline()</em> / <em>internal_readline_teardown()</em>&quot;<br><br></span>
+<p>So even though your <em>SEC()</em> string might look like &ldquo;uretprobe/readline&rdquo;, it’s the <em>bpf_program__attach_uprobe()</em> call that actually binds the hook to a specific binary and offset — not the section name.</p>
+<p>This separation makes the program more reusable and modular. You could write a single generic uprobe BPF program, and at runtime attach it to any ELF function in any user-space binary, as long as you know its offset.</p>
+<p>One last interesting detail worth mentioning - Even though you’re using <em>BPF_UPROBE</em> and <em>BPF_URETPROBE</em> in your eBPF programs, under the hood these are simply aliases for <em>BPF_KPROBE</em> and <em>BPF_KRETPROBE</em>.</p>
+<p>Here’s the exact snippet from bpf_tracing.h:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* BPF_UPROBE and BPF_URETPROBE are identical to BPF_KPROBE and BPF_KRETPROBE,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * but are named way less confusingly for SEC(&#34;uprobe&#34;) and SEC(&#34;uretprobe&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * use cases.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define BPF_UPROBE(name, args...)      BPF_KPROBE(name, ##args)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define BPF_URETPROBE(name, args...)   BPF_KRETPROBE(name, ##args)
+</span></span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Macro Aliases for <em>uprobe</em>/<em>uretprobe</em><br><br></span>
+<p>As stated by the author in the comments, this is just to reduce confusion when writing/reviewing code.</p>
+<h2 id="6-conclusion">6. Conclusion</h2>
+<p>n this post, you’ve learned how to choose the right eBPF hook for your goals. Whether you&rsquo;re aiming to monitor or manipulate behavior, understanding the strengths of each hook type is essential.</p>
+<p><em>Tracepoints</em> are stable, kernel-defined spots ideal for observing system calls and structured events — perfect for tasks like monitoring directory listings.</p>
+<p><em>Kprobes</em> / <em>Kretprobes</em> let you hook any kernel function dynamically, even ones without tracepoints. They’re your go-to when you need to monitor internal kernel logic.</p>
+<p><em>Fentry</em> / <em>Fexit</em> are modern, more efficient alternatives to kprobes. They offer lower overhead and a cleaner way to hook function entry and exit — if BTF data is available on your target system.</p>
+<p><em>Uprobes</em> / <em>Uretprobes</em> let you hook user-space binaries and libraries, giving you visibility into application-level logic — think of it as tracing processes beyond the kernel, like reading user commands from Bash.</p>
+<p>Mastering these hooks is the foundation for crafting reliable and stealthy eBPF-based malware or tools. In the next post, I will be sharing some stealth techniques exhibited by <a href="https://github.com/eeriedusk/nysm"><em>nysm</em></a>.</p>
+]]></content>
+        </item>
         
         <item>
             <title>eBPF Malware Techniques Part 1 - Introduction</title>

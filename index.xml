@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Sat, 05 Apr 2025 09:20:03 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 11 Apr 2025 23:42:35 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>eBPF Malware Techniques Part 2 - Setting Appropriate Hooks</title>
+      <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</link>
+      <pubDate>Fri, 11 Apr 2025 23:42:35 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</guid>
+      <description>1. Introduction In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.&#xA;To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.</description>
+    </item>
     <item>
       <title>eBPF Malware Techniques Part 1 - Introduction</title>
       <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</link>

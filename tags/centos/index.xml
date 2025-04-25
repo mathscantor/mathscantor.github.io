@@ -14,7 +14,7 @@
       <link>https://mathscantor.github.io/posts/installing-packages-offline/</link>
       <pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
       <guid>https://mathscantor.github.io/posts/installing-packages-offline/</guid>
-      <description>1. Introduction Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.&#xA;For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.&#xA;Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.</description>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.&lt;/p&gt;&#xA;&lt;p&gt;For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.&lt;/p&gt;&#xA;&lt;p&gt;Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

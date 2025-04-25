@@ -14,14 +14,14 @@
       <link>https://mathscantor.github.io/posts/transferring-python-packages/</link>
       <pubDate>Fri, 10 Jan 2025 08:38:41 +0800</pubDate>
       <guid>https://mathscantor.github.io/posts/transferring-python-packages/</guid>
-      <description>1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!&#xA;If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.</description>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://mathscantor.github.io/posts/transferring-python-packages/images/sumikko-penguin-nerd-loop.gif&#34; alt=&#34;sumikko-penguin-nerd-loop&#34;&gt;&lt;/p&gt;&#xA;&lt;p&gt;If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages.&#xA;This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.&#xA;If you were to face conflicting python packages on the base environment, things could get extremely messy.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Installing Linux Packages Offline</title>
       <link>https://mathscantor.github.io/posts/installing-packages-offline/</link>
       <pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
       <guid>https://mathscantor.github.io/posts/installing-packages-offline/</guid>
-      <description>1. Introduction Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.&#xA;For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.&#xA;Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.</description>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.&lt;/p&gt;&#xA;&lt;p&gt;For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.&lt;/p&gt;&#xA;&lt;p&gt;Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

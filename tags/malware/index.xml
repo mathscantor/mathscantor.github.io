@@ -14,14 +14,14 @@
       <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</link>
       <pubDate>Fri, 11 Apr 2025 23:42:35 +0800</pubDate>
       <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</guid>
-      <description>1. Introduction In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.&#xA;To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.</description>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.&lt;/p&gt;&#xA;&lt;p&gt;To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.&lt;/p&gt;</description>
     </item>
     <item>
       <title>eBPF Malware Techniques Part 1 - Introduction</title>
       <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</link>
       <pubDate>Sat, 05 Apr 2025 09:20:03 +0800</pubDate>
       <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</guid>
-      <description>1. Background As a cybersecurity researcher, understanding both traditional and modern methods of kernel-level code execution is crucial. Two prominent techniques you&amp;rsquo;ll encounter are LKM (Loadable Kernel Module) rootkits and eBPF-based applications.&#xA;eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows safe, user-defined code to run in kernel context. Originally intended for packet filtering, eBPF has evolved into a generic in-kernel virtual machine — enabling dynamic tracing, monitoring, networking, and even security enforcement.</description>
+      <description>&lt;h2 id=&#34;1-background&#34;&gt;1. Background&lt;/h2&gt;&#xA;&lt;p&gt;As a cybersecurity researcher, understanding both traditional and modern methods of kernel-level code execution is crucial. Two prominent techniques you&amp;rsquo;ll encounter are LKM (Loadable Kernel Module) rootkits and eBPF-based applications.&lt;/p&gt;&#xA;&lt;p&gt;eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows safe, user-defined code to run in kernel context. Originally intended for packet filtering, eBPF has evolved into a generic in-kernel virtual machine — enabling dynamic tracing, monitoring, networking, and even security enforcement.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

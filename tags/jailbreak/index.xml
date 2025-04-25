@@ -14,7 +14,7 @@
       <link>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</link>
       <pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
       <guid>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</guid>
-      <description>1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.&#xA;For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface.</description>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.&lt;/p&gt;&#xA;&lt;p&gt;For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

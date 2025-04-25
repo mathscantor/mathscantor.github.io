@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-	<meta name="generator" content="Hugo 0.126.2">
+	<meta name="generator" content="Hugo 0.142.0">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
         <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -27,7 +27,7 @@
 
 
 
-<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
+<link rel="stylesheet" href="/main.e5e5b18a24c7d6068dcdf93309467a7b0c83c70a36168c8f29c9a3c0c235fa43.css">
 
 
 
@@ -45,6 +45,7 @@
 
   <meta itemprop="name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta itemprop="description" content="Blog Home Page">
+  <meta itemprop="datePublished" content="2025-04-11T23:45:35+08:00">
   <meta itemprop="dateModified" content="2025-04-11T23:45:35+08:00">
   <meta itemprop="image" content="https://mathscantor.github.io/">
 
@@ -205,27 +206,46 @@
                     <div class="post-meta">
                     
                         <span class="post-date">
-                        2025-01-21
+                            <i class="fa-solid fa-calendar-days"></i>
+                            2025-01-21
                         </span>
                         
                     
                         <br>
                     
+                        <i class="fa-solid fa-clock"></i>
+                        7 Minutes
+                    
                     </div>
+                    
+                        <span class="post-tags">
+                        <i class="fa-solid fa-tag"></i>
+                        
+                            <a href="https://mathscantor.github.io/tags/gdb/">#gdb</a>&nbsp;
+                        
+                            <a href="https://mathscantor.github.io/tags/linux/">#linux</a>&nbsp;
+                        
+                        </span>
                     
                     <div class="post-content">
                         
                             
-                                1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
-To ensure this post is not too long-winded, I have decided to only go through the following topics today:
-Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &ldquo;break&rdquo;) the program&rsquo;s execution when it reaches a certain point.
+                                <h2 id="1-introduction">1. Introduction</h2>
+<p>This post is a continuation from the <a href="/posts/gdb-guides/gdb-guide-part1-basics/">previous post in this series</a> and will cover more fundamentals on GDB and dynamic analysis.</p>
+<p>To ensure this post is not too long-winded, I have decided to only go through the following topics today:</p>
+<ol>
+<li>Breakpoints</li>
+<li>Linux x86 vs x86_64 Calling Convention</li>
+</ol>
+<h2 id="2-breakpoints">2. Breakpoints</h2>
+<p>A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &ldquo;break&rdquo;) the program&rsquo;s execution when it reaches a certain point.</p>
                             
                         
                     </div>
                     
                         
                         <div>
-                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">Read more ... →</a>
+                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">Read more...</a>
                         </div>
                         
                     
@@ -236,27 +256,48 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
                     <div class="post-meta">
                     
                         <span class="post-date">
-                        2025-01-19
+                            <i class="fa-solid fa-calendar-days"></i>
+                            2025-01-19
                         </span>
                         
                     
                         <br>
                     
+                        <i class="fa-solid fa-clock"></i>
+                        5 Minutes
+                    
                     </div>
+                    
+                        <span class="post-tags">
+                        <i class="fa-solid fa-tag"></i>
+                        
+                            <a href="https://mathscantor.github.io/tags/gdb/">#gdb</a>&nbsp;
+                        
+                            <a href="https://mathscantor.github.io/tags/linux/">#linux</a>&nbsp;
+                        
+                        </span>
                     
                     <div class="post-content">
                         
                             
-                                1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
-2. Overview Today&rsquo;s guide will show you how to:
-Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.
+                                <h2 id="1-introduction">1. Introduction</h2>
+<p>Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!</p>
+<h2 id="2-overview">2. Overview</h2>
+<p>Today&rsquo;s guide will show you how to:</p>
+<ol>
+<li>Attach to a Process</li>
+<li>Set useful GDB Configuration</li>
+<li>Inspect Registers</li>
+<li>Disassemble Functions</li>
+</ol>
+<p>I will be providing an example C file <a href="/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c">here</a> for you to compile so that you may follow the walkthrough and deepen your understanding.</p>
                             
                         
                     </div>
                     
                         
                         <div>
-                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part1-basics/">Read more ... →</a>
+                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part1-basics/">Read more...</a>
                         </div>
                         
                     

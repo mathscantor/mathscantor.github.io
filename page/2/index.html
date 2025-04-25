@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-	<meta name="generator" content="Hugo 0.126.2">
+	<meta name="generator" content="Hugo 0.142.0">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
         <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -27,7 +27,7 @@
 
 
 
-<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
+<link rel="stylesheet" href="/main.e5e5b18a24c7d6068dcdf93309467a7b0c83c70a36168c8f29c9a3c0c235fa43.css">
 
 
 
@@ -45,6 +45,7 @@
 
   <meta itemprop="name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta itemprop="description" content="Blog Home Page">
+  <meta itemprop="datePublished" content="2025-04-11T23:45:35+08:00">
   <meta itemprop="dateModified" content="2025-04-11T23:45:35+08:00">
   <meta itemprop="image" content="https://mathscantor.github.io/">
 
@@ -205,26 +206,40 @@
                     <div class="post-meta">
                     
                         <span class="post-date">
-                        2025-03-19
+                            <i class="fa-solid fa-calendar-days"></i>
+                            2025-03-19
                         </span>
                         
                     
                         <br>
                     
+                        <i class="fa-solid fa-clock"></i>
+                        3 Minutes
+                    
                     </div>
+                    
+                        <span class="post-tags">
+                        <i class="fa-solid fa-tag"></i>
+                        
+                            <a href="https://mathscantor.github.io/tags/gdb/">#gdb</a>&nbsp;
+                        
+                            <a href="https://mathscantor.github.io/tags/linux/">#linux</a>&nbsp;
+                        
+                        </span>
                     
                     <div class="post-content">
                         
                             
-                                1. Introduction Today&rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, GEF (GDB Enhanced Features) provides many QoL features that aid dynamic analysis.
-However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&rsquo;s capabilities.
+                                <h2 id="1-introduction">1. Introduction</h2>
+<p>Today&rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, <a href="https://github.com/hugsy/gef">GEF (GDB Enhanced Features)</a> provides many QoL features that aid dynamic analysis.</p>
+<p>However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&rsquo;s capabilities.</p>
                             
                         
                     </div>
                     
                         
                         <div>
-                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part7-custom-commands/">Read more ... →</a>
+                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part7-custom-commands/">Read more...</a>
                         </div>
                         
                     
@@ -235,27 +250,48 @@ However, GEF is not what I want to talk about today. Instead of using GEF, we wi
                     <div class="post-meta">
                     
                         <span class="post-date">
-                        2025-03-14
+                            <i class="fa-solid fa-calendar-days"></i>
+                            2025-03-14
                         </span>
                         
                     
                         <br>
                     
+                        <i class="fa-solid fa-clock"></i>
+                        7 Minutes
+                    
                     </div>
+                    
+                        <span class="post-tags">
+                        <i class="fa-solid fa-tag"></i>
+                        
+                            <a href="https://mathscantor.github.io/tags/linux/">#linux</a>&nbsp;
+                        
+                            <a href="https://mathscantor.github.io/tags/fanotify/">#fanotify</a>&nbsp;
+                        
+                            <a href="https://mathscantor.github.io/tags/file-monitoring/">#file-monitoring</a>&nbsp;
+                        
+                        </span>
                     
                     <div class="post-content">
                         
                             
-                                1. Introduction Let&rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
-Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.
+                                <h2 id="1-introduction">1. Introduction</h2>
+<p>Let&rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.</p>
+<p>Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:</p>
+<ul>
+<li>Real-time security monitoring (e.g., antivirus scanning)</li>
+<li>Auditing and compliance (e.g., logging file accesses)</li>
+<li>File system activity tracking (e.g., synchronizing backups)</li>
+</ul>
+<p>The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the <code>FAN_ALLOW</code> or <code>FAN_DENY</code> response.</p>
                             
                         
                     </div>
                     
                         
                         <div>
-                            <a class="read-more button" href="/posts/linux-file-monitoring-with-fanotify/">Read more ... →</a>
+                            <a class="read-more button" href="/posts/linux-file-monitoring-with-fanotify/">Read more...</a>
                         </div>
                         
                     

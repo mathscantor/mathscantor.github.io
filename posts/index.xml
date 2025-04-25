@@ -15,8 +15,9 @@
             <pubDate>Fri, 11 Apr 2025 23:42:35 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</guid>
-            <description>1. Introduction In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.
-To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.&lt;/p&gt;
+&lt;p&gt;To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.</p>
 <p>To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.</p>
@@ -273,8 +274,9 @@ To begin crafting your own eBPF-based malware, you need to understand where and 
             <pubDate>Sat, 05 Apr 2025 09:20:03 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</guid>
-            <description>1. Background As a cybersecurity researcher, understanding both traditional and modern methods of kernel-level code execution is crucial. Two prominent techniques you&amp;rsquo;ll encounter are LKM (Loadable Kernel Module) rootkits and eBPF-based applications.
-eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows safe, user-defined code to run in kernel context. Originally intended for packet filtering, eBPF has evolved into a generic in-kernel virtual machine — enabling dynamic tracing, monitoring, networking, and even security enforcement.</description>
+            <description>&lt;h2 id=&#34;1-background&#34;&gt;1. Background&lt;/h2&gt;
+&lt;p&gt;As a cybersecurity researcher, understanding both traditional and modern methods of kernel-level code execution is crucial. Two prominent techniques you&amp;rsquo;ll encounter are LKM (Loadable Kernel Module) rootkits and eBPF-based applications.&lt;/p&gt;
+&lt;p&gt;eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows safe, user-defined code to run in kernel context. Originally intended for packet filtering, eBPF has evolved into a generic in-kernel virtual machine — enabling dynamic tracing, monitoring, networking, and even security enforcement.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-background">1. Background</h2>
 <p>As a cybersecurity researcher, understanding both traditional and modern methods of kernel-level code execution is crucial. Two prominent techniques you&rsquo;ll encounter are LKM (Loadable Kernel Module) rootkits and eBPF-based applications.</p>
 <p>eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows safe, user-defined code to run in kernel context. Originally intended for packet filtering, eBPF has evolved into a generic in-kernel virtual machine — enabling dynamic tracing, monitoring, networking, and even security enforcement.</p>
@@ -319,38 +321,38 @@ eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows 
 <p>When creating eBPF applications, there are 3 major frameworks to consider. Depending on your usage, you may prefer one over the other.
 The table below summarizes the points to consider for eBPF development.</p>
 <table>
-<thead>
-<tr>
-<th>Framework</th>
-<th>Language</th>
-<th>Kernel Requirement</th>
-<th>Package Needed</th>
-<th>Best For</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><em>BCC</em></td>
-<td>Python/C++</td>
-<td>≥ 4.1 (≥ 4.9 ideal)</td>
-<td><code>bcc</code>, <code>python3-bcc</code></td>
-<td>Quick development, scripting</td>
-</tr>
-<tr>
-<td><em>bpftrace</em></td>
-<td>Custom DSL</td>
-<td>≥ 4.9 (≥ 5.5 ideal)</td>
-<td><code>*bpftrace*</code></td>
-<td>One-liners, dynamic tracing</td>
-</tr>
-<tr>
-<td>libbpf</td>
-<td>C</td>
-<td>≥ 4.18 (BTF needed)</td>
-<td><code>libbpf-dev</code>, Clang, LLVM</td>
-<td>Performance, production systems</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th>Framework</th>
+          <th>Language</th>
+          <th>Kernel Requirement</th>
+          <th>Package Needed</th>
+          <th>Best For</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><em>BCC</em></td>
+          <td>Python/C++</td>
+          <td>≥ 4.1 (≥ 4.9 ideal)</td>
+          <td><code>bcc</code>, <code>python3-bcc</code></td>
+          <td>Quick development, scripting</td>
+      </tr>
+      <tr>
+          <td><em>bpftrace</em></td>
+          <td>Custom DSL</td>
+          <td>≥ 4.9 (≥ 5.5 ideal)</td>
+          <td><code>*bpftrace*</code></td>
+          <td>One-liners, dynamic tracing</td>
+      </tr>
+      <tr>
+          <td>libbpf</td>
+          <td>C</td>
+          <td>≥ 4.18 (BTF needed)</td>
+          <td><code>libbpf-dev</code>, Clang, LLVM</td>
+          <td>Performance, production systems</td>
+      </tr>
+  </tbody>
 </table>
 <link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="table">eBPF Frameworks<br><br></span>
@@ -641,8 +643,9 @@ When developing an eBPF application using <em>libbpf</em>, every application req
             <pubDate>Wed, 19 Mar 2025 22:15:30 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</guid>
-            <description>1. Introduction Today&amp;rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, GEF (GDB Enhanced Features) provides many QoL features that aid dynamic analysis.
-However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&amp;rsquo;s capabilities.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Today&amp;rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, &lt;a href=&#34;https://github.com/hugsy/gef&#34;&gt;GEF (GDB Enhanced Features)&lt;/a&gt; provides many QoL features that aid dynamic analysis.&lt;/p&gt;
+&lt;p&gt;However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&amp;rsquo;s capabilities.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Today&rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, <a href="https://github.com/hugsy/gef">GEF (GDB Enhanced Features)</a> provides many QoL features that aid dynamic analysis.</p>
 <p>However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&rsquo;s capabilities.</p>
@@ -736,9 +739,15 @@ successfully imported! The name of your command will follow what you have define
             <pubDate>Fri, 14 Mar 2025 20:09:42 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</guid>
-            <description>1. Introduction Let&amp;rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
-Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.&lt;/p&gt;
+&lt;p&gt;Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Real-time security monitoring (e.g., antivirus scanning)&lt;/li&gt;
+&lt;li&gt;Auditing and compliance (e.g., logging file accesses)&lt;/li&gt;
+&lt;li&gt;File system activity tracking (e.g., synchronizing backups)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the &lt;code&gt;FAN_ALLOW&lt;/code&gt; or &lt;code&gt;FAN_DENY&lt;/code&gt; response.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Let&rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.</p>
 <p>Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:</p>
@@ -918,7 +927,11 @@ For the sake of simplicity, The overall code should look like this:</p>
             <pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</guid>
-            <description>1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands.
+Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation
+will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your
+sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands.
 Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation
@@ -1037,8 +1050,12 @@ the file descriptor. Since we do not want <em>write()</em> calls from <em>printf
             <pubDate>Sun, 23 Feb 2025 13:08:30 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
-            <description>1. Introduction This part of the guide will demonstrate to you the differences between stepping in, over and out. In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples I provide will only be for stepping through instructions and not source lines.
-2. Example Program For this part of the tutorial, either compile stepping-exercise.c or download the static binary stepping-exercise to follow along.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;This part of the guide will demonstrate to you the differences between stepping in, over and out.
+In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples
+I provide will only be for stepping through instructions and not source lines.&lt;/p&gt;
+&lt;h2 id=&#34;2-example-program&#34;&gt;2. Example Program&lt;/h2&gt;
+&lt;p&gt;For this part of the tutorial, either compile &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise.c&#34;&gt;stepping-exercise.c&lt;/a&gt; or download the static binary &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise&#34;&gt;stepping-exercise&lt;/a&gt; to follow along.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>This part of the guide will demonstrate to you the differences between stepping in, over and out.
 In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples
@@ -1199,9 +1216,11 @@ The</p>
             <pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
-            <description>1. Introduction Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.
-Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with eval.
-2. Examine Command (x/) To examine the process&amp;rsquo;s memory, we will always start of with the prefix x/, followed by whatever we which to examine at a particular address.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.&lt;/p&gt;
+&lt;p&gt;Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with &lt;em&gt;eval&lt;/em&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;2-examine-command-x&#34;&gt;2. Examine Command (x/)&lt;/h2&gt;
+&lt;p&gt;To examine the process&amp;rsquo;s memory, we will always start of with the prefix &lt;code&gt;x/&lt;/code&gt;, followed by whatever we which to examine at a particular address.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.</p>
 <p>Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with <em>eval</em>.</p>
@@ -1269,7 +1288,7 @@ Note that on x86-64, <code>$pc</code> is just an alias for <code>$rip</code>, wh
 <span class="caption" data-type="listing">Eval Usage Example<br><br></span>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>That is it folks. T&rsquo;was short and mundane, but I hope you found the eval usage meaningful to use in your everyday work. Gotta go rest in bed now.
-<img alt="sumikko-bedtime-loop" src="/posts/gdb-guides/gdb-guide-part4-examining-memory/images/sumikko-bedtime-loop.gif"></p>
+<img src="/posts/gdb-guides/gdb-guide-part4-examining-memory/images/sumikko-bedtime-loop.gif" alt="sumikko-bedtime-loop"></p>
 ]]></content>
         </item>
         
@@ -1279,8 +1298,11 @@ Note that on x86-64, <code>$pc</code> is just an alias for <code>$rip</code>, wh
             <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
-            <description>1. Introduction Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.
-2. Overview Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.&lt;/p&gt;
+&lt;h2 id=&#34;2-overview&#34;&gt;2. Overview&lt;/h2&gt;
+&lt;p&gt;Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.
+However, I think it is also important to cover some background on dynamic and static executables before talking about Process Maps.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.</p>
 <h2 id="2-overview">2. Overview</h2>
@@ -1399,9 +1421,15 @@ However, I think it is also important to cover some background on dynamic and st
             <pubDate>Tue, 21 Jan 2025 12:21:39 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
-            <description>1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
-To ensure this post is not too long-winded, I have decided to only go through the following topics today:
-Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;This post is a continuation from the &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/&#34;&gt;previous post in this series&lt;/a&gt; and will cover more fundamentals on GDB and dynamic analysis.&lt;/p&gt;
+&lt;p&gt;To ensure this post is not too long-winded, I have decided to only go through the following topics today:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Breakpoints&lt;/li&gt;
+&lt;li&gt;Linux x86 vs x86_64 Calling Convention&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;2-breakpoints&#34;&gt;2. Breakpoints&lt;/h2&gt;
+&lt;p&gt;A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>This post is a continuation from the <a href="/posts/gdb-guides/gdb-guide-part1-basics/">previous post in this series</a> and will cover more fundamentals on GDB and dynamic analysis.</p>
 <p>To ensure this post is not too long-winded, I have decided to only go through the following topics today:</p>
@@ -1535,7 +1563,7 @@ Bear in mind that this section will not cover ARM. Perhaps in the future, I will
 <link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="video">Demonstrating x86 Calling Convention<br><br></span></p>
 <h3 id="32-64-bit---x86_64">3.2 64 Bit - x86_64</h3>
-<p>The <a href="http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html#:~:text=Calling%20Convention&text=The%20caller%20uses%20registers%20to,off%20the%20stack%20in%20order.">MIT documentation</a> on 64-bit Linux does get straight to the point but lack concrete examples. Instead, I found out this other <a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">blog post</a>
+<p>The <a href="http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html#:~:text=Calling%20Convention&amp;text=The%20caller%20uses%20registers%20to,off%20the%20stack%20in%20order.">MIT documentation</a> on 64-bit Linux does get straight to the point but lack concrete examples. Instead, I found out this other <a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">blog post</a>
 talking about it and found it a lot more comprehensible. You could give it a read if you have the time.</p>
 <p>For those of you who just want the TLDR, refer to the diagram below.</p>
 <img class="center" alt="epb-structure" src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_64_calling_convention.png">
@@ -1628,9 +1656,17 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
             <pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</guid>
-            <description>1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
-2. Overview Today&amp;rsquo;s guide will show you how to:
-Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!&lt;/p&gt;
+&lt;h2 id=&#34;2-overview&#34;&gt;2. Overview&lt;/h2&gt;
+&lt;p&gt;Today&amp;rsquo;s guide will show you how to:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Attach to a Process&lt;/li&gt;
+&lt;li&gt;Set useful GDB Configuration&lt;/li&gt;
+&lt;li&gt;Inspect Registers&lt;/li&gt;
+&lt;li&gt;Disassemble Functions&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;I will be providing an example C file &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c&#34;&gt;here&lt;/a&gt; for you to compile so that you may follow the walkthrough and deepen your understanding.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!</p>
 <h2 id="2-overview">2. Overview</h2>
@@ -1839,8 +1875,10 @@ which is a lot more user-friendly.</p>
             <pubDate>Fri, 17 Jan 2025 10:56:44 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</guid>
-            <description>1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library.
+The PcapNG file structure can be found on the &lt;a href=&#34;https://pcapng.com/&#34;&gt;Official PcapNG Documentation&lt;/a&gt;. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.&lt;/p&gt;
+&lt;p&gt;Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code &lt;a href=&#34;https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip&#34;&gt;here&lt;/a&gt; as well.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library.
 The PcapNG file structure can be found on the <a href="https://pcapng.com/">Official PcapNG Documentation</a>. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.</p>
@@ -2113,11 +2151,15 @@ stay safe and keep being awesome. Over and out!
             <pubDate>Fri, 10 Jan 2025 08:38:41 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/transferring-python-packages/</guid>
-            <description>1. Introduction Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!
-If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages. This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://mathscantor.github.io/posts/transferring-python-packages/images/sumikko-penguin-nerd-loop.gif&#34; alt=&#34;sumikko-penguin-nerd-loop&#34;&gt;&lt;/p&gt;
+&lt;p&gt;If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages.
+This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.
+If you were to face conflicting python packages on the base environment, things could get extremely messy.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Have you ever needed to transfer isolated Python environments from one machine to another but were unsure of the best way to do it? Fret not, stranger—I have you covered!</p>
-<p><img alt="sumikko-penguin-nerd-loop" src="/posts/transferring-python-packages/images/sumikko-penguin-nerd-loop.gif"></p>
+<p><img src="/posts/transferring-python-packages/images/sumikko-penguin-nerd-loop.gif" alt="sumikko-penguin-nerd-loop"></p>
 <p>If you are unfamiliar with Python environments, they are basically a self-contained directory that has its own python binary, along with other python packages.
 This means that if you accidentally install a conflicting package in that Python environment, you can simply delete the entire folder and start again, hassle-free.
 If you were to face conflicting python packages on the base environment, things could get extremely messy.</p>
@@ -2163,8 +2205,8 @@ If you were to face conflicting python packages on the base environment, things 
 </span></span></code></pre></div><h2 id="3-creating-python-environments-with-conda">3. Creating Python Environments with Conda</h2>
 <p>Once you have a working setup, you should be able to see that there is a <code>(base)</code> environment in your terminal.
 The two figures below are for Windows and Linux, respectively.</p>
-<p><img alt="alt text" src="/posts/transferring-python-packages/images/miniconda_powershell.png"></p>
-<p><img alt="alt text" src="/posts/transferring-python-packages/images/miniconda_bash.png"></p>
+<p><img src="/posts/transferring-python-packages/images/miniconda_powershell.png" alt="alt text"></p>
+<p><img src="/posts/transferring-python-packages/images/miniconda_bash.png" alt="alt text"></p>
 <p>To create a new environment with basic python packages, do the following command:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> gerald@nexus:~$ conda create -n $ENVIRONMENT_NAME python<span style="color:#f92672">=</span>$PYTHON_VERSION
 </span></span></code></pre></div><h2 id="4-install-python-packages-in-environment">4. Install Python Packages in Environment</h2>
@@ -2214,9 +2256,10 @@ Adios for now!</p>
             <pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/installing-packages-offline/</guid>
-            <description>1. Introduction Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.
-For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.
-Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.&lt;/p&gt;
+&lt;p&gt;For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.&lt;/p&gt;
+&lt;p&gt;Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.</p>
 <p>For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.</p>
@@ -2270,7 +2313,7 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
 <p>Then, just run the following command to install all packages. Do not that this is an extremely lazy way of doing things and it does not regard the order in which the packages should be installed.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@standalone:~/Downloads/xfer$ sudo dpkg -i *.deb
 </span></span></code></pre></div><p>If the above command does not install everything the first time due to the wrong order of dependencies being installed, just run it a few more times until you see that there&rsquo;s no error. It&rsquo;s abit stupid&hellip;I know. But if it works, it works.</p>
-<p><img alt="sumikko-gurashi-penguin-throw-book" src="/posts/installing-packages-offline/images/sumikko-gurashi-penguin-throw-book.gif"></p>
+<p><img src="/posts/installing-packages-offline/images/sumikko-gurashi-penguin-throw-book.gif" alt="sumikko-gurashi-penguin-throw-book"></p>
 <h3 id="24--bonus----extracting-libraries-and-binaries">2.4 ⭐ BONUS -  Extracting Libraries and Binaries</h3>
 <p>Assuming you just want some libraries from the <code>.deb</code> package, you can make use of <code>dpkg-deb</code> extraction.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># SYSROOT_PATH refers to the directory to extract to.</span>
@@ -2364,7 +2407,7 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span><span style="color:#66d9ef">done</span>
 </span></span></code></pre></div><h2 id="4-conclusion">4. Conclusion</h2>
 <p>If you have made it this far, congratulations!
-<img alt="sumikko-gurashi" src="/posts/installing-packages-offline/images/sumikko-gurashi-party-popper.gif"></p>
+<img src="/posts/installing-packages-offline/images/sumikko-gurashi-party-popper.gif" alt="sumikko-gurashi"></p>
 <p>I hope you learnt something useful today and if this works like a charm for you, you are always welcome to come back to reference these set of instructions for your future use. Cheers and have a nice day!</p>
 ]]></content>
         </item>
@@ -2375,8 +2418,9 @@ Before I begin the walkthrough, it is important to have 1 internet-connected mac
             <pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</guid>
-            <description>1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
-For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface.</description>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.&lt;/p&gt;
+&lt;p&gt;For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.</p>
 <p>For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.</p>
@@ -2390,10 +2434,10 @@ Do also note that the walkthrough is based on a older version of Mikrotik Router
 <p>Firstly, we need to get the ISO file of interest from the official <a href="https://mikrotik.com/download/archive"><strong>mikrotik archives</strong></a>.</p>
 <p>Spin up a VM using any hypervisor of your choosing. I would personally recommend using VMWare as it is now free for personal use. However, if you are doing research on a commercial network, please make sure you have a commercial license activated if not you may get yourself into hot water.</p>
 <p>To start the installation of the Mikrotik RouterOS, create a new virtual machine from the ISO file and when selecting a guest operating system, choose <em>Other &ndash;&gt; Other</em>.
-<img alt="vmware-guest-operating-system" src="/posts/getting-root-shell-mikrotik-routeros/images/vmware-guest-operating-system.png"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/vmware-guest-operating-system.png" alt="vmware-guest-operating-system"></p>
 <p>Follow the instructions of the installation, and on success you will be prompted to login. By default the administrator username is &lsquo;admin&rsquo; with no password.</p>
 <p>If everything is okay up till this point, you will be able to see the RouterOS CLI.</p>
-<p><img alt="mikrotik-admin-shell" src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png"></p>
+<p><img src="/posts/getting-root-shell-mikrotik-routeros/images/mikrotik-admin-shell.png" alt="mikrotik-admin-shell"></p>
 <p>After logging in as admin, we need to assign an IP address to our VM. For this example, I have assigned 172.16.205.150/24 as my RouterOS IP. Please change the values according to your own setup.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>admin@MikroTik &gt; /ip address add address<span style="color:#f92672">=</span>172.16.205.150/24 interface<span style="color:#f92672">=</span>ether1<span style="color:#f92672">]</span>
 </span></span></code></pre></div><p>After wards, do a simple ping test from your host to see if it is reachable.</p>
@@ -2503,9 +2547,9 @@ This means that if we can edit/add this script, we will be able to do whatever w
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Add the following line any where</span>
 </span></span><span style="display:flex;"><span>bios.forceSetupOnce <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;TRUE&#34;</span>
 </span></span></code></pre></div><p>Change the boot order by pushing the CD/ROM to the first. Press F10 to save and exit.
-<img alt="bios-boot-order-cd-first" src="/posts/getting-root-shell-mikrotik-routeros/images/bios-boot-order-cd-first.png"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/bios-boot-order-cd-first.png" alt="bios-boot-order-cd-first"></p>
 <p>Upon exiting, you will see the CentOS 6 installer option. Choose the <em>Boot</em> option.
-<img alt="boot-centos-livecd" src="/posts/getting-root-shell-mikrotik-routeros/images/boot-centos-livecd.png"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/boot-centos-livecd.png" alt="boot-centos-livecd"></p>
 <p>Once inside CentOS 6, Click on the top left <em>Applications &ndash;&gt; System Tools &ndash;&gt; Terminal</em>.
 Run the following commands to mount the routeros sysroot.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">[</span>centos@livecd centoslive<span style="color:#f92672">]</span>$ sudo su
@@ -2518,16 +2562,16 @@ Run the following commands to mount the routeros sysroot.</p>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>root@livecd centoslive<span style="color:#f92672">]</span>$ chmod +x /mnt/routeros-sysroot/rw/disk/busybox-i686
 </span></span></code></pre></div><h3 id="28-getting-root-shell">2.8 Getting Root Shell</h3>
 <p>Once done, shutdown the VM, edit the <em>hardware settings &ndash;&gt; CD/DVD (IDE)</em> and uncheck <em>Connect at power on</em>.
-<img alt="iso-uncheck-connect-at-power-on" src="/posts/getting-root-shell-mikrotik-routeros/images/iso-uncheck-connect-at-power-on.png"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/iso-uncheck-connect-at-power-on.png" alt="iso-uncheck-connect-at-power-on"></p>
 <p>Upon powering on the VM, you will see this output instead of the normal login screen.</p>
-<p><img alt="busybox-running1" src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-running1.png"></p>
+<p><img src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-running1.png" alt="busybox-running1"></p>
 <p>We can now telnet into our RouterOS via port 1270.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ telnet 172.16.205.150 <span style="color:#ae81ff">1270</span>
-</span></span></code></pre></div><p><img alt="telnet-success" src="/posts/getting-root-shell-mikrotik-routeros/images/telnet-success.png"></p>
+</span></span></code></pre></div><p><img src="/posts/getting-root-shell-mikrotik-routeros/images/telnet-success.png" alt="telnet-success"></p>
 <h3 id="29-running-commands">2.9 Running Commands</h3>
 <p>Unlike the typical unix shell, we cannot run the normal linux commands as it is as we would need
 to piggyback on busybox in order to run anything.
-<img alt="busybox-piggyback-ls" src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-piggyback-ls.png"></p>
+<img src="/posts/getting-root-shell-mikrotik-routeros/images/busybox-piggyback-ls.png" alt="busybox-piggyback-ls"></p>
 <p>Thus to put simply, the template to run any bash commands is:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ /rw/disk/busybox-i686 $COMMAND
 </span></span></code></pre></div><h2 id="3-conclusion">3. Conclusion</h2>
@@ -2543,8 +2587,10 @@ I hope you learnt a lot and had fun along the way. Cheers and see you in the nex
             <pubDate>Fri, 03 Jan 2025 17:43:28 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/welcome/</guid>
-            <description>Introduction Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.
-Goals The aim of this blog is to teach other researchers tricks and tips that they may not have known.</description>
+            <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.&lt;/p&gt;
+&lt;h2 id=&#34;goals&#34;&gt;Goals&lt;/h2&gt;
+&lt;p&gt;The aim of this blog is to teach other researchers tricks and tips that they may not have known. In addition, if the opportunity arises, I will also share in-depth analysis on CVEs I find interesting.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="introduction">Introduction</h2>
 <p>Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.</p>
 <h2 id="goals">Goals</h2>

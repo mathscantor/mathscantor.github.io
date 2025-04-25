@@ -6,9 +6,10 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="1. Introduction Let&amp;rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
+<meta name="description" content="1. Introduction Let&rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
 Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e." />
+Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.g., synchronizing backups) The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the FAN_ALLOW or FAN_DENY response.
+" />
 <meta name="keywords" content="mathscantor, linux, fanotify, file-monitoring" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -28,7 +29,7 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
 
 
 
-<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
+<link rel="stylesheet" href="/main.e5e5b18a24c7d6068dcdf93309467a7b0c83c70a36168c8f29c9a3c0c235fa43.css">
 
 
 
@@ -47,7 +48,7 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
   <meta itemprop="name" content="Linux File Monitoring With Fanotify">
   <meta itemprop="description" content="1. Introduction Let’s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
 Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.">
+Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.g., synchronizing backups) The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the FAN_ALLOW or FAN_DENY response.">
   <meta itemprop="datePublished" content="2025-03-14T20:09:42+08:00">
   <meta itemprop="dateModified" content="2025-03-14T20:09:42+08:00">
   <meta itemprop="wordCount" content="1292">
@@ -59,7 +60,7 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
   <meta name="twitter:title" content="Linux File Monitoring With Fanotify">
   <meta name="twitter:description" content="1. Introduction Let’s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
 Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.">
+Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.g., synchronizing backups) The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the FAN_ALLOW or FAN_DENY response.">
 
 
 
@@ -68,7 +69,7 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
   <meta property="og:title" content="Linux File Monitoring With Fanotify">
   <meta property="og:description" content="1. Introduction Let’s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
 Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.">
+Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.g., synchronizing backups) The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the FAN_ALLOW or FAN_DENY response.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -258,7 +259,8 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
       </p>
       
     <p>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+        <i class="fa-solid fa-tag"></i>
+        
 
         <span class="tag"><a href="https://mathscantor.github.io/tags/linux/">linux</a></span>
         <span class="tag"><a href="https://mathscantor.github.io/tags/fanotify/">fanotify</a></span>

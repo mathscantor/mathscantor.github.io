@@ -14,7 +14,7 @@
       <link>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</link>
       <pubDate>Fri, 17 Jan 2025 10:56:44 +0800</pubDate>
       <guid>https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/</guid>
-      <description>1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.&#xA;Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.</description>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library.&#xA;The PcapNG file structure can be found on the &lt;a href=&#34;https://pcapng.com/&#34;&gt;Official PcapNG Documentation&lt;/a&gt;. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.&lt;/p&gt;&#xA;&lt;p&gt;Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code &lt;a href=&#34;https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip&#34;&gt;here&lt;/a&gt; as well.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

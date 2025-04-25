@@ -8,7 +8,8 @@
 <meta name="author" content="">
 <meta name="description" content="1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
 To ensure this post is not too long-winded, I have decided to only go through the following topics today:
-Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point." />
+Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &ldquo;break&rdquo;) the program&rsquo;s execution when it reaches a certain point.
+" />
 <meta name="keywords" content="mathscantor, gdb, linux" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -28,7 +29,7 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 
 
 
-<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
+<link rel="stylesheet" href="/main.e5e5b18a24c7d6068dcdf93309467a7b0c83c70a36168c8f29c9a3c0c235fa43.css">
 
 
 
@@ -44,7 +45,7 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 
 
 
-  <meta itemprop="name" content="GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions">
+  <meta itemprop="name" content="GDB Guide Part 2 - Breakpoints & Linux Calling Conventions">
   <meta itemprop="description" content="1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
 To ensure this post is not too long-winded, I have decided to only go through the following topics today:
 Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or “break”) the program’s execution when it reaches a certain point.">
@@ -56,7 +57,7 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mathscantor.github.io/">
-  <meta name="twitter:title" content="GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions">
+  <meta name="twitter:title" content="GDB Guide Part 2 - Breakpoints & Linux Calling Conventions">
   <meta name="twitter:description" content="1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
 To ensure this post is not too long-winded, I have decided to only go through the following topics today:
 Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or “break”) the program’s execution when it reaches a certain point.">
@@ -65,7 +66,7 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
-  <meta property="og:title" content="GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions">
+  <meta property="og:title" content="GDB Guide Part 2 - Breakpoints & Linux Calling Conventions">
   <meta property="og:description" content="1. Introduction This post is a continuation from the previous post in this series and will cover more fundamentals on GDB and dynamic analysis.
 To ensure this post is not too long-winded, I have decided to only go through the following topics today:
 Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint is a special marker that you can set in your program to tell GDB to pause (or “break”) the program’s execution when it reaches a certain point.">
@@ -275,7 +276,8 @@ Breakpoints Linux x86 vs x86_64 Calling Convention 2. Breakpoints A breakpoint i
       </p>
       
     <p>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+        <i class="fa-solid fa-tag"></i>
+        
 
         <span class="tag"><a href="https://mathscantor.github.io/tags/gdb/">gdb</a></span>
         <span class="tag"><a href="https://mathscantor.github.io/tags/linux/">linux</a></span>
@@ -437,7 +439,7 @@ Bear in mind that this section will not cover ARM. Perhaps in the future, I will
 <link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="video">Demonstrating x86 Calling Convention<br><br></span></p>
 <h3 id="32-64-bit---x86_64">3.2 64 Bit - x86_64</h3>
-<p>The <a href="http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html#:~:text=Calling%20Convention&text=The%20caller%20uses%20registers%20to,off%20the%20stack%20in%20order.">MIT documentation</a> on 64-bit Linux does get straight to the point but lack concrete examples. Instead, I found out this other <a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">blog post</a>
+<p>The <a href="http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html#:~:text=Calling%20Convention&amp;text=The%20caller%20uses%20registers%20to,off%20the%20stack%20in%20order.">MIT documentation</a> on 64-bit Linux does get straight to the point but lack concrete examples. Instead, I found out this other <a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">blog post</a>
 talking about it and found it a lot more comprehensible. You could give it a read if you have the time.</p>
 <p>For those of you who just want the TLDR, refer to the diagram below.</p>
 <img class="center" alt="epb-structure" src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_64_calling_convention.png">

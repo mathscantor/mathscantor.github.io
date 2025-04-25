@@ -6,8 +6,9 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&amp;rsquo;t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file." />
+<meta name="description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code here as well.
+" />
 <meta name="keywords" content="mathscantor, c-c&#43;&#43;, packet-capture" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -27,7 +28,7 @@ Therefore, I thought it would be good to share some insights on writing a simple
 
 
 
-<link rel="stylesheet" href="/main.fb472bac961906037543eed7018b8967074a10c7d290e6a8c6d316b63d17388f.css">
+<link rel="stylesheet" href="/main.e5e5b18a24c7d6068dcdf93309467a7b0c83c70a36168c8f29c9a3c0c235fa43.css">
 
 
 
@@ -45,7 +46,7 @@ Therefore, I thought it would be good to share some insights on writing a simple
 
   <meta itemprop="name" content="Writing Packets to Pcapng in C">
   <meta itemprop="description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn’t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.">
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code here as well.">
   <meta itemprop="datePublished" content="2025-01-17T10:56:44+08:00">
   <meta itemprop="dateModified" content="2025-01-17T10:56:44+08:00">
   <meta itemprop="wordCount" content="1115">
@@ -56,7 +57,7 @@ Therefore, I thought it would be good to share some insights on writing a simple
   <meta name="twitter:image" content="https://mathscantor.github.io/">
   <meta name="twitter:title" content="Writing Packets to Pcapng in C">
   <meta name="twitter:description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn’t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.">
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code here as well.">
 
 
 
@@ -64,7 +65,7 @@ Therefore, I thought it would be good to share some insights on writing a simple
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta property="og:title" content="Writing Packets to Pcapng in C">
   <meta property="og:description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn’t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file.">
+Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code here as well.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -254,7 +255,8 @@ Therefore, I thought it would be good to share some insights on writing a simple
       </p>
       
     <p>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+        <i class="fa-solid fa-tag"></i>
+        
 
         <span class="tag"><a href="https://mathscantor.github.io/tags/c-c&#43;&#43;/">c-c&#43;&#43;</a></span>
         <span class="tag"><a href="https://mathscantor.github.io/tags/packet-capture/">packet-capture</a></span>

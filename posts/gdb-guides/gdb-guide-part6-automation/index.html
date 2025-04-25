@@ -6,8 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.
-" />
+<meta name="description" content="This post explores automating GDB commands using scripts to manage breakpoints and efficiently debug processes under time constraints, offering practical exercises to apply automation in real-world scenarios." />
 <meta name="keywords" content="mathscantor, gdb, linux" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -44,7 +43,7 @@
 
 
   <meta itemprop="name" content="GDB Guide Part 6 - Automation">
-  <meta itemprop="description" content="1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.">
+  <meta itemprop="description" content="This post explores automating GDB commands using scripts to manage breakpoints and efficiently debug processes under time constraints, offering practical exercises to apply automation in real-world scenarios.">
   <meta itemprop="datePublished" content="2025-03-01T09:09:02+08:00">
   <meta itemprop="dateModified" content="2025-03-01T09:09:02+08:00">
   <meta itemprop="wordCount" content="695">
@@ -54,14 +53,14 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mathscantor.github.io/">
   <meta name="twitter:title" content="GDB Guide Part 6 - Automation">
-  <meta name="twitter:description" content="1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.">
+  <meta name="twitter:description" content="This post explores automating GDB commands using scripts to manage breakpoints and efficiently debug processes under time constraints, offering practical exercises to apply automation in real-world scenarios.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta property="og:title" content="GDB Guide Part 6 - Automation">
-  <meta property="og:description" content="1. Introduction Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands. Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.">
+  <meta property="og:description" content="This post explores automating GDB commands using scripts to manage breakpoints and efficiently debug processes under time constraints, offering practical exercises to apply automation in real-world scenarios.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -271,6 +270,8 @@
       </h1>
 
       
+        <div class="post-excerpt">This post explores automating GDB commands using scripts to manage breakpoints and efficiently debug processes under time constraints, offering practical exercises to apply automation in real-world scenarios.</div>
+      
 
       
 
@@ -279,7 +280,7 @@
       <div class="post-content">
         <hr>
         
-          <div class="post-series"><h3 id="series"> GDB Guide Series:</h3> 
+          <div class="post-series"><h3 id="series"> GDB Guides Series:</h3> 
     <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">GDB Guide Part 5 - Stepping</a></li><li><b>GDB Guide Part 6 - Automation</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></li></ol></div>
           <hr>
         
@@ -395,7 +396,7 @@ the file descriptor. Since we do not want <em>write()</em> calls from <em>printf
 
         
           <hr>
-          <div class="post-series"><h3 id="series"> GDB Guide Series:</h3> 
+          <div class="post-series"><h3 id="series"> GDB Guides Series:</h3> 
     <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">GDB Guide Part 5 - Stepping</a></li><li><b>GDB Guide Part 6 - Automation</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></li></ol></div>
         
       </div>

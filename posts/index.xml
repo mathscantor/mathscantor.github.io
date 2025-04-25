@@ -645,10 +645,10 @@ When developing an eBPF application using <em>libbpf</em>, every application req
             <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</guid>
             <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
 &lt;p&gt;Today&amp;rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, &lt;a href=&#34;https://github.com/hugsy/gef&#34;&gt;GEF (GDB Enhanced Features)&lt;/a&gt; provides many QoL features that aid dynamic analysis.&lt;/p&gt;
-&lt;p&gt;However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&amp;rsquo;s capabilities.&lt;/p&gt;</description>
+&lt;p&gt;However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands using native GDB syntax first, then extending them further with python to enhance GDB&amp;rsquo;s capabilities.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
 <p>Today&rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, <a href="https://github.com/hugsy/gef">GEF (GDB Enhanced Features)</a> provides many QoL features that aid dynamic analysis.</p>
-<p>However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&rsquo;s capabilities.</p>
+<p>However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands using native GDB syntax first, then extending them further with python to enhance GDB&rsquo;s capabilities.</p>
 <h2 id="2-gdb-syntax">2. GDB Syntax</h2>
 <p>For example, if you needed to do a set of repetitive commands over and over again, you can just define them under a user-defined command.</p>
 <p>The following example shows how you can define a new command called &ldquo;test_command&rdquo;, where it takes one step-into, examine the current instruction and then printing information on the RDI register.

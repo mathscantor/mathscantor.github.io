@@ -6,10 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
-2. Overview Today&rsquo;s guide will show you how to:
-Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.
-" />
+<meta name="description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions." />
 <meta name="keywords" content="mathscantor, gdb, linux" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -46,9 +43,7 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
 
 
   <meta itemprop="name" content="GDB Guide Part 1 - Basics">
-  <meta itemprop="description" content="1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
-2. Overview Today’s guide will show you how to:
-Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.">
+  <meta itemprop="description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
   <meta itemprop="datePublished" content="2025-01-19T10:37:22+08:00">
   <meta itemprop="dateModified" content="2025-01-19T10:37:22+08:00">
   <meta itemprop="wordCount" content="990">
@@ -58,18 +53,14 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mathscantor.github.io/">
   <meta name="twitter:title" content="GDB Guide Part 1 - Basics">
-  <meta name="twitter:description" content="1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
-2. Overview Today’s guide will show you how to:
-Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.">
+  <meta name="twitter:description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta property="og:title" content="GDB Guide Part 1 - Basics">
-  <meta property="og:description" content="1. Introduction Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!
-2. Overview Today’s guide will show you how to:
-Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble Functions I will be providing an example C file here for you to compile so that you may follow the walkthrough and deepen your understanding.">
+  <meta property="og:description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -299,6 +290,8 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
       </h1>
 
       
+        <div class="post-excerpt">This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.</div>
+      
 
       
 
@@ -307,7 +300,7 @@ Attach to a Process Set useful GDB Configuration Inspect Registers Disassemble F
       <div class="post-content">
         <hr>
         
-          <div class="post-series"><h3 id="series"> GDB Guide Series:</h3> 
+          <div class="post-series"><h3 id="series"> GDB Guides Series:</h3> 
     <ol><li><b>GDB Guide Part 1 - Basics</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">GDB Guide Part 5 - Stepping</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></li></ol></div>
           <hr>
         
@@ -513,7 +506,7 @@ which is a lot more user-friendly.</p>
 
         
           <hr>
-          <div class="post-series"><h3 id="series"> GDB Guide Series:</h3> 
+          <div class="post-series"><h3 id="series"> GDB Guides Series:</h3> 
     <ol><li><b>GDB Guide Part 1 - Basics</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">GDB Guide Part 5 - Stepping</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></li></ol></div>
         
       </div>

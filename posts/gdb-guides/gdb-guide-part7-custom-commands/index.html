@@ -6,9 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="1. Introduction Today&rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, GEF (GDB Enhanced Features) provides many QoL features that aid dynamic analysis.
-However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&rsquo;s capabilities.
-" />
+<meta name="description" content="This guide demonstrates how to create custom commands in GDB using both GDB syntax and Python, enabling automation and enhanced debugging workflows." />
 <meta name="keywords" content="mathscantor, gdb, linux" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -45,8 +43,7 @@ However, GEF is not what I want to talk about today. Instead of using GEF, we wi
 
 
   <meta itemprop="name" content="GDB Guide Part 7 - Custom Commands">
-  <meta itemprop="description" content="1. Introduction Today’s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, GEF (GDB Enhanced Features) provides many QoL features that aid dynamic analysis.
-However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB’s capabilities.">
+  <meta itemprop="description" content="This guide demonstrates how to create custom commands in GDB using both GDB syntax and Python, enabling automation and enhanced debugging workflows.">
   <meta itemprop="datePublished" content="2025-03-19T22:15:30+08:00">
   <meta itemprop="dateModified" content="2025-03-19T22:15:30+08:00">
   <meta itemprop="wordCount" content="537">
@@ -56,16 +53,14 @@ However, GEF is not what I want to talk about today. Instead of using GEF, we wi
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mathscantor.github.io/">
   <meta name="twitter:title" content="GDB Guide Part 7 - Custom Commands">
-  <meta name="twitter:description" content="1. Introduction Today’s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, GEF (GDB Enhanced Features) provides many QoL features that aid dynamic analysis.
-However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB’s capabilities.">
+  <meta name="twitter:description" content="This guide demonstrates how to create custom commands in GDB using both GDB syntax and Python, enabling automation and enhanced debugging workflows.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta property="og:title" content="GDB Guide Part 7 - Custom Commands">
-  <meta property="og:description" content="1. Introduction Today’s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, GEF (GDB Enhanced Features) provides many QoL features that aid dynamic analysis.
-However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB’s capabilities.">
+  <meta property="og:description" content="This guide demonstrates how to create custom commands in GDB using both GDB syntax and Python, enabling automation and enhanced debugging workflows.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -281,6 +276,8 @@ However, GEF is not what I want to talk about today. Instead of using GEF, we wi
       </h1>
 
       
+        <div class="post-excerpt">This guide demonstrates how to create custom commands in GDB using both GDB syntax and Python, enabling automation and enhanced debugging workflows.</div>
+      
 
       
 
@@ -289,13 +286,13 @@ However, GEF is not what I want to talk about today. Instead of using GEF, we wi
       <div class="post-content">
         <hr>
         
-          <div class="post-series"><h3 id="series"> GDB Guide Series:</h3> 
+          <div class="post-series"><h3 id="series"> GDB Guides Series:</h3> 
     <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">GDB Guide Part 5 - Stepping</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li><li><b>GDB Guide Part 7 - Custom Commands</b></li></ol></div>
           <hr>
         
         <h2 id="1-introduction">1. Introduction</h2>
 <p>Today&rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, <a href="https://github.com/hugsy/gef">GEF (GDB Enhanced Features)</a> provides many QoL features that aid dynamic analysis.</p>
-<p>However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&rsquo;s capabilities.</p>
+<p>However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands using native GDB syntax first, then extending them further with python to enhance GDB&rsquo;s capabilities.</p>
 <h2 id="2-gdb-syntax">2. GDB Syntax</h2>
 <p>For example, if you needed to do a set of repetitive commands over and over again, you can just define them under a user-defined command.</p>
 <p>The following example shows how you can define a new command called &ldquo;test_command&rdquo;, where it takes one step-into, examine the current instruction and then printing information on the RDI register.
@@ -380,7 +377,7 @@ successfully imported! The name of your command will follow what you have define
 
         
           <hr>
-          <div class="post-series"><h3 id="series"> GDB Guide Series:</h3> 
+          <div class="post-series"><h3 id="series"> GDB Guides Series:</h3> 
     <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">GDB Guide Part 5 - Stepping</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li><li><b>GDB Guide Part 7 - Custom Commands</b></li></ol></div>
         
       </div>

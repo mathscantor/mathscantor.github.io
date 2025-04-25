@@ -6,10 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="1. Introduction Let&rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
-Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.g., synchronizing backups) The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the FAN_ALLOW or FAN_DENY response.
-" />
+<meta name="description" content="This post explains how to use the Linux fanotify API for file monitoring, covering setup, event handling, and advanced use cases like blocking file operations and monitoring create/delete/move events." />
 <meta name="keywords" content="mathscantor, linux, fanotify, file-monitoring" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -46,9 +43,7 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
 
 
   <meta itemprop="name" content="Linux File Monitoring With Fanotify">
-  <meta itemprop="description" content="1. Introduction Let’s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
-Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.g., synchronizing backups) The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the FAN_ALLOW or FAN_DENY response.">
+  <meta itemprop="description" content="This post explains how to use the Linux fanotify API for file monitoring, covering setup, event handling, and advanced use cases like blocking file operations and monitoring create/delete/move events.">
   <meta itemprop="datePublished" content="2025-03-14T20:09:42+08:00">
   <meta itemprop="dateModified" content="2025-03-14T20:09:42+08:00">
   <meta itemprop="wordCount" content="1292">
@@ -58,18 +53,14 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mathscantor.github.io/">
   <meta name="twitter:title" content="Linux File Monitoring With Fanotify">
-  <meta name="twitter:description" content="1. Introduction Let’s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
-Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.g., synchronizing backups) The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the FAN_ALLOW or FAN_DENY response.">
+  <meta name="twitter:description" content="This post explains how to use the Linux fanotify API for file monitoring, covering setup, event handling, and advanced use cases like blocking file operations and monitoring create/delete/move events.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/">
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta property="og:title" content="Linux File Monitoring With Fanotify">
-  <meta property="og:description" content="1. Introduction Let’s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.
-Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:
-Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance (e.g., logging file accesses) File system activity tracking (e.g., synchronizing backups) The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the FAN_ALLOW or FAN_DENY response.">
+  <meta property="og:description" content="This post explains how to use the Linux fanotify API for file monitoring, covering setup, event handling, and advanced use cases like blocking file operations and monitoring create/delete/move events.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -277,6 +268,8 @@ Real-time security monitoring (e.g., antivirus scanning) Auditing and compliance
         <a href="https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/">Linux File Monitoring With Fanotify</a>
       </h1>
 
+      
+        <div class="post-excerpt">This post explains how to use the Linux fanotify API for file monitoring, covering setup, event handling, and advanced use cases like blocking file operations and monitoring create/delete/move events.</div>
       
 
       

@@ -6,9 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
-For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.
-" />
+<meta name="description" content="This post outlines a detailed and technical process for gaining a root shell on Mikrotik RouterOS, specifically version 6.42.11. The focus is on breaking out of the restricted MikroTik Command Line Interface (CLI) to access a full Linux shell environment, which is essential for researchers performing vulnerability assessments on Mikrotik systems." />
 <meta name="keywords" content="mathscantor, linux, mikrotik, jailbreak" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -45,8 +43,7 @@ For those that have already done their hands-on spinning up a Mikrotik RouterOS 
 
 
   <meta itemprop="name" content="Getting Root Shell Mikrotik RouterOS">
-  <meta itemprop="description" content="1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
-For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.">
+  <meta itemprop="description" content="This post outlines a detailed and technical process for gaining a root shell on Mikrotik RouterOS, specifically version 6.42.11. The focus is on breaking out of the restricted MikroTik Command Line Interface (CLI) to access a full Linux shell environment, which is essential for researchers performing vulnerability assessments on Mikrotik systems.">
   <meta itemprop="datePublished" content="2025-01-03T20:26:00+08:00">
   <meta itemprop="dateModified" content="2025-01-03T20:26:00+08:00">
   <meta itemprop="wordCount" content="1306">
@@ -56,16 +53,14 @@ For those that have already done their hands-on spinning up a Mikrotik RouterOS 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mathscantor.github.io/">
   <meta name="twitter:title" content="Getting Root Shell Mikrotik RouterOS">
-  <meta name="twitter:description" content="1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
-For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.">
+  <meta name="twitter:description" content="This post outlines a detailed and technical process for gaining a root shell on Mikrotik RouterOS, specifically version 6.42.11. The focus is on breaking out of the restricted MikroTik Command Line Interface (CLI) to access a full Linux shell environment, which is essential for researchers performing vulnerability assessments on Mikrotik systems.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/">
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta property="og:title" content="Getting Root Shell Mikrotik RouterOS">
-  <meta property="og:description" content="1. Introduction I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.
-For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.">
+  <meta property="og:description" content="This post outlines a detailed and technical process for gaining a root shell on Mikrotik RouterOS, specifically version 6.42.11. The focus is on breaking out of the restricted MikroTik Command Line Interface (CLI) to access a full Linux shell environment, which is essential for researchers performing vulnerability assessments on Mikrotik systems.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -280,6 +275,8 @@ For those that have already done their hands-on spinning up a Mikrotik RouterOS 
         <a href="https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/">Getting Root Shell Mikrotik RouterOS</a>
       </h1>
 
+      
+        <div class="post-excerpt">This post outlines a detailed and technical process for gaining a root shell on Mikrotik RouterOS, specifically version 6.42.11. The focus is on breaking out of the restricted MikroTik Command Line Interface (CLI) to access a full Linux shell environment, which is essential for researchers performing vulnerability assessments on Mikrotik systems.</div>
       
 
       

@@ -202,12 +202,52 @@
                 <div class="posts">
                 
                 <div class="post on-list">
-                    <h1 class="post-title"><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></h1>
+                    <h1 class="post-title"><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">GDB Guide Part 5 - Stepping</a></h1>
                     <div class="post-meta">
                     
                         <span class="post-date">
                             <i class="fa-solid fa-calendar-days"></i>
-                            2025-03-19
+                            2025-02-23
+                        </span>
+                        
+                    
+                        <br>
+                    
+                        <i class="fa-solid fa-clock"></i>
+                        4 Minutes
+                    
+                    </div>
+                    
+                        <span class="post-tags">
+                        <i class="fa-solid fa-tag"></i>
+                        
+                            <a href="https://mathscantor.github.io/tags/gdb/">#gdb</a>&nbsp;
+                        
+                            <a href="https://mathscantor.github.io/tags/linux/">#linux</a>&nbsp;
+                        
+                        </span>
+                    
+                    <div class="post-content">
+                        
+                            This post introduces the concept of stepping in GDB, explaining how to use the stepi, nexti, and finish commands to navigate through assembly instructions, step over function calls, and return from functions, with practical examples and exercises.
+                        
+                    </div>
+                    
+                        
+                        <div>
+                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part5-stepping/">Read more...</a>
+                        </div>
+                        
+                    
+                </div> 
+            
+                <div class="post on-list">
+                    <h1 class="post-title"><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></h1>
+                    <div class="post-meta">
+                    
+                        <span class="post-date">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            2025-02-05
                         </span>
                         
                     
@@ -229,29 +269,65 @@
                     
                     <div class="post-content">
                         
-                            
-                                <h2 id="1-introduction">1. Introduction</h2>
-<p>Today&rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, <a href="https://github.com/hugsy/gef">GEF (GDB Enhanced Features)</a> provides many QoL features that aid dynamic analysis.</p>
-<p>However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands first with GDB syntax, and then explore further by using python to extend GDB&rsquo;s capabilities.</p>
-                            
+                            This short guide explains how to examine process memory in GDB using the x/ command. It covers different formats like bytes, half-words, words, giant words, strings, and instructions. Additionally, it showcases how to automate memory inspection using GDB&rsquo;s eval for more dynamic usage. Perfect for those looking to efficiently inspect memory during debugging.
                         
                     </div>
                     
                         
                         <div>
-                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part7-custom-commands/">Read more...</a>
+                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part4-examining-memory/">Read more...</a>
                         </div>
                         
                     
                 </div> 
             
                 <div class="post on-list">
-                    <h1 class="post-title"><a href="https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/">Linux File Monitoring With Fanotify</a></h1>
+                    <h1 class="post-title"><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></h1>
                     <div class="post-meta">
                     
                         <span class="post-date">
                             <i class="fa-solid fa-calendar-days"></i>
-                            2025-03-14
+                            2025-01-29
+                        </span>
+                        
+                    
+                        <br>
+                    
+                        <i class="fa-solid fa-clock"></i>
+                        4 Minutes
+                    
+                    </div>
+                    
+                        <span class="post-tags">
+                        <i class="fa-solid fa-tag"></i>
+                        
+                            <a href="https://mathscantor.github.io/tags/gdb/">#gdb</a>&nbsp;
+                        
+                            <a href="https://mathscantor.github.io/tags/linux/">#linux</a>&nbsp;
+                        
+                        </span>
+                    
+                    <div class="post-content">
+                        
+                            In this part of the GDB guide, we dive into understanding process maps and how to inspect them for both dynamically and statically linked executables. The guide explains how to compile test programs, use the ldd command to check dependencies, and view process memory mappings either through the /proc filesystem or GDB&rsquo;s info proc mappings command.
+                        
+                    </div>
+                    
+                        
+                        <div>
+                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part3-process-maps/">Read more...</a>
+                        </div>
+                        
+                    
+                </div> 
+            
+                <div class="post on-list">
+                    <h1 class="post-title"><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></h1>
+                    <div class="post-meta">
+                    
+                        <span class="post-date">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            2025-01-21
                         </span>
                         
                     
@@ -265,33 +341,61 @@
                         <span class="post-tags">
                         <i class="fa-solid fa-tag"></i>
                         
+                            <a href="https://mathscantor.github.io/tags/gdb/">#gdb</a>&nbsp;
+                        
                             <a href="https://mathscantor.github.io/tags/linux/">#linux</a>&nbsp;
-                        
-                            <a href="https://mathscantor.github.io/tags/fanotify/">#fanotify</a>&nbsp;
-                        
-                            <a href="https://mathscantor.github.io/tags/file-monitoring/">#file-monitoring</a>&nbsp;
                         
                         </span>
                     
                     <div class="post-content">
                         
-                            
-                                <h2 id="1-introduction">1. Introduction</h2>
-<p>Let&rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.</p>
-<p>Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:</p>
-<ul>
-<li>Real-time security monitoring (e.g., antivirus scanning)</li>
-<li>Auditing and compliance (e.g., logging file accesses)</li>
-<li>File system activity tracking (e.g., synchronizing backups)</li>
-</ul>
-<p>The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the <code>FAN_ALLOW</code> or <code>FAN_DENY</code> response.</p>
-                            
+                            This post covers setting breakpoints in GDB and explains Linux x86 and x86_64 calling conventions with practical debugging examples.
                         
                     </div>
                     
                         
                         <div>
-                            <a class="read-more button" href="/posts/linux-file-monitoring-with-fanotify/">Read more...</a>
+                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">Read more...</a>
+                        </div>
+                        
+                    
+                </div> 
+            
+                <div class="post on-list">
+                    <h1 class="post-title"><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></h1>
+                    <div class="post-meta">
+                    
+                        <span class="post-date">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            2025-01-19
+                        </span>
+                        
+                    
+                        <br>
+                    
+                        <i class="fa-solid fa-clock"></i>
+                        5 Minutes
+                    
+                    </div>
+                    
+                        <span class="post-tags">
+                        <i class="fa-solid fa-tag"></i>
+                        
+                            <a href="https://mathscantor.github.io/tags/gdb/">#gdb</a>&nbsp;
+                        
+                            <a href="https://mathscantor.github.io/tags/linux/">#linux</a>&nbsp;
+                        
+                        </span>
+                    
+                    <div class="post-content">
+                        
+                            This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.
+                        
+                    </div>
+                    
+                        
+                        <div>
+                            <a class="read-more button" href="/posts/gdb-guides/gdb-guide-part1-basics/">Read more...</a>
                         </div>
                         
                     

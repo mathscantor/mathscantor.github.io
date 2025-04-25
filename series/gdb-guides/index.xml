@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>GDB Guides on Mathscantor&#39;s Cybersecurity Blog</title>
+    <link>https://mathscantor.github.io/series/gdb-guides/</link>
+    <description>Recent content in GDB Guides on Mathscantor&#39;s Cybersecurity Blog</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Wed, 19 Mar 2025 22:15:30 +0800</lastBuildDate>
+    <atom:link href="https://mathscantor.github.io/series/gdb-guides/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>GDB Guide Part 7 - Custom Commands</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</link>
+      <pubDate>Wed, 19 Mar 2025 22:15:30 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, &lt;a href=&#34;https://github.com/hugsy/gef&#34;&gt;GEF (GDB Enhanced Features)&lt;/a&gt; provides many QoL features that aid dynamic analysis.&lt;/p&gt;&#xA;&lt;p&gt;However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands using native GDB syntax first, then extending them further with python to enhance GDB&amp;rsquo;s capabilities.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>GDB Guide Part 6 - Automation</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</link>
+      <pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands.&#xA;Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation&#xA;will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your&#xA;sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>GDB Guide Part 5 - Stepping</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</link>
+      <pubDate>Sun, 23 Feb 2025 13:08:30 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This part of the guide will demonstrate to you the differences between stepping in, over and out.&#xA;In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples&#xA;I provide will only be for stepping through instructions and not source lines.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-example-program&#34;&gt;2. Example Program&lt;/h2&gt;&#xA;&lt;p&gt;For this part of the tutorial, either compile &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise.c&#34;&gt;stepping-exercise.c&lt;/a&gt; or download the static binary &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise&#34;&gt;stepping-exercise&lt;/a&gt; to follow along.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>GDB Guide Part 4 - Examining Memory</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
+      <pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.&lt;/p&gt;&#xA;&lt;p&gt;Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with &lt;em&gt;eval&lt;/em&gt;.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-examine-command-x&#34;&gt;2. Examine Command (x/)&lt;/h2&gt;&#xA;&lt;p&gt;To examine the process&amp;rsquo;s memory, we will always start of with the prefix &lt;code&gt;x/&lt;/code&gt;, followed by whatever we which to examine at a particular address.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>GDB Guide Part 3 - Process Maps</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
+      <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-overview&#34;&gt;2. Overview&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.&#xA;However, I think it is also important to cover some background on dynamic and static executables before talking about Process Maps.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
+      <pubDate>Tue, 21 Jan 2025 12:21:39 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This post is a continuation from the &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/&#34;&gt;previous post in this series&lt;/a&gt; and will cover more fundamentals on GDB and dynamic analysis.&lt;/p&gt;&#xA;&lt;p&gt;To ensure this post is not too long-winded, I have decided to only go through the following topics today:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Breakpoints&lt;/li&gt;&#xA;&lt;li&gt;Linux x86 vs x86_64 Calling Convention&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h2 id=&#34;2-breakpoints&#34;&gt;2. Breakpoints&lt;/h2&gt;&#xA;&lt;p&gt;A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>GDB Guide Part 1 - Basics</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</link>
+      <pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-overview&#34;&gt;2. Overview&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s guide will show you how to:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Attach to a Process&lt;/li&gt;&#xA;&lt;li&gt;Set useful GDB Configuration&lt;/li&gt;&#xA;&lt;li&gt;Inspect Registers&lt;/li&gt;&#xA;&lt;li&gt;Disassemble Functions&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;I will be providing an example C file &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c&#34;&gt;here&lt;/a&gt; for you to compile so that you may follow the walkthrough and deepen your understanding.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

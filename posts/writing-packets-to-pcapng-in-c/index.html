@@ -6,9 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn&rsquo;t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code here as well.
-" />
+<meta name="description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library." />
 <meta name="keywords" content="mathscantor, c-c&#43;&#43;, packet-capture" />
 <meta name="robots" content="noodp" />
 <meta name="theme-color" content="dark" />
@@ -45,8 +43,7 @@ Therefore, I thought it would be good to share some insights on writing a simple
 
 
   <meta itemprop="name" content="Writing Packets to Pcapng in C">
-  <meta itemprop="description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn’t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code here as well.">
+  <meta itemprop="description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
   <meta itemprop="datePublished" content="2025-01-17T10:56:44+08:00">
   <meta itemprop="dateModified" content="2025-01-17T10:56:44+08:00">
   <meta itemprop="wordCount" content="1115">
@@ -56,16 +53,14 @@ Therefore, I thought it would be good to share some insights on writing a simple
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mathscantor.github.io/">
   <meta name="twitter:title" content="Writing Packets to Pcapng in C">
-  <meta name="twitter:description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn’t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code here as well.">
+  <meta name="twitter:description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/">
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta property="og:title" content="Writing Packets to Pcapng in C">
-  <meta property="og:description" content="1. Introduction Welcome back fellow researchers! Recently, I was developing custom tools for packet sniffing in C and needed to write my own PcapNG library. The PcapNG file structure can be found on the Official PcapNG Documentation. Even though Erik Hjelmvik, the author was nice enough to provide examples for different section blocks, the guide isn’t the most comprehensible.
-Therefore, I thought it would be good to share some insights on writing a simple library in C to save your packets in a PcapNG file. And of course, I will be providing the source code here as well.">
+  <meta property="og:description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -272,6 +267,8 @@ Therefore, I thought it would be good to share some insights on writing a simple
         <a href="https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/">Writing Packets to Pcapng in C</a>
       </h1>
 
+      
+        <div class="post-excerpt">This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.</div>
       
 
       

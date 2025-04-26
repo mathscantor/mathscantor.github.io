@@ -236,7 +236,9 @@ The output is pretty obvious as I do not have other eBPF applications running in
 </span></span><span style="display:flex;"><span>...
 </span></span><span style="display:flex;"><span><span style="color:#f92672">[</span> 8366.391364<span style="color:#f92672">]</span> nysm<span style="color:#f92672">[</span>10466<span style="color:#f92672">]</span> is installing a program with bpf_probe_write_user helper that may corrupt user memory!
 </span></span><span style="display:flex;"><span>...
-</span></span></code></pre></div><p>Any EDR / SIEM that monitors these logs will definitely flag this out and serve as a pivot point for Blue Teams to do their threat hunting and forensics.</p>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Kernel Logs Showing Warning Messages on <em>bpf_probe_write_user()</em> Usage<br><br></span>
+<p>Any EDR / SIEM that monitors these logs will definitely flag this out and serve as a pivot point for Blue Teams to do their threat hunting and forensics.</p>
 <h2 id="5-conclusion">5. Conclusion</h2>
 <p>By hooking into just a few strategic syscalls and keeping track of what belongs to it, <em>nysm</em> manages to fool userland tools and blend into the kernel like a ghost. This kind of behavior isn’t just useful for malware, but also shows just how powerful (and dangerous) eBPF can be when used creatively.</p>
 <p>However, there are limitations to <em>nysm&rsquo;s</em> capabilities such as the inability to suppress warning messages in the kernel logs.</p>

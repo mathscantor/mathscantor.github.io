@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Fri, 11 Apr 2025 23:42:35 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 26 Apr 2025 10:45:47 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/tags/ebpf/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>eBPF Malware Techniques Part 3 - Hiding BPF Traces</title>
+      <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</link>
+      <pubDate>Sat, 26 Apr 2025 10:45:47 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;We&amp;rsquo;re finally gonna talk about the juicy stuff now that you are all geared up! Today, we are gonna go into a deep dive on how an eBPF application can hide itself and its children processes by understanding specific crucial Linux internals and how to circumvent them. I will be mainly using &lt;a href=&#34;https://github.com/eeriedusk/nysm&#34;&gt;&lt;em&gt;nysm&lt;/em&gt;&lt;/a&gt;, a eBPF-based malware as my prime example for hiding BPF traces.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-ebpf-enumeration-with-bpf-syscalls&#34;&gt;2. eBPF Enumeration with BPF Syscalls&lt;/h2&gt;&#xA;&lt;p&gt;When working with eBPF, it&amp;rsquo;s important to understand what&amp;rsquo;s actually loaded into the kernel at any point in time. Fortunately, &lt;em&gt;bpftool&lt;/em&gt; gives us powerful inspection capabilities through &lt;em&gt;bpf()&lt;/em&gt; syscalls., which we will take a deeper look in a second.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>eBPF Malware Techniques Part 2 - Setting Appropriate Hooks</title>
       <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</link>

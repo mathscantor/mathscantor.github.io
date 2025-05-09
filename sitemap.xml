@@ -3,30 +3,33 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://mathscantor.github.io/tags/ebpf/</loc>
-    <lastmod>2025-04-26T10:45:47+08:00</lastmod>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/series/ebpf-malware-techniques/</loc>
-    <lastmod>2025-04-26T10:45:47+08:00</lastmod>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</loc>
-    <lastmod>2025-04-26T10:45:47+08:00</lastmod>
+    <loc>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</loc>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/tags/linux/</loc>
-    <lastmod>2025-04-26T10:45:47+08:00</lastmod>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/tags/malware/</loc>
-    <lastmod>2025-04-26T10:45:47+08:00</lastmod>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/</loc>
-    <lastmod>2025-04-26T10:45:47+08:00</lastmod>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/</loc>
-    <lastmod>2025-04-26T10:45:47+08:00</lastmod>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/series/</loc>
-    <lastmod>2025-04-26T10:45:47+08:00</lastmod>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/tags/</loc>
+    <lastmod>2025-05-09T08:16:42+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</loc>
     <lastmod>2025-04-26T10:45:47+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</loc>

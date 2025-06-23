@@ -6,8 +6,262 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Fri, 09 May 2025 08:16:42 +0800</lastBuildDate>
+        <lastBuildDate>Mon, 23 Jun 2025 22:09:56 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Sniffing SSL Connections in Memory</title>
+            <link>https://mathscantor.github.io/posts/sniffing-ssl-connections-in-memory/</link>
+            <pubDate>Mon, 23 Jun 2025 22:09:56 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/sniffing-ssl-connections-in-memory/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Hey y&amp;rsquo;all! It&amp;rsquo;s been a while since I posted anything in my blog due to my busy work schedule, and just a teensy-weeny bit of burnout 🤪.&lt;/p&gt;
+&lt;p&gt;Today, I thought it would be interesting to share a simple technique to inspect SSL connections in a process&amp;rsquo;s memory. In particular, we will be targeting OpenSSL&amp;rsquo;s library functions, &lt;em&gt;SSL_read()&lt;/em&gt; and &lt;em&gt;SSL_write()&lt;/em&gt;, in order to read its plaintext buffer.&lt;/p&gt;
+&lt;h2 id=&#34;2-preparing-the-experiment&#34;&gt;2. Preparing the Experiment&lt;/h2&gt;
+&lt;p&gt;To demonstrate this technique, we will need to prepare a client and a server written in C. (See Listings 1 and 2)&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Hey y&rsquo;all! It&rsquo;s been a while since I posted anything in my blog due to my busy work schedule, and just a teensy-weeny bit of burnout 🤪.</p>
+<p>Today, I thought it would be interesting to share a simple technique to inspect SSL connections in a process&rsquo;s memory. In particular, we will be targeting OpenSSL&rsquo;s library functions, <em>SSL_read()</em> and <em>SSL_write()</em>, in order to read its plaintext buffer.</p>
+<h2 id="2-preparing-the-experiment">2. Preparing the Experiment</h2>
+<p>To demonstrate this technique, we will need to prepare a client and a server written in C. (See Listings 1 and 2)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;arpa/inet.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;openssl/ssl.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;openssl/err.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define HOST &#34;127.0.0.1&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define PORT 4443
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">init_openssl</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SSL_load_error_strings</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">OpenSSL_add_ssl_algorithms</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">cleanup_openssl</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">EVP_cleanup</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SSL_CTX <span style="color:#f92672">*</span><span style="color:#a6e22e">create_context</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> SSL_METHOD <span style="color:#f92672">*</span>method;
+</span></span><span style="display:flex;"><span>    SSL_CTX <span style="color:#f92672">*</span>ctx;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    method <span style="color:#f92672">=</span> <span style="color:#a6e22e">TLS_client_method</span>();
+</span></span><span style="display:flex;"><span>    ctx <span style="color:#f92672">=</span> <span style="color:#a6e22e">SSL_CTX_new</span>(method);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>ctx) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;Unable to create SSL context&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ERR_print_errors_fp</span>(stderr);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">exit</span>(EXIT_FAILURE);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ctx;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> sock;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> sockaddr_in addr;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">1024</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">init_openssl</span>();
+</span></span><span style="display:flex;"><span>    SSL_CTX <span style="color:#f92672">*</span>ctx <span style="color:#f92672">=</span> <span style="color:#a6e22e">create_context</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    sock <span style="color:#f92672">=</span> <span style="color:#a6e22e">socket</span>(AF_INET, SOCK_STREAM, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>    addr.sin_family <span style="color:#f92672">=</span> AF_INET;
+</span></span><span style="display:flex;"><span>    addr.sin_port <span style="color:#f92672">=</span> <span style="color:#a6e22e">htons</span>(PORT);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">inet_pton</span>(AF_INET, HOST, <span style="color:#f92672">&amp;</span>addr.sin_addr);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">connect</span>(sock, (<span style="color:#66d9ef">struct</span> sockaddr<span style="color:#f92672">*</span>)<span style="color:#f92672">&amp;</span>addr, <span style="color:#66d9ef">sizeof</span>(addr));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    SSL <span style="color:#f92672">*</span>ssl <span style="color:#f92672">=</span> <span style="color:#a6e22e">SSL_new</span>(ctx);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SSL_set_fd</span>(ssl, sock);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">SSL_connect</span>(ssl) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ERR_print_errors_fp</span>(stderr);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>msg <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Hello from client!&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">SSL_write</span>(ssl, msg, <span style="color:#a6e22e">strlen</span>(msg));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> bytes <span style="color:#f92672">=</span> <span style="color:#a6e22e">SSL_read</span>(ssl, buf, <span style="color:#66d9ef">sizeof</span>(buf));
+</span></span><span style="display:flex;"><span>        buf[bytes] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Received: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, buf);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SSL_free</span>(ssl);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(sock);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SSL_CTX_free</span>(ctx);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cleanup_openssl</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Simple SSL Client - ssl_client.c<br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;arpa/inet.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;openssl/ssl.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;openssl/err.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define PORT 4443
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">init_openssl</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SSL_load_error_strings</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">OpenSSL_add_ssl_algorithms</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">cleanup_openssl</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">EVP_cleanup</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SSL_CTX <span style="color:#f92672">*</span><span style="color:#a6e22e">create_context</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> SSL_METHOD <span style="color:#f92672">*</span>method;
+</span></span><span style="display:flex;"><span>    SSL_CTX <span style="color:#f92672">*</span>ctx;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    method <span style="color:#f92672">=</span> <span style="color:#a6e22e">TLS_server_method</span>(); <span style="color:#75715e">// for TLS server
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ctx <span style="color:#f92672">=</span> <span style="color:#a6e22e">SSL_CTX_new</span>(method);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>ctx) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;Unable to create SSL context&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ERR_print_errors_fp</span>(stderr);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">exit</span>(EXIT_FAILURE);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ctx;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">configure_context</span>(SSL_CTX <span style="color:#f92672">*</span>ctx) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Load certificate and private key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">SSL_CTX_use_certificate_file</span>(ctx, <span style="color:#e6db74">&#34;cert.pem&#34;</span>, SSL_FILETYPE_PEM) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">SSL_CTX_use_PrivateKey_file</span>(ctx, <span style="color:#e6db74">&#34;key.pem&#34;</span>, SSL_FILETYPE_PEM) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ERR_print_errors_fp</span>(stderr);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">exit</span>(EXIT_FAILURE);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> sock;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> sockaddr_in addr;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">char</span> buf[<span style="color:#ae81ff">1024</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> bytes;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">init_openssl</span>();
+</span></span><span style="display:flex;"><span>    SSL_CTX <span style="color:#f92672">*</span>ctx <span style="color:#f92672">=</span> <span style="color:#a6e22e">create_context</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">configure_context</span>(ctx);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    sock <span style="color:#f92672">=</span> <span style="color:#a6e22e">socket</span>(AF_INET, SOCK_STREAM, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>    addr.sin_family <span style="color:#f92672">=</span> AF_INET;
+</span></span><span style="display:flex;"><span>    addr.sin_port <span style="color:#f92672">=</span> <span style="color:#a6e22e">htons</span>(PORT);
+</span></span><span style="display:flex;"><span>    addr.sin_addr.s_addr <span style="color:#f92672">=</span> INADDR_ANY;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bind</span>(sock, (<span style="color:#66d9ef">struct</span> sockaddr<span style="color:#f92672">*</span>)<span style="color:#f92672">&amp;</span>addr, <span style="color:#66d9ef">sizeof</span>(addr));
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">listen</span>(sock, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Server listening on port %d...</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, PORT);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> sockaddr_in client_addr;
+</span></span><span style="display:flex;"><span>    uint len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(client_addr);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> client <span style="color:#f92672">=</span> <span style="color:#a6e22e">accept</span>(sock, (<span style="color:#66d9ef">struct</span> sockaddr<span style="color:#f92672">*</span>)<span style="color:#f92672">&amp;</span>client_addr, <span style="color:#f92672">&amp;</span>len);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    SSL <span style="color:#f92672">*</span>ssl <span style="color:#f92672">=</span> <span style="color:#a6e22e">SSL_new</span>(ctx);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SSL_set_fd</span>(ssl, client);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">SSL_accept</span>(ssl) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ERR_print_errors_fp</span>(stderr);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        bytes <span style="color:#f92672">=</span> <span style="color:#a6e22e">SSL_read</span>(ssl, buf, <span style="color:#66d9ef">sizeof</span>(buf));
+</span></span><span style="display:flex;"><span>        buf[bytes] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Received: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, buf);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">SSL_write</span>(ssl, buf, <span style="color:#a6e22e">strlen</span>(buf)); <span style="color:#75715e">// echo back
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SSL_free</span>(ssl);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(client);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(sock);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SSL_CTX_free</span>(ctx);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cleanup_openssl</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Simple SSL Server - ssl_server.c<br><br></span>
+<p>The server will also require a private key and a certificate generated with <em>openssl</em>. (See Listing 3)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days <span style="color:#ae81ff">365</span> -nodes
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Generating OpenSSL Private Key and Certificate<br><br></span>
+<p>Next, install the OpenSSL development libraries before compiling the client and server. (See Listing 4)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo apt install libssl-dev
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing OpenSSL Development Library<br><br></span>
+<p>Lastly, compile both the client and the server. (See Listing 5)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc ssl_server.c -o ssl_server -lssl -lcrypto
+</span></span><span style="display:flex;"><span>$ gcc ssl_client.c -o ssl_client -lssl -lcrypto
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling SSL Client and Server<br><br></span>
+<p>Now, run the server before the client. If everything is working as intended, the server will receive the client&rsquo;s message and echo it back to the client.</p>
+<p><img src="/posts/sniffing-ssl-connections-in-memory/images/simple_test.png" alt="simple_test"></p>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Server and Client SSL Message Exchange<br><br></span>
+<h2 id="3-inspecting-buffer-in-client">3. Inspecting Buffer in Client</h2>
+<p>To capture the plaintext buffer before it is encrypted, we just have to print the buffer right at the start of <em>SSL_write()</em>! Simple, isn&rsquo;t it?</p>
+<p>Start the server first, then attach to the client using <em>gdb</em>. (See Listing 6)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb ssl_client
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attach to <em>ssl_client</em> with <em>gdb</em><br><br></span>
+<p>Next, we will set a breakpoint at the start of SSL_write before running the binary. (See Listing 7)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b SSL_write
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Breakpoint @ <em>SSL_write()</em><br><br></span>
+<p>Once the breakpoint is hit, print the value of the second argument to SSL_write(). In my case, I am using the x86_64 architecture in Linux and therefore, the 2nd argument of <em>SSL_write()</em> refers to the <em>RSI</em> register. (See Listing 8)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers rsi
+</span></span><span style="display:flex;"><span>rsi            0x82205b            <span style="color:#ae81ff">8527963</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Inspecting Value of <em>RSI</em> Register<br><br></span>
+<p>The value of <em>RSI</em> shown in the previous listing refers to the address of the buffer / the pointer to the string in plaintext. Inspecting the plaintext buffer is straightforward from here. (See Listing 9)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s $rsi
+</span></span><span style="display:flex;"><span>0x82205b:	<span style="color:#e6db74">&#34;Hello from client!&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Printing Plaintext Buffer<br><br></span>
+<h2 id="4-inspecting-buffer-in-server">4. Inspecting Buffer in Server</h2>
+<p>Now that we&rsquo;ve captured the plaintext message on the client side, let’s do the same on the server.
+This time, however, we will require two breakpoints within <em>SSL_read()</em>.</p>
+<p>Firstly, attach to the server with <em>gdb</em>. (See Listing 10)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb ssl_server
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attach GDB to <em>ssl_server</em><br><br></span>
+<p>Set a breakpoint at the start of <em>SSL_read()</em> before running the server. (See Listing 11)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b SSL_read
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Breakpoint @ <em>SSL_read()</em><br><br></span>
+<p>Upon hitting the breakpoint (by running our client), we save the address stored in the <em>RSI</em> register for later reference. (See Listing 12)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Hit Breakpoint 1 (SSL_read)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $buf <span style="color:#f92672">=</span> $rsi
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Saving Buffer Address for Reference<br><br></span>
+<p>Since the plaintext will be written to the buffer at the end of <em>SSL_read()</em>, we set a breakpoint at the <code>ret</code> instruction. Thus, we need to find the offset where this instruction occurs by reading its disassembly. In my case, this occurs at <code>SSL_read + 74</code>. (See Listing 13)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>(gdb) disass SSL_read
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x00007ffff7f3a5fa</span> <span style="color:#f92672">&lt;+</span><span style="color:#ae81ff">74</span><span style="color:#f92672">&gt;:</span>	ret
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Finding Offset of Return Instruction<br><br></span>
+<p>After setting a 2nd breakpoint on the return instruction, resume the execution of the server. (See Listing 14)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>SSL_read + 74<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> <span style="color:#66d9ef">continue</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Breakpoint @ <em>SSL_read()</em> + 74 &amp; Resuming Execution<br><br></span>
+<p>When we hit our 2nd breakpoint, we can read the plaintext string from our buffer address saved earlier. (See Listing 15)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Hit Breakpoint 2 (SSL_read + 74)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s $buf
+</span></span><span style="display:flex;"><span>0x7fffffffd860:	<span style="color:#e6db74">&#34;Hello from client!&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Reading Plaintext Buffer Reference<br><br></span>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>In short, you&rsquo;ve learned how to inspect TLS messages by setting appropriate breakpoints in <em>SSL_read()</em> and <em>SSL_write()</em>.
+I sure hope this short exercise has been fun and enlightening! Keep reading and stay curious.</p>
+<h2 id="6-resources">6. Resources</h2>
+<ol>
+<li><a href="/posts/sniffing-ssl-connections-in-memory/resources/libssl-example.zip">libssl-example.zip</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>eBPF Malware Techniques Part 4 - Hiding Processes</title>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ssl on Mathscantor&#39;s Cybersecurity Blog</title>
+    <link>https://mathscantor.github.io/tags/ssl/</link>
+    <description>Recent content in Ssl on Mathscantor&#39;s Cybersecurity Blog</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Mon, 23 Jun 2025 22:09:56 +0800</lastBuildDate>
+    <atom:link href="https://mathscantor.github.io/tags/ssl/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Sniffing SSL Connections in Memory</title>
+      <link>https://mathscantor.github.io/posts/sniffing-ssl-connections-in-memory/</link>
+      <pubDate>Mon, 23 Jun 2025 22:09:56 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/sniffing-ssl-connections-in-memory/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Hey y&amp;rsquo;all! It&amp;rsquo;s been a while since I posted anything in my blog due to my busy work schedule, and just a teensy-weeny bit of burnout 🤪.&lt;/p&gt;&#xA;&lt;p&gt;Today, I thought it would be interesting to share a simple technique to inspect SSL connections in a process&amp;rsquo;s memory. In particular, we will be targeting OpenSSL&amp;rsquo;s library functions, &lt;em&gt;SSL_read()&lt;/em&gt; and &lt;em&gt;SSL_write()&lt;/em&gt;, in order to read its plaintext buffer.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-preparing-the-experiment&#34;&gt;2. Preparing the Experiment&lt;/h2&gt;&#xA;&lt;p&gt;To demonstrate this technique, we will need to prepare a client and a server written in C. (See Listings 1 and 2)&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -69,12 +69,12 @@
     <meta property="article:tag" content="Gdb">
     <meta property="article:tag" content="Linux">
     <meta property="og:image" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/images/cover.png">
+      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/">
       <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">
       <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">
       <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">
       <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">
       <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">
-      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">
 
 
 
@@ -285,7 +285,7 @@
         <hr>
         
           <div class="post-series"><h3 id="series"> GDB Guides Series:</h3> 
-    <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><b>GDB Guide Part 5 - Stepping</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></li></ol></div>
+    <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><b>GDB Guide Part 5 - Stepping</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/">GDB Guide Part 8 - Invoking Function Calls</a></li></ol></div>
           <hr>
         
         <h2 id="1-introduction">1. Introduction</h2>
@@ -443,7 +443,7 @@ The</p>
         
           <hr>
           <div class="post-series"><h3 id="series"> GDB Guides Series:</h3> 
-    <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><b>GDB Guide Part 5 - Stepping</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></li></ol></div>
+    <ol><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">GDB Guide Part 1 - Basics</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">GDB Guide Part 3 - Process Maps</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">GDB Guide Part 4 - Examining Memory</a></li><li><b>GDB Guide Part 5 - Stepping</b></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">GDB Guide Part 6 - Automation</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">GDB Guide Part 7 - Custom Commands</a></li><li><a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/">GDB Guide Part 8 - Invoking Function Calls</a></li></ol></div>
         
       </div>
     </article>

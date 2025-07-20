@@ -7,20 +7,20 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Fri, 09 May 2025 08:16:42 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 20 Jul 2025 12:34:19 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/series/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>GDB Guides</title>
+      <link>https://mathscantor.github.io/series/gdb-guides/</link>
+      <pubDate>Sun, 20 Jul 2025 12:34:19 +0800</pubDate>
+      <guid>https://mathscantor.github.io/series/gdb-guides/</guid>
+      <description></description>
+    </item>
     <item>
       <title>EBPF Malware Techniques</title>
       <link>https://mathscantor.github.io/series/ebpf-malware-techniques/</link>
       <pubDate>Fri, 09 May 2025 08:16:42 +0800</pubDate>
       <guid>https://mathscantor.github.io/series/ebpf-malware-techniques/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>GDB Guides</title>
-      <link>https://mathscantor.github.io/series/gdb-guides/</link>
-      <pubDate>Wed, 19 Mar 2025 22:15:30 +0800</pubDate>
-      <guid>https://mathscantor.github.io/series/gdb-guides/</guid>
       <description></description>
     </item>
   </channel>

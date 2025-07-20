@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Mon, 23 Jun 2025 22:09:56 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 20 Jul 2025 12:34:19 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/tags/gdb/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>GDB Guide Part 8 - Invoking Function Calls</title>
+      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/</link>
+      <pubDate>Sun, 20 Jul 2025 12:34:19 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;It&amp;rsquo;s been quite a while hasn&amp;rsquo;t it? I hope you have been doing well and taking care of yourself. I recently had some junior colleagues asking me how it is possible to directly invoke certain functions while using GDB. Thus, I thought it would be a great opportunity to share some useful tips.&lt;/p&gt;&#xA;&lt;p&gt;We will be looking at how to invoke different functions of different return types using a simple example: &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/resources/gdb_invoke_function.c&#34;&gt;gdb_invoke_function.c&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Sniffing SSL Connections in Memory</title>
       <link>https://mathscantor.github.io/posts/sniffing-ssl-connections-in-memory/</link>

@@ -43,11 +43,11 @@
 <span class="caption" data-type="figure">Flag Substring Search<br><br></span></p>
 <p>From the figure above, Ghidra suggests that the string is found at <code>0x00102005</code>.</p>
 <p>Clicking on it leads us to where the string was defined. However, you will notice that the flag is incomplete, and it is referenced in <em>main()</em>.</p>
-<p><img class="center" alt="ghidra-flag-strings" src="/posts/picoCTF/2024/factcheck/images/ghidra-string-definition-offset.png"><br>
+<p><img class="center" alt="ghidra-string-definition-offset" src="/posts/picoctf/2024/factcheck/images/ghidra-string-definition-offset.png"><br>
 <link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="figure">Flag Suffix Definition<br><br></span></p>
 <p>Again, click on the reference address, and it will bring us to <em>main()</em>.</p>
-<p><img class="center" alt="ghidra-flag-strings" src="/posts/picoCTF/2024/factcheck/images/partial-flag-reference-in-main.png"><br>
+<p><img class="center" alt="partial-flag-reference-in-main" src="/posts/picoctf/2024/factcheck/images/partial-flag-reference-in-main.png"><br>
 <link href="/posts/css/caption.css" rel="stylesheet">
 <span class="caption" data-type="figure">Partial Flag Reference in <em>main()</em><br><br></span></p>
 <p>Looking at the decompiled code, the first part of the flag is assigned to the <code>local_248</code>, which is a pointer to memory in heap, where the constructed string will be placed. Subsequently, other strings are defined as well. (See Listing 1)</p>

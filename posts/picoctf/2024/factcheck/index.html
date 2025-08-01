@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="">
+<meta name="description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck" />
+<meta name="keywords" content="mathscantor, picoCTF" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="dark" />
+<link rel="canonical" href="https://mathscantor.github.io/posts/picoctf/2024/factcheck/" />
+
+
+    <title>
+        
+            picoCTF 2024 - FactCheck Walkthrough :: Mathscantor&#39;s Cybersecurity Blog  — A simple theme for Hugo
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="/main.f6f782c824f6dd87699befc194c23b539768dd232f320940bfeb2e17f8317145.css">
+
+
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+
+  <meta itemprop="name" content="picoCTF 2024 - FactCheck Walkthrough">
+  <meta itemprop="description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
+  <meta itemprop="datePublished" content="2025-08-01T09:53:25+08:00">
+  <meta itemprop="dateModified" content="2025-08-01T09:53:25+08:00">
+  <meta itemprop="wordCount" content="672">
+  <meta itemprop="image" content="https://mathscantor.github.io/">
+  <meta itemprop="keywords" content="PicoCTF">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://mathscantor.github.io/">
+  <meta name="twitter:title" content="picoCTF 2024 - FactCheck Walkthrough">
+  <meta name="twitter:description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
+
+
+
+    <meta property="og:url" content="https://mathscantor.github.io/posts/picoctf/2024/factcheck/">
+  <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
+  <meta property="og:title" content="picoCTF 2024 - FactCheck Walkthrough">
+  <meta property="og:description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-08-01T09:53:25+08:00">
+    <meta property="article:modified_time" content="2025-08-01T09:53:25+08:00">
+    <meta property="article:tag" content="PicoCTF">
+    <meta property="og:image" content="https://mathscantor.github.io/">
+
+
+
+
+
+
+    <meta property="article:published_time" content="2025-08-01 09:53:25 &#43;0800 &#43;08" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span data-pagefind-ignore class="logo__text">Be You Cat, or Mouse?</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner">
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/posts/">
+                        Posts
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/tags/">
+                        Tags
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/series/">
+                        Series
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/about">
+                        About
+                    </a>
+                </li>
+            </div>
+            
+        
+
+    
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+                <span class="theme-toggle not-selectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+   <path d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+   3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+   13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"/>
+ </svg></span>
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+
+  <main class="post">
+    
+    <link href="/posts/css/toc.css" rel="stylesheet">
+    <aside id="sticky-toc">
+      <div class="toc-title">Table of Contents</div>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-preparation">1. Preparation</a></li>
+    <li><a href="#2-static-analysis-in-ghidra">2. Static Analysis in Ghidra</a></li>
+    <li><a href="#3-dynamic-analysis-in-gdb">3. Dynamic Analysis in GDB</a>
+      <ul>
+        <li><a href="#31-method-1---stepping-over-last-string-concat">3.1 Method 1 - Stepping Over Last String Concat</a></li>
+        <li><a href="#32-method-2---lazy-heap-memory-search">3.2 Method 2 - Lazy Heap Memory Search</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-resources">4. Resources</a></li>
+  </ul>
+</nav>
+    </aside>
+    <script src="/posts/js/toc.js"></script>
+    
+    <article>
+      
+      <h1 class="post-title">
+        <a href="https://mathscantor.github.io/posts/picoctf/2024/factcheck/">picoCTF 2024 - FactCheck Walkthrough</a>
+      </h1>
+      <div class="post-info">
+        <p>
+          <i class="fa-solid fa-clock"></i>
+          4 Minutes
+          <i class="fa-solid fa-clipboard"></i>
+          672 Words
+          
+        </p>
+        <p>
+          <i class="fa-solid fa-calendar-days"></i>
+          
+            2025-08-01 09:53
+          
+  
+           
+            
+          
+        </p>
+        <p>
+        <p>
+          <i class="fa-solid fa-eye"></i>
+          <span id="stats"></span>
+<script>
+(function() {
+  var r = new XMLHttpRequest();
+  r.addEventListener('load', function() {
+    var statsEl = document.getElementById("stats");
+    if (!statsEl) return;
+
+    try {
+      var count = JSON.parse(this.responseText).count_unique;
+      console.log(count);
+      statsEl.innerText = count == 1
+        ? "1 View"
+        : count + " Views";
+    } catch (e) {
+      console.error("GoatCounter stats error:", e);
+    }
+  });
+
+  r.open('GET', 'https://mathscantor.goatcounter.com/counter/' +
+    encodeURIComponent(location.pathname.replace(/(\/)?$/, '')) + '.json');
+  r.send();
+})();
+</script>
+
+        </p>
+        
+    <p>
+        <i class="fa-solid fa-tag"></i>
+        
+
+        <span class="tag"><a href="https://mathscantor.github.io/tags/picoctf/">picoCTF</a></span>
+        
+    </p>
+
+      </br>
+        </p>
+      </div>
+      
+        <div class="post-excerpt">This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck</div>
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <hr>
+        
+        <h2 id="1-preparation">1. Preparation</h2>
+<p>Before we begin the walkthrough, please ensure to have the following:</p>
+<ol>
+<li>The <a href="https://artifacts.picoctf.net/c_titan/187/bin">binary</a> challenge</li>
+<li>Ghidra or IDA for static analysis</li>
+<li>GDB for dynamic analysis</li>
+</ol>
+<h2 id="2-static-analysis-in-ghidra">2. Static Analysis in Ghidra</h2>
+<p>To objectively narrow down the scope, we can cheat a little by searching for &ldquo;picoCTF&rdquo; strings in the binary.</p>
+<p><img class="center" alt="ghidra-flag-strings" src="/posts/picoctf/2024/factcheck/images/ghidra-flag-strings.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Flag Substring Search<br><br></span></p>
+<p>From the figure above, Ghidra suggests that the string is found at <code>0x00102005</code>.</p>
+<p>Clicking on it leads us to where the string was defined. However, you will notice that the flag is incomplete, and it is referenced in <em>main()</em>.</p>
+<p><img class="center" alt="ghidra-flag-strings" src="/posts/picoCTF/2024/factcheck/images/ghidra-string-definition-offset.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Flag Suffix Definition<br><br></span></p>
+<p>Again, click on the reference address, and it will bring us to <em>main()</em>.</p>
+<p><img class="center" alt="ghidra-flag-strings" src="/posts/picoCTF/2024/factcheck/images/partial-flag-reference-in-main.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Partial Flag Reference in <em>main()</em><br><br></span></p>
+<p>Looking at the decompiled code, the first part of the flag is assigned to the <code>local_248</code>, which is a pointer to memory in heap, where the constructed string will be placed. Subsequently, other strings are defined as well. (See Listing 1)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>undefined8 <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) { 
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span>string(local_248,<span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_&#34;</span>,<span style="color:#f92672">&amp;</span>local_249);
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span>string(local_228,<span style="color:#e6db74">&#34;0&#34;</span>,<span style="color:#f92672">&amp;</span>local_249)
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span>string(local_208,<span style="color:#e6db74">&#34;5&#34;</span>,<span style="color:#f92672">&amp;</span>local_249);
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Strings Initialization<br><br></span>
+<p>After initializing a bunch of strings, it proceeds to append the other defined strings to the flag through a bunch of checks.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>undefined8 <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) { 
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">*</span>pcVar2 <span style="color:#f92672">&lt;</span> <span style="color:#e6db74">&#39;B&#39;</span>) {
+</span></span><span style="display:flex;"><span>    std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span><span style="color:#66d9ef">operator</span><span style="color:#f92672">+=</span>(local_248,local_c8);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  pcVar2 <span style="color:#f92672">=</span> (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span><span style="color:#66d9ef">operator</span>[]((ulong)local_a8);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">*</span>pcVar2 <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;A&#39;</span>) {
+</span></span><span style="display:flex;"><span>    std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span><span style="color:#66d9ef">operator</span><span style="color:#f92672">+=</span>(local_248,local_68);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((<span style="color:#66d9ef">int</span>)cVar1 <span style="color:#f92672">-</span> (<span style="color:#66d9ef">int</span>)<span style="color:#f92672">*</span>pcVar2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>) {
+</span></span><span style="display:flex;"><span>    std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span><span style="color:#66d9ef">operator</span><span style="color:#f92672">+=</span>(local_248,local_1c8);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Flag&#39;s ending tag is appended
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span><span style="color:#66d9ef">operator</span><span style="color:#f92672">+=</span>(local_248,<span style="color:#e6db74">&#39;}&#39;</span>);
+</span></span><span style="display:flex;"><span>  ...
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Truncated: Calls to string deconstructor
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Flag Construction<br><br></span>
+<p>There are a few things we need to figure out before proceeding to dynamic analysis with GDB:</p>
+<ol>
+<li>What is the base address of <em>main()</em>?
+<pre tabindex="0"><code class="language-answer" data-lang="answer">0x00101289
+</code></pre></li>
+<li>Which instruction appends the flag&rsquo;s ending tag?
+<pre tabindex="0"><code class="language-answer" data-lang="answer">0010185b e8 a0 f8        CALL       &lt;EXTERNAL&gt;::std::__cxx11::string::operator+=
+          ff ff
+</code></pre></li>
+<li>What is that instruction&rsquo;s offset from <em>main()</em>?
+<pre tabindex="0"><code class="language-answer" data-lang="answer">&gt;&gt;&gt; hex(0x0010185b - 0x00101289)
+0x5d2
+</code></pre></li>
+</ol>
+<h2 id="3-dynamic-analysis-in-gdb">3. Dynamic Analysis in GDB</h2>
+<h3 id="31-method-1---stepping-over-last-string-concat">3.1 Method 1 - Stepping Over Last String Concat</h3>
+<p>Start GDB by loading the binary and break on <code>main() + 0x5d2</code>, before running the binary.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb ./bin
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set output-radix <span style="color:#ae81ff">16</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 0x5d2<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Breakpoint &amp; Run<br><br></span>
+<p>Once our breakpoint is hit, ensure that we really are at the correct instruction by listing 3 instructions before RIP and 6 instructions after RIP.
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert tip">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Tip</strong>
+        </div>
+        <div class="alert-body"><code>$pc</code> is an alias for <code>$rip</code></div>
+    </div>
+</div>
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Breakpoint 1, 0x000055555555585b in main <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/10i $pc-15
+</span></span><span style="display:flex;"><span>   0x55555555584c &lt;main+1475&gt;:  lea    rax,<span style="color:#f92672">[</span>rbp-0x240<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>   0x555555555853 &lt;main+1482&gt;:  mov    esi,0x7d
+</span></span><span style="display:flex;"><span>   0x555555555858 &lt;main+1487&gt;:  mov    rdi,rax
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x55555555585b &lt;main+1490&gt;:  call   0x555555555100 &lt;_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEpLEc@plt&gt;
+</span></span><span style="display:flex;"><span>   0x555555555860 &lt;main+1495&gt;:  mov    ebx,0x0
+</span></span><span style="display:flex;"><span>   0x555555555865 &lt;main+1500&gt;:  lea    rax,<span style="color:#f92672">[</span>rbp-0x40<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>   0x555555555869 &lt;main+1504&gt;:  mov    rdi,rax
+</span></span><span style="display:flex;"><span>   0x55555555586c &lt;main+1507&gt;:  call   0x5555555550f0 &lt;_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev@plt&gt;
+</span></span><span style="display:flex;"><span>   0x555555555871 &lt;main+1512&gt;:  lea    rax,<span style="color:#f92672">[</span>rbp-0x60<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>   0x555555555875 &lt;main+1516&gt;:  mov    rdi,rax
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Checking Instructions<br><br></span>
+<p>Looking at the listing above, the flag pointer is stored in RDI just before the call. We can verify this by examining the string that is pointed to by the address in RDI.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/gx $rdi
+</span></span><span style="display:flex;"><span>0x7fffffffd530: 0x000055555556b2d0
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s 0x000055555556b2d0
+</span></span><span style="display:flex;"><span>0x55555556b2d0: <span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_e9da2c0e&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># For convenience we store this address into a variable</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $flag <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>unsigned long long<span style="color:#f92672">}</span>$rdi
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Getting Address of Flag<br><br></span>
+<p>For completeness, step over this call and print the flag again.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> ni
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s $flag
+</span></span><span style="display:flex;"><span>0x55555556b2d0: <span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_e9da2c0e}&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Flag<br><br></span>
+<h3 id="32-method-2---lazy-heap-memory-search">3.2 Method 2 - Lazy Heap Memory Search</h3>
+<p>If you are rather lazy and just want to get the flag before it is freed, you can set a breakpoint at the <code>ret</code> instruction. This happens to be at <code>main+0x9ca</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 1504<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Break At RET Instruction<br><br></span>
+<p>When the breakpoint hits, identify where the start and end of the heap is.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info proc mappings
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>0x0000555555559000 0x000055555557a000 0x21000            0x0                rw-p  <span style="color:#f92672">[</span>heap<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $heap_start <span style="color:#f92672">=</span> 0x0000555555559000
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $heap_end <span style="color:#f92672">=</span> 0x000055555557a000 - <span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Get Start and End of Heap Memory Region<br><br></span>
+<p>We are now able to search through the heap for the substring &ldquo;pico&rdquo; to get its address.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> find /b $heap_start, $heap_end, <span style="color:#e6db74">&#39;p&#39;</span>, <span style="color:#e6db74">&#39;i&#39;</span>, <span style="color:#e6db74">&#39;c&#39;</span>, <span style="color:#e6db74">&#39;o&#39;</span>
+</span></span><span style="display:flex;"><span>0x55555556b2d0
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> pattern found.
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Finding Address of Flag<br><br></span>
+<p>As only 1 pattern is found, this becomes straightforward by examining the buffer stored in that address.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s 0x55555556b2d0
+</span></span><span style="display:flex;"><span>0x55555556b2d0: <span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_e9da2c0e}&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Flag<br><br></span>
+<h2 id="4-resources">4. Resources</h2>
+<ul>
+<li><a href="/posts/picoctf/2024/factcheck/resources/solution.gdb">solution.gdb</a></li>
+</ul>
+
+        
+      </div>
+    </article>
+
+    <div class="post-info">
+      
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+
+            
+            <span class="button previous">
+                <a href="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">GDB Guide Part 8 - Invoking Function Calls</span>
+                </a>
+            </span>
+            
+
+            
+
+        </div>
+    </div>
+
+    </div>
+      <div class="sharing-buttons">
+        
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f" target="_blank" rel="noopener" aria-label="" title="Share on facebook">
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f" target="_blank" rel="noopener" aria-label="" title="Share on twitter">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small">
+      <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=picoCTF%202024%20-%20FactCheck%20Walkthrough&amp;caption=picoCTF%202024%20-%20FactCheck%20Walkthrough&amp;canonicalUrl=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f" target="_blank" rel="noopener" aria-label="" title="Share on tumblr">
+  <div class="resp-sharing-button resp-sharing-button--tumblr resp-sharing-button--small">
+    <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.178l.011.002z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=picoCTF%202024%20-%20FactCheck%20Walkthrough&amp;body=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f" target="_self" rel="noopener" aria-label="" title="Share via email">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://pinterest.com/pin/create/button/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f&amp;media=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f;description=picoCTF%202024%20-%20FactCheck%20Walkthrough" target="_blank" rel="noopener" aria-label="" title="Share on pinterest">
+  <div class="resp-sharing-button resp-sharing-button--pinterest resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f&amp;title=picoCTF%202024%20-%20FactCheck%20Walkthrough&amp;summary=picoCTF%202024%20-%20FactCheck%20Walkthrough&amp;source=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f" target="_blank" rel="noopener" aria-label="" title="Share on linkedin">
+  <div class="resp-sharing-button resp-sharing-button--linkedin resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f&amp;resubmit=true&amp;title=picoCTF%202024%20-%20FactCheck%20Walkthrough" target="_blank" rel="noopener" aria-label="" title="Share on reddit">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.xing.com/app/user?op=share;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f;title=picoCTF%202024%20-%20FactCheck%20Walkthrough" target="_blank" rel="noopener" aria-label="" title="Share on xing">
+  <div class="resp-sharing-button resp-sharing-button--xing resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.188 0c-.517 0-.741.325-.927.66 0 0-7.455 13.224-7.702 13.657.015.024 4.919 9.023 4.919 9.023.17.308.436.66.967.66h3.454c.211 0 .375-.078.463-.22.089-.151.089-.346-.009-.536l-4.879-8.916c-.004-.006-.004-.016 0-.022L22.139.756c.095-.191.097-.387.006-.535C22.056.078 21.894 0 21.686 0h-3.498zM3.648 4.74c-.211 0-.385.074-.473.216-.09.149-.078.339.02.531l2.34 4.05c.004.01.004.016 0 .021L1.86 16.051c-.099.188-.093.381 0 .529.085.142.239.234.45.234h3.461c.518 0 .766-.348.945-.667l3.734-6.609-2.378-4.155c-.172-.315-.434-.659-.962-.659H3.648v.016z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="whatsapp://send?text=picoCTF%202024%20-%20FactCheck%20Walkthrough%20https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f" target="_blank" rel="noopener" aria-label="" title="Share on whatsapp">
+  <div class="resp-sharing-button resp-sharing-button--whatsapp resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f&amp;t=picoCTF%202024%20-%20FactCheck%20Walkthrough" target="_blank" rel="noopener" aria-label="" title="Share on hacker news">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://telegram.me/share/url?text=picoCTF%202024%20-%20FactCheck%20Walkthrough&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fpicoctf%2f2024%2ffactcheck%2f" target="_blank" rel="noopener" aria-label="" title="Share on telegram">
+  <div class="resp-sharing-button resp-sharing-button--telegram resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </div>
+  </div>
+</a>
+
+      </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+    
+        <div class="footer__inner">
+            <div class="footer__content">
+            
+            
+        </div>
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="/bundle.min.72f1c854c6712730c4f3de06a4221e1c02e35427e559e929eee94792f3fdfa61ccf9ca78e7aff37618f071b6e45c8d06a173fbe595000b2b67d46b44b8289f9f.js" integrity="sha512-cvHIVMZxJzDE894GpCIeHALjVCflWekp7ulHkvP9&#43;mHM&#43;cp456/zdhjwcbbkXI0GoXP75ZUACytn1GtEuCifnw=="></script>
+
+
+
+        <script src='/posts/js/caption.js'></script>
+        <script data-goatcounter="https://mathscantor.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js">console.log("Goat Analytics Loaded");</script>
+    </body>
+</html>

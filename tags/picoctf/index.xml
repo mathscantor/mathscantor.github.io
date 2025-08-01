@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>PicoCTF on Mathscantor&#39;s Cybersecurity Blog</title>
+    <link>https://mathscantor.github.io/tags/picoctf/</link>
+    <description>Recent content in PicoCTF on Mathscantor&#39;s Cybersecurity Blog</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Fri, 01 Aug 2025 09:53:25 +0800</lastBuildDate>
+    <atom:link href="https://mathscantor.github.io/tags/picoctf/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>picoCTF 2024 - FactCheck Walkthrough</title>
+      <link>https://mathscantor.github.io/posts/picoctf/2024/factcheck/</link>
+      <pubDate>Fri, 01 Aug 2025 09:53:25 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/picoctf/2024/factcheck/</guid>
+      <description>&lt;h2 id=&#34;1-preparation&#34;&gt;1. Preparation&lt;/h2&gt;&#xA;&lt;p&gt;Before we begin the walkthrough, please ensure to have the following:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;The &lt;a href=&#34;https://artifacts.picoctf.net/c_titan/187/bin&#34;&gt;binary&lt;/a&gt; challenge&lt;/li&gt;&#xA;&lt;li&gt;Ghidra or IDA for static analysis&lt;/li&gt;&#xA;&lt;li&gt;GDB for dynamic analysis&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h2 id=&#34;2-static-analysis-in-ghidra&#34;&gt;2. Static Analysis in Ghidra&lt;/h2&gt;&#xA;&lt;p&gt;To objectively narrow down the scope, we can cheat a little by searching for &amp;ldquo;picoCTF&amp;rdquo; strings in the binary.&lt;/p&gt;&#xA;&lt;p&gt;&lt;img class=&#34;center&#34; alt=&#34;ghidra-flag-strings&#34; src=&#34;https://mathscantor.github.io/posts/picoctf/2024/factcheck/images/ghidra-flag-strings.png&#34;&gt;&lt;br&gt;&#xA;&lt;link href=&#34;https://mathscantor.github.io/posts/css/caption.css&#34; rel=&#34;stylesheet&#34;&gt;&#xA;&lt;span class=&#34;caption&#34; data-type=&#34;figure&#34;&gt;Flag Substring Search&lt;br&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&#xA;&lt;p&gt;From the figure above, Ghidra suggests that the string is found at &lt;code&gt;0x00102005&lt;/code&gt;.&lt;/p&gt;&#xA;&lt;p&gt;Clicking on it leads us to where the string was defined. However, you will notice that the flag is incomplete, and it is referenced in &lt;em&gt;main()&lt;/em&gt;.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Fri, 01 Aug 2025 09:53:25 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 19 Aug 2025 22:24:27 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>General Firmware Analysis Guide</title>
+      <link>https://mathscantor.github.io/posts/general-firmware-analysis-guide/</link>
+      <pubDate>Tue, 19 Aug 2025 22:24:27 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/general-firmware-analysis-guide/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This guide is meant for anyone working with embedded systems, particularly when performing firmware analysis or vulnerability research. Embedded systems are specialized computer systems designed to perform specific tasks within a larger device or machine. Examples include routers, firewalls, or IoT devices.&lt;/p&gt;&#xA;&lt;p&gt;Such systems often restrict both users and administrators to a limited shell and employ root file system integrity checks. Without understanding and customizing the firmware, debugging or conducting security research is extremely difficult.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>picoCTF 2024 - FactCheck Walkthrough</title>
       <link>https://mathscantor.github.io/posts/picoctf/2024/factcheck/</link>

@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Tue, 19 Aug 2025 22:24:27 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 03 Sep 2025 21:53:22 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Self Signed Certificates</title>
+      <link>https://mathscantor.github.io/posts/self-signed-certificates/</link>
+      <pubDate>Wed, 03 Sep 2025 21:53:22 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/self-signed-certificates/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Now, imagine that you are a network administrator who manages several services within the &lt;code&gt;nexus.org&lt;/code&gt; domain. Your boss has tasked you to introduce Gitlab as a new service to your fellow developers in your organization, with it&amp;rsquo;s planned URL as &lt;code&gt;https://gitlab.nexus.org&lt;/code&gt;.&lt;/p&gt;&#xA;&lt;p&gt;Using this example, we will be covering some basic, yet convenient OpenSSL commands to easily get you started on self-signed certificates!&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-generating-ca-key--cert&#34;&gt;2. Generating CA Key &amp;amp; Cert&lt;/h2&gt;&#xA;&lt;p&gt;If you already have a set of existing CA key and certificate, you can ignore this section. Else, we will need to generate one first. You may follow the template below and edit the values only for &lt;code&gt;-days&lt;/code&gt;, &lt;code&gt;-keyout&lt;/code&gt;, &lt;code&gt;-out&lt;/code&gt; and &lt;code&gt;-subj&lt;/code&gt; options.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>General Firmware Analysis Guide</title>
       <link>https://mathscantor.github.io/posts/general-firmware-analysis-guide/</link>

@@ -6,8 +6,98 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Tue, 19 Aug 2025 22:24:27 +0800</lastBuildDate>
+        <lastBuildDate>Wed, 03 Sep 2025 21:53:22 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Self Signed Certificates</title>
+            <link>https://mathscantor.github.io/posts/self-signed-certificates/</link>
+            <pubDate>Wed, 03 Sep 2025 21:53:22 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/self-signed-certificates/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Now, imagine that you are a network administrator who manages several services within the &lt;code&gt;nexus.org&lt;/code&gt; domain. Your boss has tasked you to introduce Gitlab as a new service to your fellow developers in your organization, with it&amp;rsquo;s planned URL as &lt;code&gt;https://gitlab.nexus.org&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Using this example, we will be covering some basic, yet convenient OpenSSL commands to easily get you started on self-signed certificates!&lt;/p&gt;
+&lt;h2 id=&#34;2-generating-ca-key--cert&#34;&gt;2. Generating CA Key &amp;amp; Cert&lt;/h2&gt;
+&lt;p&gt;If you already have a set of existing CA key and certificate, you can ignore this section. Else, we will need to generate one first. You may follow the template below and edit the values only for &lt;code&gt;-days&lt;/code&gt;, &lt;code&gt;-keyout&lt;/code&gt;, &lt;code&gt;-out&lt;/code&gt; and &lt;code&gt;-subj&lt;/code&gt; options.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Now, imagine that you are a network administrator who manages several services within the <code>nexus.org</code> domain. Your boss has tasked you to introduce Gitlab as a new service to your fellow developers in your organization, with it&rsquo;s planned URL as <code>https://gitlab.nexus.org</code>.</p>
+<p>Using this example, we will be covering some basic, yet convenient OpenSSL commands to easily get you started on self-signed certificates!</p>
+<h2 id="2-generating-ca-key--cert">2. Generating CA Key &amp; Cert</h2>
+<p>If you already have a set of existing CA key and certificate, you can ignore this section. Else, we will need to generate one first. You may follow the template below and edit the values only for <code>-days</code>, <code>-keyout</code>, <code>-out</code> and <code>-subj</code> options.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl req -x509 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -newkey rsa:4096 -sha256 -nodes <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -days <span style="color:#ae81ff">1000</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keyout ca.key <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -out ca.crt -outform PEM <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -subj <span style="color:#e6db74">&#34;/C=SG/ST=Singapore/L=Singapore/O=Nexus/OU=Infra/CN=ca.nexus.org/emailAddress=admin@nexus.org&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;subjectKeyIdentifier=hash&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;authorityKeyIdentifier=keyid:always,issuer&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;basicConstraints=critical,CA:true&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;keyUsage=keyCertSign,cRLSign&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Generating CA Key &amp; Cert<br><br></span>
+<h2 id="3-generating-server-key--certificate-signing-request-csr">3. Generating Server Key &amp; Certificate Signing Request (CSR)</h2>
+<p>Before we can even get our server&rsquo;s certificate, we need to execute an intermediate step to generate a Certificate Signing Request (CSR), along with its private key.
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert important">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Important</strong>
+        </div>
+        <div class="alert-body"><ul>
+<li>Pay special attention to <code>subjectAltName</code> extension. Its FQDN must be correct!</li>
+</ul>
+</div>
+    </div>
+</div>
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl req <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -newkey rsa:2048 -sha256 -nodes <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keyout server.key <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -out server.csr -outform PEM <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -subj <span style="color:#e6db74">&#34;/C=SG/ST=Singapore/L=Singapore/O=Nexus/CN=gitlab.nexus.org/emailAddress=admin@nexus.org&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;subjectKeyIdentifier=hash&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;basicConstraints=CA:FALSE&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;keyUsage=digitalSignature,keyEncipherment&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;subjectAltName=DNS:gitlab.nexus.org&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Generating Server Key &amp; CSR<br><br></span>
+<h2 id="4-signing-server-csr">4. Signing Server CSR</h2>
+<p>Lastly, we will use the CA private key and certificate to sign the CSR.
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert important">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Important</strong>
+        </div>
+        <div class="alert-body"><ul>
+<li>Pay special attention to <code>subjectAltName</code> extension. Its FQDN must match the one defined in the CSR!</li>
+</ul>
+</div>
+    </div>
+</div>
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl x509 -req <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -in server.csr <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -CA ca.crt <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -CAkey ca.key <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -CAcreateserial <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -out server.crt <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -days <span style="color:#ae81ff">1000</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -sha256 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -extfile &lt;<span style="color:#f92672">(</span>printf <span style="color:#e6db74">&#34;[ext]\nsubjectAltName=DNS:gitlab.nexus.org\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment&#34;</span><span style="color:#f92672">)</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -extensions ext
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Signing Server CSR<br><br></span>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>And that’s it! You’ve just created your own Certificate Authority (CA) and issued a self-signed certificate for a service under your domain. While this approach is perfectly fine for internal services, testing, or lab environments, remember that browsers and clients won’t trust your CA by default. You’ll need to explicitly import your CA certificate into their trust stores to avoid TLS warnings.</p>
+<p>For production-facing services, it’s strongly recommended to generate certificates from a trusted public CA (e.g., Let’s Encrypt) to ensure universal trust and avoid security pitfalls.</p>
+<p>Still, being comfortable with OpenSSL and self-signed certificates is a great skill to have as a sysadmin or developer.</p>
+]]></content>
+        </item>
         
         <item>
             <title>General Firmware Analysis Guide</title>

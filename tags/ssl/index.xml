@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Wed, 03 Sep 2025 21:53:22 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 04 Sep 2025 19:41:56 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/tags/ssl/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>What is Mutual Transport Layer Security (mTLS)?</title>
+      <link>https://mathscantor.github.io/posts/what-is-mtls/</link>
+      <pubDate>Thu, 04 Sep 2025 19:41:56 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/what-is-mtls/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;mTLS stands for mutual Transport Layer Security and is a security protocol that enhances standard TLS by requiring both the client and server to authenticate each other before establishing a secure connection.&lt;/p&gt;&#xA;&lt;p&gt;While standard TLS only verifies the server&amp;rsquo;s identity, mTLS adds a layer of client authentication through digital certificates. This mutual authentication provides stronger security for applications and services, especially in environments like microservices and cloud-native architectures where secure communication between components is essential.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Self Signed Certificates</title>
       <link>https://mathscantor.github.io/posts/self-signed-certificates/</link>

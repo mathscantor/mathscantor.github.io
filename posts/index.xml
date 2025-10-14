@@ -6,8 +6,236 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Thu, 04 Sep 2025 19:41:56 +0800</lastBuildDate>
+        <lastBuildDate>Tue, 14 Oct 2025 20:29:32 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Managing SSH Users with Certs</title>
+            <link>https://mathscantor.github.io/posts/managing-ssh-users-with-certs/</link>
+            <pubDate>Tue, 14 Oct 2025 20:29:32 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/managing-ssh-users-with-certs/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Traditional SSH authentication methods typically rely on passwords or static public keys stored in the &lt;em&gt;authorized_keys&lt;/em&gt; file. While this works well for a handful of systems, it quickly becomes unmanageable at scale. Every user key must be manually distributed, and revoked keys stay valid until manually removed. Today, we are going to explore how SSH credentials can be centrally managed by the server using SSH certificates and a certificate authority (CA).&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Traditional SSH authentication methods typically rely on passwords or static public keys stored in the <em>authorized_keys</em> file. While this works well for a handful of systems, it quickly becomes unmanageable at scale. Every user key must be manually distributed, and revoked keys stay valid until manually removed. Today, we are going to explore how SSH credentials can be centrally managed by the server using SSH certificates and a certificate authority (CA).</p>
+<h2 id="2-generating-ca-key-pair">2. Generating CA Key Pair</h2>
+<p>Start by generating a CA key pair. Although it is possible to create one without a passphrase, this is strongly discouraged since the CA key represents the trust anchor for your entire SSH ecosystem.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -t ed25519 -f /etc/ssh/cakey
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Generating SSH CA Key Pair<br><br></span>
+<p>The resulting <em>/etc/ssh/cakey</em> (private) and <em>/etc/ssh/cakey.pub</em> (public) files will be used for signing and verification respectively.</p>
+<h2 id="3-signing-ssh-servers-host-public-keys">3. Signing SSH Server&rsquo;s Host Public Keys</h2>
+<p>By default, the server&rsquo;s host keys are generated during installation.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ls -l /etc/ssh/ssh_host_*.pub
+</span></span><span style="display:flex;"><span>-rw------- 1 root root  505 Mar 17  2025 /etc/ssh/ssh_host_ecdsa_key
+</span></span><span style="display:flex;"><span>-rw-r--r-- 1 root root  177 Mar 17  2025 /etc/ssh/ssh_host_ecdsa_key.pub
+</span></span><span style="display:flex;"><span>-rw------- 1 root root  411 Mar 17  2025 /etc/ssh/ssh_host_ed25519_key
+</span></span><span style="display:flex;"><span>-rw-r--r-- 1 root root   97 Mar 17  2025 /etc/ssh/ssh_host_ed25519_key.pub
+</span></span><span style="display:flex;"><span>-rw------- 1 root root 2602 Mar 17  2025 /etc/ssh/ssh_host_rsa_key
+</span></span><span style="display:flex;"><span>-rw-r--r-- 1 root root  569 Mar 17  2025 /etc/ssh/ssh_host_rsa_key.pub
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Default SSH Host Key Pairs<br><br></span>
+<p>We can now use the CA private key to sign each host key, embedding trust in the certificate itself.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -s /etc/ssh/cakey -I sshserver.example.lan -h /etc/ssh/ssh_host_ecdsa_key.pub
+</span></span><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -s /etc/ssh/cakey -I sshserver.example.lan -h /etc/ssh/ssh_host_ed25519_key.pub
+</span></span><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -s /etc/ssh/cakey -I sshserver.example.lan -h /etc/ssh/ssh_host_rsa_key.pub
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Signing SSH Host Public Keys<br><br></span>
+<p>Once signed, verify the certificates. Each certificate should show your CA’s fingerprint under Signing CA, confirming that it’s now trusted under the CA. (See Listing 4, 5 and 6)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -Lf /etc/ssh/ssh_host_ecdsa_key-cert.pub
+</span></span><span style="display:flex;"><span>/etc/ssh/ssh_host_ecdsa_key-cert.pub:
+</span></span><span style="display:flex;"><span>        Type: ecdsa-sha2-nistp256-cert-v01@openssh.com host certificate
+</span></span><span style="display:flex;"><span>        Public key: ECDSA-CERT SHA256:M5UVEWLHMsGajtBY8LpeqNHdgzpslsmGYUSNG5KjnA8
+</span></span><span style="display:flex;"><span>        Signing CA: ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w (using ssh-ed25519)
+</span></span><span style="display:flex;"><span>        Key ID: &#34;sshserver.example.lan&#34;
+</span></span><span style="display:flex;"><span>        Serial: 0
+</span></span><span style="display:flex;"><span>        Valid: forever
+</span></span><span style="display:flex;"><span>        Principals: (none)
+</span></span><span style="display:flex;"><span>        Critical Options: (none)
+</span></span><span style="display:flex;"><span>        Extensions: (none)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verifying <em>/etc/ssh/ssh_host_ecdsa_key-cert.pub</em><br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -Lf /etc/ssh/ssh_host_ed25519_key-cert.pub
+</span></span><span style="display:flex;"><span>/etc/ssh/ssh_host_ed25519_key-cert.pub:
+</span></span><span style="display:flex;"><span>        Type: ssh-ed25519-cert-v01@openssh.com host certificate
+</span></span><span style="display:flex;"><span>        Public key: ED25519-CERT SHA256:gelQKbN1l2V4rkg2jxvEzi9kY4obPLY8SPe7KReiK3A
+</span></span><span style="display:flex;"><span>        Signing CA: ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w (using ssh-ed25519)
+</span></span><span style="display:flex;"><span>        Key ID: &#34;sshserver.example.lan&#34;
+</span></span><span style="display:flex;"><span>        Serial: 0
+</span></span><span style="display:flex;"><span>        Valid: forever
+</span></span><span style="display:flex;"><span>        Principals: (none)
+</span></span><span style="display:flex;"><span>        Critical Options: (none)
+</span></span><span style="display:flex;"><span>        Extensions: (none)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verifying <em>/etc/ssh/ssh_host_ed25519_key-cert.pub</em><br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -Lf /etc/ssh/ssh_host_rsa_key-cert.pub
+</span></span><span style="display:flex;"><span>/etc/ssh/ssh_host_rsa_key-cert.pub:
+</span></span><span style="display:flex;"><span>        Type: ssh-rsa-cert-v01@openssh.com host certificate
+</span></span><span style="display:flex;"><span>        Public key: RSA-CERT SHA256:8lUB4WRpzAL9XoiMBoZ12lhnivNhN28JzVxjof/kD+U
+</span></span><span style="display:flex;"><span>        Signing CA: ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w (using ssh-ed25519)
+</span></span><span style="display:flex;"><span>        Key ID: &#34;sshserver.example.lan&#34;
+</span></span><span style="display:flex;"><span>        Serial: 0
+</span></span><span style="display:flex;"><span>        Valid: forever
+</span></span><span style="display:flex;"><span>        Principals: (none)
+</span></span><span style="display:flex;"><span>        Critical Options: (none)
+</span></span><span style="display:flex;"><span>        Extensions: (none)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verifying <em>/etc/ssh/ssh_host_rsa_key-cert.pub</em><br><br></span>
+<h2 id="4-signing-users-public-key">4. Signing User&rsquo;s Public Key</h2>
+<p>Each user begins by generating their own SSH key pair:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@endpoint:~$ ssh-keygen -t ed25519 -f ~/.ssh/userkey
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Generating SSH User Key Pair<br><br></span>
+<p>The user sends their public key to the administrator for signing:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@endpoint:~$ cat ~/.ssh/userkey.pub
+</span></span><span style="display:flex;"><span>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOyTPxjJwF3AXvAqTaN6ch1QLmnE9oy0PUyS3nHD7l2e user@endpoint
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Contents of User&rsquo;s Public Key<br><br></span>
+<p>The CA administrator signs the user’s public key:
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert tip">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Tip</strong>
+        </div>
+        <div class="alert-body">Adding a <code>_id</code> suffix in the certificate identity (Key ID) is a useful convention to distinguish users and simplify management. The <code>-z</code> flag sets the certificate’s serial number, which can later be incremented to revoke or reissue credentials.</div>
+    </div>
+</div>
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -s /etc/ssh/cakey -I user_id -z 0 -n user userkey.pub
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Signing User&rsquo;s Public Key with CA Private Key<br><br></span>
+<p>Verify the signed certificate:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# ssh-keygen -Lf userkey-cert.pub 
+</span></span><span style="display:flex;"><span>userkey-cert.pub:
+</span></span><span style="display:flex;"><span>        Type: ssh-ed25519-cert-v01@openssh.com user certificate
+</span></span><span style="display:flex;"><span>        Public key: ED25519-CERT SHA256:ITanlqeRyy9C5TjesakzsrGeVQOoWHzmDj2SqqkuwWQ
+</span></span><span style="display:flex;"><span>        Signing CA: ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w (using ssh-ed25519)
+</span></span><span style="display:flex;"><span>        Key ID: &#34;user_id&#34;
+</span></span><span style="display:flex;"><span>        Serial: 0
+</span></span><span style="display:flex;"><span>        Valid: forever
+</span></span><span style="display:flex;"><span>        Principals: 
+</span></span><span style="display:flex;"><span>                user
+</span></span><span style="display:flex;"><span>        Critical Options: (none)
+</span></span><span style="display:flex;"><span>        Extensions: 
+</span></span><span style="display:flex;"><span>                permit-X11-forwarding
+</span></span><span style="display:flex;"><span>                permit-agent-forwarding
+</span></span><span style="display:flex;"><span>                permit-port-forwarding
+</span></span><span style="display:flex;"><span>                permit-pty
+</span></span><span style="display:flex;"><span>                permit-user-rc
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">User&rsquo;s Certificate Information<br><br></span>
+<h2 id="5-creating-an-authorized-principal-system-user">5. Creating an Authorized Principal System User</h2>
+<p>Create a dedicated system account with no login shell:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ssh-server# mkdir -p /home/authprin
+</span></span><span style="display:flex;"><span>root@ssh-server# useradd --no-create-home --home-dir /home/authprin --system --shell /usr/sbin/nologin authprin
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Creating <em>authprin</em> System User<br><br></span>
+<p>Confirm that the account exists:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# cat /etc/passwd | grep authprin
+</span></span><span style="display:flex;"><span>authprin:x:997:984::/home/authprin:/usr/sbin/nologin
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verify Existence of <em>authprin</em> System User<br><br></span>
+<h2 id="6-configuring-authentication">6. Configuring Authentication</h2>
+<p>Now, we need to configure the authorized principals mechanism to control which users and certificates are allowed to log in.</p>
+<h3 id="61-user-whitelist">6.1 User Whitelist</h3>
+<p>We’ll maintain a simple text file mapping SSH usernames and certificate serials to authorized principals.
+Each line follows the format: <code>&lt;uid&gt; &lt;serial&gt; &lt;principal&gt;</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# echo &#34;admin 0 user&#34; &gt;&gt; /home/authprin/users.txt
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Populate the User Whitelist<br><br></span>
+<h3 id="62-user-lookup-script">6.2 User Lookup Script</h3>
+<p>The SSH daemon will call this Python script each time a user attempts to log in. It looks up the matching entry and prints the allowed principal.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# vim /home/authprin/authprincmd.py
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Add Lookup Script<br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> len(sys<span style="color:#f92672">.</span>argv) <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;/home/authprin/users.txt&#34;</span>, <span style="color:#e6db74">&#34;rt&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> line <span style="color:#f92672">in</span> f:
+</span></span><span style="display:flex;"><span>            line <span style="color:#f92672">=</span> line<span style="color:#f92672">.</span>rstrip()
+</span></span><span style="display:flex;"><span>            uid, serial, prin <span style="color:#f92672">=</span> line<span style="color:#f92672">.</span>split()
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> uid <span style="color:#f92672">==</span> sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">and</span> serial <span style="color:#f92672">==</span> sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">2</span>]:
+</span></span><span style="display:flex;"><span>                print(prin)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Lookup Script - <em>/home/authprin/authprincmd.py</em><br><br></span>
+<p>Remember to make this script executable.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# chmod +x /home/authprin/authprincmd.py
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Executable Permissions on Script<br><br></span>
+<h3 id="63-checking-ownership-and-permissions">6.3 Checking Ownership and Permissions</h3>
+<p>The SSH daemon will refuse to execute the script if permissions are too loose or incorrect. Ensure that the home directory and its files of the <em>authprin</em> system user are owned by root with the following permissions:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# ls -la /home/authprin
+</span></span><span style="display:flex;"><span>total 16
+</span></span><span style="display:flex;"><span>drwxr-xr-x 2 root root 4096 Oct 14 23:18 .
+</span></span><span style="display:flex;"><span>drwxr-xr-x 6 root root 4096 Oct 14 23:12 ..
+</span></span><span style="display:flex;"><span>-rwxr-xr-x 1 root root  299 Oct 14 23:18 authprincmd.py
+</span></span><span style="display:flex;"><span>-rw-r--r-- 1 root root   13 Oct 14 23:07 users.txt
+</span></span></code></pre></div><h3 id="64-ssh-configuration">6.4 SSH Configuration</h3>
+<p>Edit <em>/etc/ssh/sshd_config</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#a6e22e">Port 22</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AddressFamily inet</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ListenAddress 0.0.0.0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Security Related Config</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">LogLevel VERBOSE</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">PermitRootLogin no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AuthorizedKeysFile none</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">PasswordAuthentication no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">PermitEmptyPasswords no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ChallengeResponseAuthentication no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">UsePAM yes</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AllowAgentForwarding no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AllowTcpForwarding yes </span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">X11Forwarding no </span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">UseDNS no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AllowStreamLocalForwarding no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">DisableForwarding no</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Authorized Principals Related Config</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AuthorizedPrincipalsCommandUser authprin</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AuthorizedPrincipalsCommand /home/authprin/authprincmd.py %u %s</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">TrustedUserCAKeys /etc/ssh/ca_key.pub</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">HostCertificate /etc/ssh/ssh_host_ecdsa_key-cert.pub</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">HostCertificate /etc/ssh/ssh_host_ed25519_key-cert.pub</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">SSH Configuration for Strict Cert Based Authentication<br><br></span>
+<p>Once done, remember to restart the service.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# systemctl restart ssh
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Restarting SSH Service<br><br></span>
+<h2 id="7-connecting-to-ssh-server">7. Connecting to SSH Server</h2>
+<p>Return the signed certificate back to the user, putting key pair along with the certificate inside their <em>.ssh</em> directory.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@endpoint:~$ ls -l ~/.ssh/userkey*
+</span></span><span style="display:flex;"><span>-rw-------. <span style="color:#ae81ff">1</span> gerald gerald <span style="color:#ae81ff">411</span> Oct <span style="color:#ae81ff">14</span> 21:13 /home/gerald/.ssh/userkey
+</span></span><span style="display:flex;"><span>-rw-r--r--. <span style="color:#ae81ff">1</span> gerald gerald <span style="color:#ae81ff">640</span> Oct <span style="color:#ae81ff">14</span> 22:28 /home/gerald/.ssh/userkey-cert.pub
+</span></span><span style="display:flex;"><span>-rw-r--r--. <span style="color:#ae81ff">1</span> gerald gerald  <span style="color:#ae81ff">95</span> Oct <span style="color:#ae81ff">14</span> 21:16 /home/gerald/.ssh/userkey.pub
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">User&rsquo;s <em>.ssh</em> Directory<br><br></span>
+<p>Connect to the SSH server using your signed certificate and verify that authentication succeeds.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@endpoint:~$ ssh -i ~/.ssh/userkey admin@sshserver.example.lan
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">SSH with Signed Certificate<br><br></span>
+<p>Server logs should show a successful certificate-based authentication:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# tail -f /var/log/auth.log
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>2025-10-14T23:23:18.222462+08:00 ubuntu2404 sshd[9066]: Accepted certificate ID &#34;user_id&#34; (serial 0) signed by ED25519 CA SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w via /etc/ssh/cakey.pub
+</span></span><span style="display:flex;"><span>2025-10-14T23:23:18.235705+08:00 ubuntu2404 sshd[9066]: Accepted publickey for admin from 172.16.205.1 port 34734 ssh2: ED25519-CERT SHA256:ITanlqeRyy9C5TjesakzsrGeVQOoWHzmDj2SqqkuwWQ ID user_id (serial 0) CA ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w
+</span></span><span style="display:flex;"><span>2025-10-14T23:23:18.237900+08:00 ubuntu2404 sshd[9066]: pam_unix(sshd:session): session opened for user admin(uid=1001) by admin(uid=0)
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Server Authentication Logs<br><br></span>
+<h2 id="8-conclusion">8. Conclusion</h2>
+<p>SSH certificates provide a scalable, centralized, and revocable way to manage user access without scattering static keys across multiple servers. By delegating trust to a CA and using an AuthorizedPrincipalsCommand, administrators can dynamically control who is allowed to log in, even revoking or rotating user credentials instantly.</p>
+<p>This approach brings the flexibility of enterprise-grade identity systems to traditional SSH environments, making it far easier to manage large fleets of machines while maintaining strong security hygiene.</p>
+]]></content>
+        </item>
         
         <item>
             <title>What is Mutual Transport Layer Security (mTLS)?</title>

@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Thu, 04 Sep 2025 19:41:56 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 14 Oct 2025 20:29:32 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Managing SSH Users with Certs</title>
+      <link>https://mathscantor.github.io/posts/managing-ssh-users-with-certs/</link>
+      <pubDate>Tue, 14 Oct 2025 20:29:32 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/managing-ssh-users-with-certs/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Traditional SSH authentication methods typically rely on passwords or static public keys stored in the &lt;em&gt;authorized_keys&lt;/em&gt; file. While this works well for a handful of systems, it quickly becomes unmanageable at scale. Every user key must be manually distributed, and revoked keys stay valid until manually removed. Today, we are going to explore how SSH credentials can be centrally managed by the server using SSH certificates and a certificate authority (CA).&lt;/p&gt;</description>
+    </item>
     <item>
       <title>What is Mutual Transport Layer Security (mTLS)?</title>
       <link>https://mathscantor.github.io/posts/what-is-mtls/</link>

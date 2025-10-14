@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="">
+<meta name="description" content="A more centralized way to manage SSH users at scale." />
+<meta name="keywords" content="mathscantor, linux, ssh" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="dark" />
+<link rel="canonical" href="https://mathscantor.github.io/posts/managing-ssh-users-with-certs/" />
+
+
+    <title>
+        
+            Managing SSH Users with Certs :: Mathscantor&#39;s Cybersecurity Blog  — A simple theme for Hugo
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="/main.f6f782c824f6dd87699befc194c23b539768dd232f320940bfeb2e17f8317145.css">
+
+
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+
+  <meta itemprop="name" content="Managing SSH Users with Certs">
+  <meta itemprop="description" content="A more centralized way to manage SSH users at scale.">
+  <meta itemprop="datePublished" content="2025-10-14T20:29:32+08:00">
+  <meta itemprop="dateModified" content="2025-10-14T20:29:32+08:00">
+  <meta itemprop="wordCount" content="1147">
+  <meta itemprop="image" content="https://mathscantor.github.io/posts/managing-ssh-users-with-certs/images/cover.png">
+  <meta itemprop="keywords" content="Linux,Ssh">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://mathscantor.github.io/posts/managing-ssh-users-with-certs/images/cover.png">
+  <meta name="twitter:title" content="Managing SSH Users with Certs">
+  <meta name="twitter:description" content="A more centralized way to manage SSH users at scale.">
+
+
+
+    <meta property="og:url" content="https://mathscantor.github.io/posts/managing-ssh-users-with-certs/">
+  <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
+  <meta property="og:title" content="Managing SSH Users with Certs">
+  <meta property="og:description" content="A more centralized way to manage SSH users at scale.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-10-14T20:29:32+08:00">
+    <meta property="article:modified_time" content="2025-10-14T20:29:32+08:00">
+    <meta property="article:tag" content="Linux">
+    <meta property="article:tag" content="Ssh">
+    <meta property="og:image" content="https://mathscantor.github.io/posts/managing-ssh-users-with-certs/images/cover.png">
+
+
+
+
+
+
+    <meta property="article:published_time" content="2025-10-14 20:29:32 &#43;0800 &#43;08" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span data-pagefind-ignore class="logo__text">Be You Cat, or Mouse?</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner">
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/posts/">
+                        Posts
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/tags/">
+                        Tags
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/series/">
+                        Series
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/about">
+                        About
+                    </a>
+                </li>
+            </div>
+            
+        
+
+    
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+                <span class="theme-toggle not-selectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+   <path d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+   3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+   13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"/>
+ </svg></span>
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+
+  <main class="post">
+    
+    <link href="/posts/css/toc.css" rel="stylesheet">
+    <aside id="sticky-toc">
+      <div class="toc-title">Table of Contents</div>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-introduction">1. Introduction</a></li>
+    <li><a href="#2-generating-ca-key-pair">2. Generating CA Key Pair</a></li>
+    <li><a href="#3-signing-ssh-servers-host-public-keys">3. Signing SSH Server&rsquo;s Host Public Keys</a></li>
+    <li><a href="#4-signing-users-public-key">4. Signing User&rsquo;s Public Key</a></li>
+    <li><a href="#5-creating-an-authorized-principal-system-user">5. Creating an Authorized Principal System User</a></li>
+    <li><a href="#6-configuring-authentication">6. Configuring Authentication</a>
+      <ul>
+        <li><a href="#61-user-whitelist">6.1 User Whitelist</a></li>
+        <li><a href="#62-user-lookup-script">6.2 User Lookup Script</a></li>
+        <li><a href="#63-checking-ownership-and-permissions">6.3 Checking Ownership and Permissions</a></li>
+        <li><a href="#64-ssh-configuration">6.4 SSH Configuration</a></li>
+      </ul>
+    </li>
+    <li><a href="#7-connecting-to-ssh-server">7. Connecting to SSH Server</a></li>
+    <li><a href="#8-conclusion">8. Conclusion</a></li>
+  </ul>
+</nav>
+    </aside>
+    <script src="/posts/js/toc.js"></script>
+    
+    <article>
+      
+      <div class="post-thumbnail">
+          <img src="/posts/managing-ssh-users-with-certs/images/cover.png" alt="post image" style="display: block; margin-left: auto; margin-right: auto; max-width: 50%; max-height: 50%; margin-bottom: 1em;">
+      </div>
+      
+      <h1 class="post-title">
+        <a href="https://mathscantor.github.io/posts/managing-ssh-users-with-certs/">Managing SSH Users with Certs</a>
+      </h1>
+      <div class="post-info">
+        <p>
+          <i class="fa-solid fa-clock"></i>
+          6 Minutes
+          <i class="fa-solid fa-clipboard"></i>
+          1147 Words
+          
+        </p>
+        <p>
+          <i class="fa-solid fa-calendar-days"></i>
+          
+            2025-10-14 20:29
+          
+  
+           
+            
+          
+        </p>
+        <p>
+        <p>
+          <i class="fa-solid fa-eye"></i>
+          <span id="stats"></span>
+<script>
+(function() {
+  var r = new XMLHttpRequest();
+  r.addEventListener('load', function() {
+    var statsEl = document.getElementById("stats");
+    if (!statsEl) return;
+
+    try {
+      var count = JSON.parse(this.responseText).count_unique;
+      console.log(count);
+      statsEl.innerText = count == 1
+        ? "1 View"
+        : count + " Views";
+    } catch (e) {
+      console.error("GoatCounter stats error:", e);
+    }
+  });
+
+  r.open('GET', 'https://mathscantor.goatcounter.com/counter/' +
+    encodeURIComponent(location.pathname.replace(/(\/)?$/, '')) + '.json');
+  r.send();
+})();
+</script>
+
+        </p>
+        
+    <p>
+        <i class="fa-solid fa-tag"></i>
+        
+
+        <span class="tag"><a href="https://mathscantor.github.io/tags/linux/">linux</a></span>
+        <span class="tag"><a href="https://mathscantor.github.io/tags/ssh/">ssh</a></span>
+        
+    </p>
+
+      </br>
+        </p>
+      </div>
+      
+        <div class="post-excerpt">A more centralized way to manage SSH users at scale.</div>
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <hr>
+        
+        <h2 id="1-introduction">1. Introduction</h2>
+<p>Traditional SSH authentication methods typically rely on passwords or static public keys stored in the <em>authorized_keys</em> file. While this works well for a handful of systems, it quickly becomes unmanageable at scale. Every user key must be manually distributed, and revoked keys stay valid until manually removed. Today, we are going to explore how SSH credentials can be centrally managed by the server using SSH certificates and a certificate authority (CA).</p>
+<h2 id="2-generating-ca-key-pair">2. Generating CA Key Pair</h2>
+<p>Start by generating a CA key pair. Although it is possible to create one without a passphrase, this is strongly discouraged since the CA key represents the trust anchor for your entire SSH ecosystem.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -t ed25519 -f /etc/ssh/cakey
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Generating SSH CA Key Pair<br><br></span>
+<p>The resulting <em>/etc/ssh/cakey</em> (private) and <em>/etc/ssh/cakey.pub</em> (public) files will be used for signing and verification respectively.</p>
+<h2 id="3-signing-ssh-servers-host-public-keys">3. Signing SSH Server&rsquo;s Host Public Keys</h2>
+<p>By default, the server&rsquo;s host keys are generated during installation.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ls -l /etc/ssh/ssh_host_*.pub
+</span></span><span style="display:flex;"><span>-rw------- 1 root root  505 Mar 17  2025 /etc/ssh/ssh_host_ecdsa_key
+</span></span><span style="display:flex;"><span>-rw-r--r-- 1 root root  177 Mar 17  2025 /etc/ssh/ssh_host_ecdsa_key.pub
+</span></span><span style="display:flex;"><span>-rw------- 1 root root  411 Mar 17  2025 /etc/ssh/ssh_host_ed25519_key
+</span></span><span style="display:flex;"><span>-rw-r--r-- 1 root root   97 Mar 17  2025 /etc/ssh/ssh_host_ed25519_key.pub
+</span></span><span style="display:flex;"><span>-rw------- 1 root root 2602 Mar 17  2025 /etc/ssh/ssh_host_rsa_key
+</span></span><span style="display:flex;"><span>-rw-r--r-- 1 root root  569 Mar 17  2025 /etc/ssh/ssh_host_rsa_key.pub
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Default SSH Host Key Pairs<br><br></span>
+<p>We can now use the CA private key to sign each host key, embedding trust in the certificate itself.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -s /etc/ssh/cakey -I sshserver.example.lan -h /etc/ssh/ssh_host_ecdsa_key.pub
+</span></span><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -s /etc/ssh/cakey -I sshserver.example.lan -h /etc/ssh/ssh_host_ed25519_key.pub
+</span></span><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -s /etc/ssh/cakey -I sshserver.example.lan -h /etc/ssh/ssh_host_rsa_key.pub
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Signing SSH Host Public Keys<br><br></span>
+<p>Once signed, verify the certificates. Each certificate should show your CA’s fingerprint under Signing CA, confirming that it’s now trusted under the CA. (See Listing 4, 5 and 6)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -Lf /etc/ssh/ssh_host_ecdsa_key-cert.pub
+</span></span><span style="display:flex;"><span>/etc/ssh/ssh_host_ecdsa_key-cert.pub:
+</span></span><span style="display:flex;"><span>        Type: ecdsa-sha2-nistp256-cert-v01@openssh.com host certificate
+</span></span><span style="display:flex;"><span>        Public key: ECDSA-CERT SHA256:M5UVEWLHMsGajtBY8LpeqNHdgzpslsmGYUSNG5KjnA8
+</span></span><span style="display:flex;"><span>        Signing CA: ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w (using ssh-ed25519)
+</span></span><span style="display:flex;"><span>        Key ID: &#34;sshserver.example.lan&#34;
+</span></span><span style="display:flex;"><span>        Serial: 0
+</span></span><span style="display:flex;"><span>        Valid: forever
+</span></span><span style="display:flex;"><span>        Principals: (none)
+</span></span><span style="display:flex;"><span>        Critical Options: (none)
+</span></span><span style="display:flex;"><span>        Extensions: (none)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verifying <em>/etc/ssh/ssh_host_ecdsa_key-cert.pub</em><br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -Lf /etc/ssh/ssh_host_ed25519_key-cert.pub
+</span></span><span style="display:flex;"><span>/etc/ssh/ssh_host_ed25519_key-cert.pub:
+</span></span><span style="display:flex;"><span>        Type: ssh-ed25519-cert-v01@openssh.com host certificate
+</span></span><span style="display:flex;"><span>        Public key: ED25519-CERT SHA256:gelQKbN1l2V4rkg2jxvEzi9kY4obPLY8SPe7KReiK3A
+</span></span><span style="display:flex;"><span>        Signing CA: ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w (using ssh-ed25519)
+</span></span><span style="display:flex;"><span>        Key ID: &#34;sshserver.example.lan&#34;
+</span></span><span style="display:flex;"><span>        Serial: 0
+</span></span><span style="display:flex;"><span>        Valid: forever
+</span></span><span style="display:flex;"><span>        Principals: (none)
+</span></span><span style="display:flex;"><span>        Critical Options: (none)
+</span></span><span style="display:flex;"><span>        Extensions: (none)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verifying <em>/etc/ssh/ssh_host_ed25519_key-cert.pub</em><br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -Lf /etc/ssh/ssh_host_rsa_key-cert.pub
+</span></span><span style="display:flex;"><span>/etc/ssh/ssh_host_rsa_key-cert.pub:
+</span></span><span style="display:flex;"><span>        Type: ssh-rsa-cert-v01@openssh.com host certificate
+</span></span><span style="display:flex;"><span>        Public key: RSA-CERT SHA256:8lUB4WRpzAL9XoiMBoZ12lhnivNhN28JzVxjof/kD+U
+</span></span><span style="display:flex;"><span>        Signing CA: ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w (using ssh-ed25519)
+</span></span><span style="display:flex;"><span>        Key ID: &#34;sshserver.example.lan&#34;
+</span></span><span style="display:flex;"><span>        Serial: 0
+</span></span><span style="display:flex;"><span>        Valid: forever
+</span></span><span style="display:flex;"><span>        Principals: (none)
+</span></span><span style="display:flex;"><span>        Critical Options: (none)
+</span></span><span style="display:flex;"><span>        Extensions: (none)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verifying <em>/etc/ssh/ssh_host_rsa_key-cert.pub</em><br><br></span>
+<h2 id="4-signing-users-public-key">4. Signing User&rsquo;s Public Key</h2>
+<p>Each user begins by generating their own SSH key pair:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@endpoint:~$ ssh-keygen -t ed25519 -f ~/.ssh/userkey
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Generating SSH User Key Pair<br><br></span>
+<p>The user sends their public key to the administrator for signing:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@endpoint:~$ cat ~/.ssh/userkey.pub
+</span></span><span style="display:flex;"><span>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOyTPxjJwF3AXvAqTaN6ch1QLmnE9oy0PUyS3nHD7l2e user@endpoint
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Contents of User&rsquo;s Public Key<br><br></span>
+<p>The CA administrator signs the user’s public key:
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert tip">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Tip</strong>
+        </div>
+        <div class="alert-body">Adding a <code>_id</code> suffix in the certificate identity (Key ID) is a useful convention to distinguish users and simplify management. The <code>-z</code> flag sets the certificate’s serial number, which can later be incremented to revoke or reissue credentials.</div>
+    </div>
+</div>
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ubuntu2404:~# ssh-keygen -s /etc/ssh/cakey -I user_id -z 0 -n user userkey.pub
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Signing User&rsquo;s Public Key with CA Private Key<br><br></span>
+<p>Verify the signed certificate:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# ssh-keygen -Lf userkey-cert.pub 
+</span></span><span style="display:flex;"><span>userkey-cert.pub:
+</span></span><span style="display:flex;"><span>        Type: ssh-ed25519-cert-v01@openssh.com user certificate
+</span></span><span style="display:flex;"><span>        Public key: ED25519-CERT SHA256:ITanlqeRyy9C5TjesakzsrGeVQOoWHzmDj2SqqkuwWQ
+</span></span><span style="display:flex;"><span>        Signing CA: ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w (using ssh-ed25519)
+</span></span><span style="display:flex;"><span>        Key ID: &#34;user_id&#34;
+</span></span><span style="display:flex;"><span>        Serial: 0
+</span></span><span style="display:flex;"><span>        Valid: forever
+</span></span><span style="display:flex;"><span>        Principals: 
+</span></span><span style="display:flex;"><span>                user
+</span></span><span style="display:flex;"><span>        Critical Options: (none)
+</span></span><span style="display:flex;"><span>        Extensions: 
+</span></span><span style="display:flex;"><span>                permit-X11-forwarding
+</span></span><span style="display:flex;"><span>                permit-agent-forwarding
+</span></span><span style="display:flex;"><span>                permit-port-forwarding
+</span></span><span style="display:flex;"><span>                permit-pty
+</span></span><span style="display:flex;"><span>                permit-user-rc
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">User&rsquo;s Certificate Information<br><br></span>
+<h2 id="5-creating-an-authorized-principal-system-user">5. Creating an Authorized Principal System User</h2>
+<p>Create a dedicated system account with no login shell:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@ssh-server# mkdir -p /home/authprin
+</span></span><span style="display:flex;"><span>root@ssh-server# useradd --no-create-home --home-dir /home/authprin --system --shell /usr/sbin/nologin authprin
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Creating <em>authprin</em> System User<br><br></span>
+<p>Confirm that the account exists:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# cat /etc/passwd | grep authprin
+</span></span><span style="display:flex;"><span>authprin:x:997:984::/home/authprin:/usr/sbin/nologin
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verify Existence of <em>authprin</em> System User<br><br></span>
+<h2 id="6-configuring-authentication">6. Configuring Authentication</h2>
+<p>Now, we need to configure the authorized principals mechanism to control which users and certificates are allowed to log in.</p>
+<h3 id="61-user-whitelist">6.1 User Whitelist</h3>
+<p>We’ll maintain a simple text file mapping SSH usernames and certificate serials to authorized principals.
+Each line follows the format: <code>&lt;uid&gt; &lt;serial&gt; &lt;principal&gt;</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# echo &#34;admin 0 user&#34; &gt;&gt; /home/authprin/users.txt
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Populate the User Whitelist<br><br></span>
+<h3 id="62-user-lookup-script">6.2 User Lookup Script</h3>
+<p>The SSH daemon will call this Python script each time a user attempts to log in. It looks up the matching entry and prints the allowed principal.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# vim /home/authprin/authprincmd.py
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Add Lookup Script<br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> len(sys<span style="color:#f92672">.</span>argv) <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;/home/authprin/users.txt&#34;</span>, <span style="color:#e6db74">&#34;rt&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> line <span style="color:#f92672">in</span> f:
+</span></span><span style="display:flex;"><span>            line <span style="color:#f92672">=</span> line<span style="color:#f92672">.</span>rstrip()
+</span></span><span style="display:flex;"><span>            uid, serial, prin <span style="color:#f92672">=</span> line<span style="color:#f92672">.</span>split()
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> uid <span style="color:#f92672">==</span> sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">and</span> serial <span style="color:#f92672">==</span> sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">2</span>]:
+</span></span><span style="display:flex;"><span>                print(prin)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Lookup Script - <em>/home/authprin/authprincmd.py</em><br><br></span>
+<p>Remember to make this script executable.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# chmod +x /home/authprin/authprincmd.py
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Setting Executable Permissions on Script<br><br></span>
+<h3 id="63-checking-ownership-and-permissions">6.3 Checking Ownership and Permissions</h3>
+<p>The SSH daemon will refuse to execute the script if permissions are too loose or incorrect. Ensure that the home directory and its files of the <em>authprin</em> system user are owned by root with the following permissions:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# ls -la /home/authprin
+</span></span><span style="display:flex;"><span>total 16
+</span></span><span style="display:flex;"><span>drwxr-xr-x 2 root root 4096 Oct 14 23:18 .
+</span></span><span style="display:flex;"><span>drwxr-xr-x 6 root root 4096 Oct 14 23:12 ..
+</span></span><span style="display:flex;"><span>-rwxr-xr-x 1 root root  299 Oct 14 23:18 authprincmd.py
+</span></span><span style="display:flex;"><span>-rw-r--r-- 1 root root   13 Oct 14 23:07 users.txt
+</span></span></code></pre></div><h3 id="64-ssh-configuration">6.4 SSH Configuration</h3>
+<p>Edit <em>/etc/ssh/sshd_config</em>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#a6e22e">Port 22</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AddressFamily inet</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ListenAddress 0.0.0.0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Security Related Config</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">LogLevel VERBOSE</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">PermitRootLogin no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AuthorizedKeysFile none</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">PasswordAuthentication no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">PermitEmptyPasswords no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ChallengeResponseAuthentication no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">UsePAM yes</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AllowAgentForwarding no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AllowTcpForwarding yes </span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">X11Forwarding no </span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">UseDNS no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AllowStreamLocalForwarding no</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">DisableForwarding no</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Authorized Principals Related Config</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AuthorizedPrincipalsCommandUser authprin</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">AuthorizedPrincipalsCommand /home/authprin/authprincmd.py %u %s</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">TrustedUserCAKeys /etc/ssh/ca_key.pub</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">HostCertificate /etc/ssh/ssh_host_ecdsa_key-cert.pub</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">HostCertificate /etc/ssh/ssh_host_ed25519_key-cert.pub</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">SSH Configuration for Strict Cert Based Authentication<br><br></span>
+<p>Once done, remember to restart the service.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# systemctl restart ssh
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Restarting SSH Service<br><br></span>
+<h2 id="7-connecting-to-ssh-server">7. Connecting to SSH Server</h2>
+<p>Return the signed certificate back to the user, putting key pair along with the certificate inside their <em>.ssh</em> directory.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@endpoint:~$ ls -l ~/.ssh/userkey*
+</span></span><span style="display:flex;"><span>-rw-------. <span style="color:#ae81ff">1</span> gerald gerald <span style="color:#ae81ff">411</span> Oct <span style="color:#ae81ff">14</span> 21:13 /home/gerald/.ssh/userkey
+</span></span><span style="display:flex;"><span>-rw-r--r--. <span style="color:#ae81ff">1</span> gerald gerald <span style="color:#ae81ff">640</span> Oct <span style="color:#ae81ff">14</span> 22:28 /home/gerald/.ssh/userkey-cert.pub
+</span></span><span style="display:flex;"><span>-rw-r--r--. <span style="color:#ae81ff">1</span> gerald gerald  <span style="color:#ae81ff">95</span> Oct <span style="color:#ae81ff">14</span> 21:16 /home/gerald/.ssh/userkey.pub
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">User&rsquo;s <em>.ssh</em> Directory<br><br></span>
+<p>Connect to the SSH server using your signed certificate and verify that authentication succeeds.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>user@endpoint:~$ ssh -i ~/.ssh/userkey admin@sshserver.example.lan
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">SSH with Signed Certificate<br><br></span>
+<p>Server logs should show a successful certificate-based authentication:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@sshserver:~# tail -f /var/log/auth.log
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>2025-10-14T23:23:18.222462+08:00 ubuntu2404 sshd[9066]: Accepted certificate ID &#34;user_id&#34; (serial 0) signed by ED25519 CA SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w via /etc/ssh/cakey.pub
+</span></span><span style="display:flex;"><span>2025-10-14T23:23:18.235705+08:00 ubuntu2404 sshd[9066]: Accepted publickey for admin from 172.16.205.1 port 34734 ssh2: ED25519-CERT SHA256:ITanlqeRyy9C5TjesakzsrGeVQOoWHzmDj2SqqkuwWQ ID user_id (serial 0) CA ED25519 SHA256:UATkQvdX31/hbAwNB+4sHmASXI/xmfDsqvQgtS8hW0w
+</span></span><span style="display:flex;"><span>2025-10-14T23:23:18.237900+08:00 ubuntu2404 sshd[9066]: pam_unix(sshd:session): session opened for user admin(uid=1001) by admin(uid=0)
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Server Authentication Logs<br><br></span>
+<h2 id="8-conclusion">8. Conclusion</h2>
+<p>SSH certificates provide a scalable, centralized, and revocable way to manage user access without scattering static keys across multiple servers. By delegating trust to a CA and using an AuthorizedPrincipalsCommand, administrators can dynamically control who is allowed to log in, even revoking or rotating user credentials instantly.</p>
+<p>This approach brings the flexibility of enterprise-grade identity systems to traditional SSH environments, making it far easier to manage large fleets of machines while maintaining strong security hygiene.</p>
+
+        
+      </div>
+    </article>
+
+    <div class="post-info">
+      
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+
+            
+            <span class="button previous">
+                <a href="https://mathscantor.github.io/posts/what-is-mtls/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">What is Mutual Transport Layer Security (mTLS)?</span>
+                </a>
+            </span>
+            
+
+            
+
+        </div>
+    </div>
+
+    </div>
+      <div class="sharing-buttons">
+        
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f" target="_blank" rel="noopener" aria-label="" title="Share on facebook">
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f" target="_blank" rel="noopener" aria-label="" title="Share on twitter">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small">
+      <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=Managing%20SSH%20Users%20with%20Certs&amp;caption=Managing%20SSH%20Users%20with%20Certs&amp;canonicalUrl=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f" target="_blank" rel="noopener" aria-label="" title="Share on tumblr">
+  <div class="resp-sharing-button resp-sharing-button--tumblr resp-sharing-button--small">
+    <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.178l.011.002z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=Managing%20SSH%20Users%20with%20Certs&amp;body=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f" target="_self" rel="noopener" aria-label="" title="Share via email">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://pinterest.com/pin/create/button/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f&amp;media=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f;description=Managing%20SSH%20Users%20with%20Certs" target="_blank" rel="noopener" aria-label="" title="Share on pinterest">
+  <div class="resp-sharing-button resp-sharing-button--pinterest resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f&amp;title=Managing%20SSH%20Users%20with%20Certs&amp;summary=Managing%20SSH%20Users%20with%20Certs&amp;source=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f" target="_blank" rel="noopener" aria-label="" title="Share on linkedin">
+  <div class="resp-sharing-button resp-sharing-button--linkedin resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f&amp;resubmit=true&amp;title=Managing%20SSH%20Users%20with%20Certs" target="_blank" rel="noopener" aria-label="" title="Share on reddit">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.xing.com/app/user?op=share;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f;title=Managing%20SSH%20Users%20with%20Certs" target="_blank" rel="noopener" aria-label="" title="Share on xing">
+  <div class="resp-sharing-button resp-sharing-button--xing resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.188 0c-.517 0-.741.325-.927.66 0 0-7.455 13.224-7.702 13.657.015.024 4.919 9.023 4.919 9.023.17.308.436.66.967.66h3.454c.211 0 .375-.078.463-.22.089-.151.089-.346-.009-.536l-4.879-8.916c-.004-.006-.004-.016 0-.022L22.139.756c.095-.191.097-.387.006-.535C22.056.078 21.894 0 21.686 0h-3.498zM3.648 4.74c-.211 0-.385.074-.473.216-.09.149-.078.339.02.531l2.34 4.05c.004.01.004.016 0 .021L1.86 16.051c-.099.188-.093.381 0 .529.085.142.239.234.45.234h3.461c.518 0 .766-.348.945-.667l3.734-6.609-2.378-4.155c-.172-.315-.434-.659-.962-.659H3.648v.016z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="whatsapp://send?text=Managing%20SSH%20Users%20with%20Certs%20https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f" target="_blank" rel="noopener" aria-label="" title="Share on whatsapp">
+  <div class="resp-sharing-button resp-sharing-button--whatsapp resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f&amp;t=Managing%20SSH%20Users%20with%20Certs" target="_blank" rel="noopener" aria-label="" title="Share on hacker news">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://telegram.me/share/url?text=Managing%20SSH%20Users%20with%20Certs&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2fmanaging-ssh-users-with-certs%2f" target="_blank" rel="noopener" aria-label="" title="Share on telegram">
+  <div class="resp-sharing-button resp-sharing-button--telegram resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </div>
+  </div>
+</a>
+
+      </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+    
+        <div class="footer__inner">
+            <div class="footer__content">
+            
+            
+        </div>
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="/bundle.min.72f1c854c6712730c4f3de06a4221e1c02e35427e559e929eee94792f3fdfa61ccf9ca78e7aff37618f071b6e45c8d06a173fbe595000b2b67d46b44b8289f9f.js" integrity="sha512-cvHIVMZxJzDE894GpCIeHALjVCflWekp7ulHkvP9&#43;mHM&#43;cp456/zdhjwcbbkXI0GoXP75ZUACytn1GtEuCifnw=="></script>
+
+
+
+        <script src='/posts/js/caption.js'></script>
+        <script data-goatcounter="https://mathscantor.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js">console.log("Goat Analytics Loaded");</script>
+    </body>
+</html>

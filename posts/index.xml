@@ -6,13 +6,13 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Fri, 05 Dec 2025 10:29:44 +0800</lastBuildDate>
+        <lastBuildDate>Tue, 09 Dec 2025 23:43:05 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
         
         <item>
             <title>Zabbix CVE-2024-36467 &amp; CVE-2024-42327 Analysis</title>
             <link>https://mathscantor.github.io/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/</link>
-            <pubDate>Fri, 05 Dec 2025 10:29:44 +0800</pubDate>
+            <pubDate>Tue, 09 Dec 2025 23:43:05 +0800</pubDate>
             
             <guid>https://mathscantor.github.io/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/</guid>
             <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;

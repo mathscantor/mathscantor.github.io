@@ -321,9 +321,9 @@ the class should be called <em>GetBaseAddr</em>.</p>
 <p>The snippet below shows the overall layout of what your class should look like as a start:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TestCommand</span>(gdb<span style="color:#f92672">.</span>Command):
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self):
 </span></span><span style="display:flex;"><span>      self<span style="color:#f92672">.</span>__command_name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;test_command&#34;</span>
-</span></span><span style="display:flex;"><span>      super(TestCommand, self)<span style="color:#f92672">.</span>__init__(self<span style="color:#f92672">.</span>__command_name, gdb<span style="color:#f92672">.</span>COMMAND_USER)
+</span></span><span style="display:flex;"><span>      super(TestCommand, self)<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>(self<span style="color:#f92672">.</span>__command_name, gdb<span style="color:#f92672">.</span>COMMAND_USER)
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span>
 </span></span><span style="display:flex;"><span>  
 </span></span><span style="display:flex;"><span>TestCommand()
@@ -540,7 +540,7 @@ successfully imported! The name of your command will follow what you have define
 
 
 
-<script type="text/javascript" src="/bundle.min.72f1c854c6712730c4f3de06a4221e1c02e35427e559e929eee94792f3fdfa61ccf9ca78e7aff37618f071b6e45c8d06a173fbe595000b2b67d46b44b8289f9f.js" integrity="sha512-cvHIVMZxJzDE894GpCIeHALjVCflWekp7ulHkvP9&#43;mHM&#43;cp456/zdhjwcbbkXI0GoXP75ZUACytn1GtEuCifnw=="></script>
+<script type="text/javascript" src="/bundle.min.d96dc9197435c7dcc63d512bceea911b84103cacefdc682a4153b249da02faa7545001728de6ad84557229050a79bed5e55964e16f97079122cfad4cebcb0c96.js" integrity="sha512-2W3JGXQ1x9zGPVErzuqRG4QQPKzv3GgqQVOySdoC&#43;qdUUAFyjeathFVyKQUKeb7V5Vlk4W&#43;XB5Eiz61M68sMlg=="></script>
 
 
 

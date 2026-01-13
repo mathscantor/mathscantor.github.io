@@ -6,9 +6,9 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals. I thrive where most abstractions break down — at the interface between hardware, OS, and application.
-This blog is my lab notebook: a curated collection of write-ups, technical deep dives, and research experiments from my journey through offensive security.
-Whether you&rsquo;re here to learn, collaborate, or explore the inner workings of Linux with me — welcome! Curiosity is the only requirement.
+<meta name="description" content="My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals.
+This blog is my lab notebook: Linux internals, offensive security experiments, write-ups, and controlled chaos.
+Doesn&rsquo;t matter if you are a student, working cyber professional or a script kiddie. If you’re here to peek under the hood, welcome. Curiosity is the only requirement.
 " />
 <meta name="keywords" content="mathscantor" />
 <meta name="robots" content="noodp" />
@@ -46,27 +46,27 @@ Whether you&rsquo;re here to learn, collaborate, or explore the inner workings o
 
 
   <meta itemprop="name" content="About">
-  <meta itemprop="description" content="My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals. I thrive where most abstractions break down — at the interface between hardware, OS, and application.
-This blog is my lab notebook: a curated collection of write-ups, technical deep dives, and research experiments from my journey through offensive security.
-Whether you’re here to learn, collaborate, or explore the inner workings of Linux with me — welcome! Curiosity is the only requirement.">
-  <meta itemprop="wordCount" content="80">
+  <meta itemprop="description" content="My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals.
+This blog is my lab notebook: Linux internals, offensive security experiments, write-ups, and controlled chaos.
+Doesn’t matter if you are a student, working cyber professional or a script kiddie. If you’re here to peek under the hood, welcome. Curiosity is the only requirement.">
+  <meta itemprop="wordCount" content="62">
   <meta itemprop="image" content="https://mathscantor.github.io/">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://mathscantor.github.io/">
   <meta name="twitter:title" content="About">
-  <meta name="twitter:description" content="My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals. I thrive where most abstractions break down — at the interface between hardware, OS, and application.
-This blog is my lab notebook: a curated collection of write-ups, technical deep dives, and research experiments from my journey through offensive security.
-Whether you’re here to learn, collaborate, or explore the inner workings of Linux with me — welcome! Curiosity is the only requirement.">
+  <meta name="twitter:description" content="My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals.
+This blog is my lab notebook: Linux internals, offensive security experiments, write-ups, and controlled chaos.
+Doesn’t matter if you are a student, working cyber professional or a script kiddie. If you’re here to peek under the hood, welcome. Curiosity is the only requirement.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/about/">
   <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
   <meta property="og:title" content="About">
-  <meta property="og:description" content="My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals. I thrive where most abstractions break down — at the interface between hardware, OS, and application.
-This blog is my lab notebook: a curated collection of write-ups, technical deep dives, and research experiments from my journey through offensive security.
-Whether you’re here to learn, collaborate, or explore the inner workings of Linux with me — welcome! Curiosity is the only requirement.">
+  <meta property="og:description" content="My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals.
+This blog is my lab notebook: Linux internals, offensive security experiments, write-ups, and controlled chaos.
+Doesn’t matter if you are a student, working cyber professional or a script kiddie. If you’re here to peek under the hood, welcome. Curiosity is the only requirement.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="og:image" content="https://mathscantor.github.io/">
@@ -184,12 +184,12 @@ Whether you’re here to learn, collaborate, or explore the inner workings of Li
     <img style="border-radius: 50%;" alt="avatar" src="/about/profile.png" width="260" height="260">
   </div>
   <section class="oneliner" style="margin-bottom: 2rem; font-size: 1.4rem; line-height: 1.6;">
-    Hi, I&#39;m Gerald — a Cybersecurity Researcher focused on exploiting and hardening the Linux operating system.
+    Hi, I’m Gerald. I like bending technology to my will by understanding how it actually works.
   </section>
   <section class="intro" style="margin-bottom: 2rem; font-size: 1.1rem; line-height: 1.6; text-align: justify;">
-    <p>My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals. I thrive where most abstractions break down — at the interface between hardware, OS, and application.</p>
-<p>This blog is my lab notebook: a curated collection of write-ups, technical deep dives, and research experiments from my journey through offensive security.</p>
-<p>Whether you&rsquo;re here to learn, collaborate, or explore the inner workings of Linux with me — welcome! Curiosity is the only requirement.</p>
+    <p>My work involves reverse engineering, vulnerability research, and building tools that interact directly with the kernel and system internals.</p>
+<p>This blog is my lab notebook: Linux internals, offensive security experiments, write-ups, and controlled chaos.</p>
+<p>Doesn&rsquo;t matter if you are a student, working cyber professional or a script kiddie. If you’re here to peek under the hood, welcome. Curiosity is the only requirement.</p>
 
   </section>
 
@@ -288,7 +288,7 @@ Whether you’re here to learn, collaborate, or explore the inner workings of Li
 
 
 
-<script type="text/javascript" src="/bundle.min.72f1c854c6712730c4f3de06a4221e1c02e35427e559e929eee94792f3fdfa61ccf9ca78e7aff37618f071b6e45c8d06a173fbe595000b2b67d46b44b8289f9f.js" integrity="sha512-cvHIVMZxJzDE894GpCIeHALjVCflWekp7ulHkvP9&#43;mHM&#43;cp456/zdhjwcbbkXI0GoXP75ZUACytn1GtEuCifnw=="></script>
+<script type="text/javascript" src="/bundle.min.d96dc9197435c7dcc63d512bceea911b84103cacefdc682a4153b249da02faa7545001728de6ad84557229050a79bed5e55964e16f97079122cfad4cebcb0c96.js" integrity="sha512-2W3JGXQ1x9zGPVErzuqRG4QQPKzv3GgqQVOySdoC&#43;qdUUAFyjeathFVyKQUKeb7V5Vlk4W&#43;XB5Eiz61M68sMlg=="></script>
 
 
 

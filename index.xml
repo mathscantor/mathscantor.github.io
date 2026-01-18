@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Tue, 09 Dec 2025 23:43:05 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 12 Jan 2026 08:24:15 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux EDR for Host Events</title>
+      <link>https://mathscantor.github.io/posts/linux-edr-for-host-events/</link>
+      <pubDate>Mon, 12 Jan 2026 08:24:15 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/linux-edr-for-host-events/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Happy new year! To kick off the year, I’m switching gears and putting on a defender’s hat. After all, we need to &amp;ldquo;&lt;em&gt;know thy enemy&lt;/em&gt;&amp;rdquo;. If we don’t understand how detection systems work, we’re just making blind guesses when we try to make our exploits stealthier. That’s why we are going to explore some powerful open-source tools available today.&lt;/p&gt;&#xA;&lt;p&gt;Linux Endpoint Detection and Response (EDR) focuses on collecting and correlating low-level system activity. For example, inspecting process execution, memory behavior, file access, and network events can help to surface malicious or suspicious behavior on Linux hosts. Instead of relying on signatures, Linux EDR provides the raw telemetry needed to understand what actually happened on a system.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Zabbix CVE-2024-36467 &amp; CVE-2024-42327 Analysis</title>
       <link>https://mathscantor.github.io/posts/zabbix-cve-2024-36467-and-cve-2024-42327-analysis/</link>

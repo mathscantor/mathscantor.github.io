@@ -45,8 +45,8 @@
   <meta itemprop="name" content="Linux File Monitoring With Fanotify">
   <meta itemprop="description" content="This post explains how to use the Linux fanotify API for file monitoring, covering setup, event handling, and advanced use cases like blocking file operations and monitoring create/delete/move events.">
   <meta itemprop="datePublished" content="2025-03-14T20:09:42+08:00">
-  <meta itemprop="dateModified" content="2025-03-14T20:09:42+08:00">
-  <meta itemprop="wordCount" content="1292">
+  <meta itemprop="dateModified" content="2026-02-12T08:30:33+08:00">
+  <meta itemprop="wordCount" content="1486">
   <meta itemprop="image" content="https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/images/cover.png">
   <meta itemprop="keywords" content="Linux,Fanotify,File-Monitoring">
 
@@ -65,7 +65,7 @@
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
     <meta property="article:published_time" content="2025-03-14T20:09:42+08:00">
-    <meta property="article:modified_time" content="2025-03-14T20:09:42+08:00">
+    <meta property="article:modified_time" content="2026-02-12T08:30:33+08:00">
     <meta property="article:tag" content="Linux">
     <meta property="article:tag" content="Fanotify">
     <meta property="article:tag" content="File-Monitoring">
@@ -190,11 +190,12 @@
     <li><a href="#1-introduction">1. Introduction</a></li>
     <li><a href="#2-checking-if-fanotify-is-enabled">2. Checking if Fanotify is Enabled</a></li>
     <li><a href="#3-overall-fanotify-api-usage">3. Overall Fanotify API Usage</a></li>
-    <li><a href="#4-inspecting-read-write-execute-events">4. Inspecting Read, Write, Execute Events</a></li>
-    <li><a href="#5-inspecting-create-delete-move-events">5. Inspecting Create, Delete, Move Events</a></li>
-    <li><a href="#6--bonus---allowdeny-file-operations">6. ⭐ Bonus - Allow/Deny File Operations</a></li>
-    <li><a href="#7-conclusion">7. Conclusion</a></li>
-    <li><a href="#8-resources">8. Resources</a></li>
+    <li><a href="#4-fanotify-flag-mask-compatibility-table">4. Fanotify Flag-Mask Compatibility Table</a></li>
+    <li><a href="#5-inspecting-read-write-execute-events">5. Inspecting Read, Write, Execute Events</a></li>
+    <li><a href="#6-inspecting-create-delete-move-events">6. Inspecting Create, Delete, Move Events</a></li>
+    <li><a href="#7--bonus---allowdeny-file-operations">7. ⭐ Bonus - Allow/Deny File Operations</a></li>
+    <li><a href="#8-conclusion">8. Conclusion</a></li>
+    <li><a href="#9-resources">9. Resources</a></li>
   </ul>
 </nav>
     </aside>
@@ -214,7 +215,7 @@
           <i class="fa-solid fa-clock"></i>
           7 Minutes
           <i class="fa-solid fa-clipboard"></i>
-          1292 Words
+          1486 Words
           
         </p>
         <p>
@@ -224,6 +225,10 @@
           
   
            
+            
+              
+                (Last Updated: 2026-02-12 08:30)
+              
             
           
         </p>
@@ -294,42 +299,125 @@
 <p>In this post, I will show you how you can write your own fanotify user-space application to monitor for file/directory events, as long as your kernel was built with fanotify capabilities. <em>Ensure that you have sudo or root privileges too before running your fanotify application</em>.</p>
 <p>You can also check out <a href="https://github.com/mathscantor/filemon"><em>filemon</em></a>, a multithreaded Linux file-monitoring tool which I have created for research purposes. With that out of the way, let&rsquo;s dive right into it!</p>
 <h2 id="2-checking-if-fanotify-is-enabled">2. Checking if Fanotify is Enabled</h2>
-<p>To check if your kernel was built with fanotify enabled, we have to check the configuration options under <em>/boot/config-&lt;KERNEL_VERSION&gt;</em>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cat /boot/config-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span> | grep FANOTIFY
+<p>To check if your kernel was built with fanotify enabled, we have to check the configuration options under <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/boot/config-&lt;KERNEL_VERSION&gt;&ensp;</span> or <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/proc/config.gz.&ensp;</span></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Ubuntu / Debian based</span>
+</span></span><span style="display:flex;"><span>$ cat /boot/config-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span> | grep FANOTIFY
+</span></span><span style="display:flex;"><span>CONFIG_FANOTIFY<span style="color:#f92672">=</span>y
+</span></span><span style="display:flex;"><span>CONFIG_FANOTIFY_ACCESS_PERMISSIONS<span style="color:#f92672">=</span>y
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Fedora / CentOS / RHEL based</span>
+</span></span><span style="display:flex;"><span>$ zcat /proc/config.gz | grep FANOTIFY
 </span></span><span style="display:flex;"><span>CONFIG_FANOTIFY<span style="color:#f92672">=</span>y
 </span></span><span style="display:flex;"><span>CONFIG_FANOTIFY_ACCESS_PERMISSIONS<span style="color:#f92672">=</span>y
 </span></span></code></pre></div><p>If <code>CONFIG_FANOTIFY_ACCESS_PERMISSIONS=n</code> or not defined, that just means that we will not be able to check for events such as <code>FAN_ACCESS_PERM</code>, <code>FAN_OPEN_PERM</code> and <code>FAN_OPEN_EXEC_PERM</code>.</p>
 <p>As long as <code>CONFIG_FANOTIFY=y</code> is set, we are good to go!</p>
 <h2 id="3-overall-fanotify-api-usage">3. Overall Fanotify API Usage</h2>
-<p>To begin, we need to create a fanotify file descriptor using <em>fanotify_init()</em>, paying special attention to the flags supplied to it (elaborated later).</p>
-<p>We will then mark a file/directory/mount point with <em>fanotify_mark()</em> and proceed to read from the fanotify file descriptors to inspect events.</p>
+<p>To begin, we need to create a fanotify file descriptor using <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;fanotify_init()&ensp;</span>, paying special attention to the flags supplied to it (elaborated later).</p>
+<p>We will then mark a file/directory/mount point with <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;fanotify_mark()&ensp;</span> and proceed to read from the fanotify file descriptors to inspect events.</p>
 <p>The snippets below shows an overview of the APIs involved for different use case of file monitoring:</p>
 <ul>
 <li>Start by initializing a fanotify file descriptor
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Flags will be provided in other examples later
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> fan_fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">fanotify_init</span>(...);
 </span></span></code></pre></div></li>
-<li>Example to monitor a specific file for FAN_OPEN
+<li>Example to monitor a specific file for <code>FAN_OPEN</code>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD, FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;test.txt&#34;</span>);
 </span></span></code></pre></div></li>
-<li>Example to monitor a directory (non-recursive, excluding files) for FAN_OPEN
+<li>Example to monitor a directory (non-recursive, excluding files) for <code>FAN_OPEN</code>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_ONLYDIR, FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/tmp/testdir&#34;</span>);
 </span></span></code></pre></div></li>
-<li>Example to monitor a directory (non-recursive, including files) for FAN_OPEN
+<li>Example to monitor a directory (non-recursive, including files) for <code>FAN_OPEN</code>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD, FAN_EVENT_ON_CHILD <span style="color:#f92672">|</span> FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/tmp/testdir&#34;</span>);
 </span></span></code></pre></div></li>
-<li>Example to monitor the &ldquo;/&rdquo; mount point (recursive, including files and new directories) for FAN_OPEN
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_MOUNT, FAN_EVENT_ON_CHILD <span style="color:#f92672">|</span> FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// Only on newer kernel versions (since 4.20)
+<li>Example to monitor the &ldquo;/tmp&rdquo; mount point (recursive, including files and new directories) for <code>FAN_OPEN</code>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_MOUNT, FAN_EVENT_ON_CHILD <span style="color:#f92672">|</span> FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/tmp&#34;</span>);
+</span></span></code></pre></div></li>
+<li>Example to monitor the entire filesystem (all mount points)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Only on newer kernel versions (since 4.20)
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_FILESYSTEM, FAN_EVENT_ON_CHILD <span style="color:#f92672">|</span> FAN_ONDIR <span style="color:#f92672">|</span> FAN_OPEN, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
 </span></span></code></pre></div></li>
 </ul>
-<p>Now that you have a better understanding on the overall APIs, we need to look deeper into which specific flags and masks to use. I have sunk countless hours through trial and error (so that you don&rsquo;t have to 😊) in order to find the optimal set of flags and masks for monitoring specific events.</p>
-<h2 id="4-inspecting-read-write-execute-events">4. Inspecting Read, Write, Execute Events</h2>
-<p>The <a href="https://man7.org/linux/man-pages/man7/fanotify.7.html">fanotify(7)</a> man page has provided a template example for inspecting read, write and execute events.</p>
-<p>Instead of specifying the <code>FAN_NONBLOCK</code> flag in <em>fanotify_init()</em>, we should omit it in order to capture all events. If <code>FAN_NONBLOCK</code> is specified, there is a chance that certain events may slip under the radar if our application cannot read it in time.</p>
+<p>I know, I know&hellip; You must be thinking: <em>&ldquo;So what&rsquo;s the deal between</em> <code>FAN_MARK_MOUNT</code> <em>and</em> <code>FAN_MARK_FILESYSTEM</code> <em>really? Why do we need two different flags?&rdquo;</em></p>
+<p>As it turns out, these two flags overlap just enough to be confusing, but not enough to be interchangeable. Laying them out next to each other clears up where each one shines, and where it doesn’t.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Aspect</th>
+          <th>FAN_MARK_MOUNT</th>
+          <th>FAN_MARK_FILESYSTEM</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Kernel support</td>
+          <td>Supported on all kernel versions</td>
+          <td>Supported starting from Linux 4.20</td>
+      </tr>
+      <tr>
+          <td>Scope</td>
+          <td>Monitors a single mount point</td>
+          <td>Monitors the entire filesystem (all mounts)</td>
+      </tr>
+      <tr>
+          <td>Event coverage</td>
+          <td>Some events are only available in this mode</td>
+          <td>Some events are only available in this mode</td>
+      </tr>
+  </tbody>
+</table>
+<p>Now that you understand the APIs, we can get down to the fun of working out which flags actually go with which event masks, since of course, the <a href="https://man7.org/linux/man-pages/man7/fanotify.7.html">fanotify man page</a> politely declines to make this obvious.</p>
+<h2 id="4-fanotify-flag-mask-compatibility-table">4. Fanotify Flag-Mask Compatibility Table</h2>
+<p>I have sunk countless hours through trial and error (so that you don&rsquo;t have to 😊) in order to find the out the compatibility between different <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;fanotify_init()&ensp;</span> flags, <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;fanotify_mark()&ensp;</span> flags and event masks.</p>
+<table>
+  <thead>
+    <tr>
+      <th>fanotify_init() flags</th>
+      <th>fanotify_mark() flags</th>
+      <th>Event mask</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- FAN_CLASS_CONTENT -->
+    <tr>
+      <td rowspan="11"><code>FAN_CLOEXEC |<br>FAN_CLASS_CONTENT</code></td>
+      <td rowspan="11"><code>FAN_MARK_MOUNT</code></td>
+      <td><code>FAN_EVENT_ON_CHILD</code></td>
+    </tr>
+    <tr><td><code>FAN_ONDIR</code></td></tr>
+    <tr><td><code>FAN_ACCESS</code></td></tr>
+    <tr><td><code>FAN_OPEN</code></td></tr>
+    <tr><td><code>FAN_MODIFY</code></td></tr>
+    <tr><td><code>FAN_OPEN_EXEC</code></td></tr>
+    <tr><td><code>FAN_CLOSE_WRITE</code></td></tr>
+    <tr><td><code>FAN_CLOSE_NOWRITE</code></td></tr>
+    <tr><td><code>FAN_OPEN_PERM</code></td></tr>
+    <tr><td><code>FAN_ACCESS_PERM</code></td></tr>
+    <tr><td><code>FAN_OPEN_EXEC_PERM</code></td></tr>
+  </tbody>
+  <tbody>
+    <!-- FAN_CLASS_NOTIF -->
+    <tr>
+      <td rowspan="13"><code>FAN_CLASS_NOTIF | <br>FAN_REPORT_DFID_NAME</code></td>
+      <td rowspan="13"><code>FAN_MARK_FILESYSTEM</code></td>
+      <td><code>FAN_EVENT_ON_CHILD</code></td>
+    </tr>
+    <tr><td><code>FAN_ONDIR</code></td></tr>
+    <tr><td><code>FAN_ACCESS</code></td></tr>
+    <tr><td><code>FAN_OPEN</code></td></tr>
+    <tr><td><code>FAN_MODIFY</code></td></tr>
+    <tr><td><code>FAN_OPEN_EXEC</code></td></tr>
+    <tr><td><code>FAN_CLOSE_WRITE</code></td></tr>
+    <tr><td><code>FAN_CLOSE_NOWRITE</code></td></tr>
+    <tr><td><code>FAN_CREATE</code></td></tr>
+    <tr><td><code>FAN_DELETE</code></td></tr>
+    <tr><td><code>FAN_MOVED_FROM</code></td></tr>
+    <tr><td><code>FAN_MOVED_TO</code></td></tr>
+    <tr><td><code>FAN_ATTRIB</code></td></tr>
+  </tbody>
+</table>
+<h2 id="5-inspecting-read-write-execute-events">5. Inspecting Read, Write, Execute Events</h2>
+<p>The <a href="https://man7.org/linux/man-pages/man7/fanotify.7.html">fanotify man page</a> has provided a template example for inspecting read, write and execute events.</p>
+<p>Instead of specifying the <code>FAN_NONBLOCK</code> flag in <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;fanotify_init()&ensp;</span>, we should omit it in order to capture all events. If <code>FAN_NONBLOCK</code> is specified, there is a chance that certain events may slip under the radar if our application cannot read it in time.</p>
 <p><a name="flags"></a> Therefore, with the modification applied, our initialization should look like this:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> fan_fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">fanotify_init</span>(FAN_CLOEXEC <span style="color:#f92672">|</span> FAN_CLASS_CONTENT, O_RDONLY <span style="color:#f92672">|</span> O_LARGEFILE);
 </span></span></code></pre></div><p>After getting a valid fanotify file descriptor (not -1), we can mark a file/directory/mount point. In this example, I will just be marking the &ldquo;/&rdquo; mount point with <code>FAN_MARK_MOUNT</code> as it is backwards compatible with older kernel versions.</p>
@@ -343,7 +431,7 @@
 </span></span><span style="display:flex;"><span>                 FAN_CLOSE_NOWRITE; 
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">fanotify_mark</span>(fan_fd, FAN_MARK_ADD <span style="color:#f92672">|</span> FAN_MARK_MOUNT, masks, AT_FDCWD, <span style="color:#e6db74">&#34;/&#34;</span>);
-</span></span></code></pre></div><p>We can do a <em>poll()</em> on our fanotify file descriptor to wait for incoming events and parse them accordingly.
+</span></span></code></pre></div><p>We can do a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;poll()&ensp;</span> on our fanotify file descriptor to wait for incoming events and parse them accordingly.
 For the sake of simplicity, The overall code should look like this:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> pollfd pfd;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">ssize_t</span> buflen <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
@@ -374,7 +462,7 @@ For the sake of simplicity, The overall code should look like this:</p>
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="5-inspecting-create-delete-move-events">5. Inspecting Create, Delete, Move Events</h2>
+</span></span></code></pre></div><h2 id="6-inspecting-create-delete-move-events">6. Inspecting Create, Delete, Move Events</h2>
 <p>In the same <a href="https://man7.org/linux/man-pages/man7/fanotify.7.html">fanotify(7)</a> man page, they provided an additional example of fanotify being used with a group that identifies objects by file handles.</p>
 <p>As usual, we will initialize a fanotify file descriptor but this time, we will use the flags meant for file handles.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> fan_fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">fanotify_init</span>(FAN_CLASS_NOTIF <span style="color:#f92672">|</span> FAN_REPORT_DFID_NAME, O_RDWR);
@@ -402,7 +490,7 @@ For the sake of simplicity, The overall code should look like this:</p>
     </div>
 </div>
 
-<p>Similarly, we will do a <em>poll()</em> on the fanotify file descriptor just like how we did it in the <a href="/posts/linux-file-monitoring-with-fanotify/#4-inspecting-read-write-execute-events">previous section</a>. If you want to get the file name, you will need to make use of <code>struct fanotify_event_info_fid</code> and <code>struct file_handle</code>.</p>
+<p>Similarly, we will do a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;poll()&ensp;</span> on the fanotify file descriptor just like how we did it in the <a href="/posts/linux-file-monitoring-with-fanotify/#5-inspecting-read-write-execute-events">previous section</a>. If you want to get the file name, you will need to make use of <code>struct fanotify_event_info_fid</code> and <code>struct file_handle</code>.</p>
 <p>The snippet below shows how you are able to retrieve the file name:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>...
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> fanotify_event_metadata <span style="color:#f92672">*</span>metadata;
@@ -422,8 +510,8 @@ For the sake of simplicity, The overall code should look like this:</p>
 </span></span><span style="display:flex;"><span>  ...
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>...
-</span></span></code></pre></div><h2 id="6--bonus---allowdeny-file-operations">6. ⭐ Bonus - Allow/Deny File Operations</h2>
-<p>If you are creating an application that prevents all users (including root) to read or execute certain files, you will need the same <a href="/posts/linux-file-monitoring-with-fanotify/#flags">flags</a> as the <em>fanotify_init()</em> example shown in Section 4. After getting a valid fanotify file descriptor (not -1), we can mark a file/directory/mount point.</p>
+</span></span></code></pre></div><h2 id="7--bonus---allowdeny-file-operations">7. ⭐ Bonus - Allow/Deny File Operations</h2>
+<p>If you are creating an application that prevents all users (including root) to read or execute certain files, you will need the same <a href="/posts/linux-file-monitoring-with-fanotify/#flags">flags</a> as the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;fanotify_init()&ensp;</span> example shown in Section 4. After getting a valid fanotify file descriptor (not -1), we can mark a file/directory/mount point.</p>
 <p>In this example, I will be marking just 1 file - &ldquo;/home/gerald/example.txt&rdquo; and deny any who tries to open this file.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> fanotify_response response;
 </span></span><span style="display:flex;"><span>
@@ -442,9 +530,9 @@ For the sake of simplicity, The overall code should look like this:</p>
 </span></span><span style="display:flex;"><span>  metadata <span style="color:#f92672">=</span> <span style="color:#a6e22e">FAN_EVENT_NEXT</span>(metadata, buflen);
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>...
-</span></span></code></pre></div><h2 id="7-conclusion">7. Conclusion</h2>
+</span></span></code></pre></div><h2 id="8-conclusion">8. Conclusion</h2>
 <p>If everything made sense to you so far, great! If not, I would highly recommend re-visiting the sections you were unsure on, and trying the fanotify APIs for yourself!</p>
-<h2 id="8-resources">8. Resources</h2>
+<h2 id="9-resources">9. Resources</h2>
 <ol>
 <li><a href="https://github.com/mathscantor/filemon">filemon</a> - Multithreaded Linux File Monitoring Tool</li>
 <li><a href="https://man7.org/linux/man-pages/man7/fanotify.7.html">fanotify(7) man page</a> - Official fanotify man page</li>

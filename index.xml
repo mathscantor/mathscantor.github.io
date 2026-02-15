@@ -7,8 +7,15 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Thu, 12 Feb 2026 08:30:33 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 15 Feb 2026 09:34:42 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux Kernel Module Debugging</title>
+      <link>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</link>
+      <pubDate>Sun, 15 Feb 2026 09:34:42 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Kernel module debugging is the art you master after &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;&amp;ensp;printk()&amp;ensp;&lt;/span&gt; betrays you.&lt;/p&gt;&#xA;&lt;p&gt;If you are a kernel developer, writing drivers, hacking on memory management, or building experimental things like verification or virtualization logic in kernel space, being able to debug LKMs matters a lot. Once your code is running below userspace, &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;&amp;ensp;printk()&amp;ensp;&lt;/span&gt; quickly stops being enough. Without symbols, every crash turns into guesswork and every bug feels expensive.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Linux EDR for Host Events</title>
       <link>https://mathscantor.github.io/posts/linux-edr-for-host-events/</link>

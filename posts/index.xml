@@ -6,8 +6,231 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Wed, 21 Jan 2026 07:48:42 +0800</lastBuildDate>
+        <lastBuildDate>Sun, 15 Feb 2026 09:34:42 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Linux Kernel Module Debugging</title>
+            <link>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</link>
+            <pubDate>Sun, 15 Feb 2026 09:34:42 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Kernel module debugging is the art you master after &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;&amp;ensp;printk()&amp;ensp;&lt;/span&gt; betrays you.&lt;/p&gt;
+&lt;p&gt;If you are a kernel developer, writing drivers, hacking on memory management, or building experimental things like verification or virtualization logic in kernel space, being able to debug LKMs matters a lot. Once your code is running below userspace, &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;&amp;ensp;printk()&amp;ensp;&lt;/span&gt; quickly stops being enough. Without symbols, every crash turns into guesswork and every bug feels expensive.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Kernel module debugging is the art you master after <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;printk()&ensp;</span> betrays you.</p>
+<p>If you are a kernel developer, writing drivers, hacking on memory management, or building experimental things like verification or virtualization logic in kernel space, being able to debug LKMs matters a lot. Once your code is running below userspace, <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;printk()&ensp;</span> quickly stops being enough. Without symbols, every crash turns into guesswork and every bug feels expensive.</p>
+<p>Over time, some pretty slick tooling has appeared to smooth this out. Debugger extensions like <a href="https://github.com/bata24/gef">bata24’s fork of GEF</a> can automatically load kernel module symbols at the right runtime offsets. They handle relocation, KASLR, and section layout details for you, making kernel debugging feel almost civilized.</p>
+<p>But here’s the fun part, you do not actually need any of that. (Credits to Keith! You are the MVP)</p>
+<p>The kernel already exposes the exact section addresses of loaded modules. With a simple, old-school approach, you can load symbols manually and get the same result, using data straight from the kernel itself. No heuristics, no inferred relocation bases, and no black-box magic. Just reliable, transparent debugging that works because the kernel says it does.</p>
+<p>That is the path we are going to take in this post.</p>
+<h2 id="2-setting-kernel-debugging-environment">2. Setting Kernel Debugging Environment</h2>
+<p>For my target VM, I am running Ubuntu 24.04 on VMware Workstation.</p>
+<p>Before running it, add the following lines anywhere in the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;.vmx&ensp;</span> file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#a6e22e">debugStub.listen.guest64</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;TRUE&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">debugStub.listen.guest64.remote</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;TRUE&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">debugStub.port.guest64</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;8864&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">VMware GDB Stub Configuration<br><br></span>
+<p>After starting the VM, we can verify that our host machine is listening on port 8864.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@host:~$ ss -antp | grep <span style="color:#ae81ff">8864</span>
+</span></span><span style="display:flex;"><span>LISTEN     <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">5</span>            0.0.0.0:8864          0.0.0.0:*                                           
+</span></span><span style="display:flex;"><span>LISTEN     <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">5</span>               <span style="color:#f92672">[</span>::<span style="color:#f92672">]</span>:8864             <span style="color:#f92672">[</span>::<span style="color:#f92672">]</span>:*
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verifying VMware GDB Stub Listener<br><br></span>
+<p>Lastly, we should verify that we can attach gdb from our host to the listener. (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;127.0.0.1:8864&ensp;</span>)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>(gdb) target remote 127.0.0.1:8864
+</span></span><span style="display:flex;"><span>Remote debugging using 127.0.0.1:8864
+</span></span><span style="display:flex;"><span>0xffffffffb51999fb in ?? ()
+</span></span><span style="display:flex;"><span>(gdb) detach
+</span></span><span style="display:flex;"><span>(gdb) quit
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Verifying GDB Connection to Kernel<br><br></span>
+<p>For QEMU users, please follow my <a href="http://localhost:1313/posts/general-firmware-analysis-guide/#51-qemu-gdb-stub">previous guide</a> to set up a GDB stub through <em>libvirt</em>.</p>
+<h2 id="3-creating-a-test-lkm">3. Creating a Test LKM</h2>
+<ol>
+<li>
+<p>Create a simple LKM (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;random_loop.c&ensp;</span>) that generates random numbers every second:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kthread.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/delay.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/random.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_LICENSE</span>(<span style="color:#e6db74">&#34;GPL&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_AUTHOR</span>(<span style="color:#e6db74">&#34;mathscantor&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_DESCRIPTION</span>(<span style="color:#e6db74">&#34;LKM that generates a random number every second&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_VERSION</span>(<span style="color:#e6db74">&#34;0.1&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span><span style="color:#66d9ef">thread</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Thread function: generates random number every second
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">random_thread_fn</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>data)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">kthread_should_stop</span>()) {
+</span></span><span style="display:flex;"><span>        u32 rand;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">get_random_bytes</span>(<span style="color:#f92672">&amp;</span>rand, <span style="color:#66d9ef">sizeof</span>(rand));
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;random_loop_module: random number = %u</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, rand);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">msleep</span>(<span style="color:#ae81ff">1000</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">random_loop_init</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;random_loop_module: loaded</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">thread</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">kthread_run</span>(random_thread_fn, NULL, <span style="color:#e6db74">&#34;random_loop_thread&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">IS_ERR</span>(<span style="color:#66d9ef">thread</span>)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pr_err</span>(<span style="color:#e6db74">&#34;random_loop_module: failed to create thread</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">PTR_ERR</span>(<span style="color:#66d9ef">thread</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">random_loop_exit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">thread</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">kthread_stop</span>(<span style="color:#66d9ef">thread</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;random_loop_module: unloaded</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_init</span>(random_loop_init);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_exit</span>(random_loop_exit);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">LKM Source Code:<span style="font-family: Courier, monospace; font-weight: 600;"> random_loop.c </span><br><br></span>
+</li>
+<li>
+<p>Create a<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;Makefile&ensp;</span>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>obj-m <span style="color:#f92672">:=</span> random_loop.o
+</span></span><span style="display:flex;"><span>KDIR <span style="color:#f92672">?=</span> /lib/modules/<span style="color:#66d9ef">$(</span>shell uname -r<span style="color:#66d9ef">)</span>/build
+</span></span><span style="display:flex;"><span>PWD <span style="color:#f92672">:=</span> <span style="color:#66d9ef">$(</span>shell pwd<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">all</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">$(</span>MAKE<span style="color:#66d9ef">)</span> -C <span style="color:#66d9ef">$(</span>KDIR<span style="color:#66d9ef">)</span> M<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>PWD<span style="color:#66d9ef">)</span> modules
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">clean</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">$(</span>MAKE<span style="color:#66d9ef">)</span> -C <span style="color:#66d9ef">$(</span>KDIR<span style="color:#66d9ef">)</span> M<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>PWD<span style="color:#66d9ef">)</span> clean
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">LKM Makefile<br><br></span>
+</li>
+<li>
+<p>Compile the kernel module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu-2404:~/Desktop/lkm-debugging$ make
+</span></span><span style="display:flex;"><span>gerald@ubuntu-2404:~/Desktop/lkm-debugging$ ls -l
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>-rw-rw-r-- <span style="color:#ae81ff">1</span> gerald gerald <span style="color:#ae81ff">318584</span> Feb <span style="color:#ae81ff">15</span> 11:22 random_loop.ko
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling LKM<br><br></span>
+</li>
+<li>
+<p>Insert the kernel module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu-2404:~/Desktop/lkm-debugging$ sudo insmod random_loop.ko
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Inserting LKM<br><br></span>
+</li>
+</ol>
+<h2 id="4-debugging-test-lkm">4. Debugging Test LKM</h2>
+<p>Our objective here is simple: To dynamically observe the random number before it gets printed to the kernel logs.</p>
+<ol>
+<li>
+<p>Transfer a copy of<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;random_loop.ko&ensp;</span>to the host.</p>
+</li>
+<li>
+<p>When a kernel module is loaded, it does not land at a fixed address. KASLR makes sure of that. Luckily, the kernel is not trying to hide this information from us. Every loaded module exposes its resolved section addresses via<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/sys/module/&lt;LKM_NAME&gt;/sections&ensp;</span></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu-2404:~$ ls -la /sys/module/random_loop/sections
+</span></span><span style="display:flex;"><span>total <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#ae81ff">2</span> root root  <span style="color:#ae81ff">0</span> Feb <span style="color:#ae81ff">15</span> 13:02 .
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#ae81ff">5</span> root root  <span style="color:#ae81ff">0</span> Feb <span style="color:#ae81ff">15</span> 13:01 ..
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .bss
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .call_sites
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .exit.data
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .exit.text
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .gnu.linkonce.this_module
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .init.data
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .init.text
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 __mcount_loc
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .note.gnu.build-id
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .note.Linux
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 __patchable_function_entries
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .return_sites
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .rodata.str1.1
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .rodata.str1.8
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .strtab
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .symtab
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">19</span> Feb <span style="color:#ae81ff">15</span> 13:02 .text
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Sections of <em>random_loop</em> LKM<br><br></span>
+</li>
+<li>
+<p>Get the address of<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;.text&ensp;</span>section</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu-2404:~$ sudo cat /sys/module/random_loop/sections/.text
+</span></span><span style="display:flex;"><span>0xffffffffc0786000
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Text Section Address<br><br></span>
+</li>
+<li>
+<p>(Optional) Get the address of other sections</p>
+<ul>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;.data&ensp;</span>: Global variables</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;.bss&ensp;</span>: Zero-init globals</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;.rodata&ensp;</span>: Const data / strings</li>
+</ul>
+</li>
+<li>
+<p>Remotely attach to the GDB stub from the host</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> target remote 127.0.0.1:8864
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set confirm off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pagination off
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Attaching to GDB Stub and Setting Basic Headers<br><br></span>
+</li>
+<li>
+<p>Load the kernel module file with the relevant sections</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $text_base <span style="color:#f92672">=</span> 0xffffffffc0786000
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Minimal</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> add-symbol-file /tmp/random_loop.ko $text_base
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Appending other sections:</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> add-symbol-file /tmp/random_loop.ko $text_base -s .bss 0xffff...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Loading random_loop LKM at Correct Address<br><br></span>
+</li>
+<li>
+<p>Get the randomly generated number after the call to<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;get_random_bytes()&ensp;</span>. Based on Ghidra Output (Figure 1), we need to set a breakpoint at<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;.text&#43;0x42&ensp;</span></p>
+<p><img src="/posts/linux-kernel-module-debugging/images/ghidra-text_&#43;0x42.png" alt="ghidra-text_&#43;0x42"></p>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Getting Breakpoint Offset<br><br></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Set a breakpoint one instruction after the call to get_random_bytes()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>$text_base + 0x42<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Check if we are at the correction instruction after breakpoint hits</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0xffffffffc0786042 &lt;random_loop_init+50&gt;:    mov    esi,DWORD PTR <span style="color:#f92672">[</span>rbp-0xc<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/wx $rbp - 0xc
+</span></span><span style="display:flex;"><span>0xffffccf200c2beb4:     0x48802b9e  <span style="color:#75715e"># This is the randomly generated number</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Getting Randomly Generated Number<br><br></span>
+</li>
+</ol>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>At this point, we have done real kernel module debugging without any magic.</p>
+<p>We built a test LKM, loaded it into a KASLR-enabled kernel, extracted its true runtime addresses directly from<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/sys/module/&lt;LKM_NAME&gt;/sections&ensp;</span>and manually loaded symbols into GDB. From there, we were able to break inside kernel code and inspect live data.</p>
+<p>Fancy tooling like GEF absolutely has its place, especially when you want speed and convenience. But it is important to understand that underneath the abstractions, the kernel already gives you everything you need. This old-school approach is transparent, deterministic, and works anywhere the kernel does.</p>
+<h2 id="6-resources">6. Resources</h2>
+<ol>
+<li><a href="/posts/linux-kernel-module-debugging/resources/random_loop.c">random_loop.c</a></li>
+<li><a href="/posts/linux-kernel-module-debugging/resources/Makefile">Makefile</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Linux EDR for Host Events</title>

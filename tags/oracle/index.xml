@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Oracle on Mathscantor&#39;s Cybersecurity Blog</title>
+    <link>https://mathscantor.github.io/tags/oracle/</link>
+    <description>Recent content in Oracle on Mathscantor&#39;s Cybersecurity Blog</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Sat, 14 Mar 2026 09:21:28 +0800</lastBuildDate>
+    <atom:link href="https://mathscantor.github.io/tags/oracle/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Oracle CVE-2020-2555 Analysis</title>
+      <link>https://mathscantor.github.io/posts/oracle-cve-2020-2555-analysis/</link>
+      <pubDate>Sat, 14 Mar 2026 09:21:28 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/oracle-cve-2020-2555-analysis/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Some vulnerabilities don’t look dangerous at first glance, and this one starts with an innocent-looking&lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;&amp;ensp;toString()&amp;ensp;&lt;/span&gt;function.&lt;/p&gt;&#xA;&lt;p&gt;In CVE-2020-2555, a seemingly harmless method call buried inside Java’s deserialization process becomes the entry point for remote code execution in Oracle WebLogic Server.&lt;/p&gt;&#xA;&lt;p&gt;Rather than beginning with patch diffing or advisories, this write-up follows a different approach. We will instead start with a payload, trigger the bug, and follow the execution trail wherever it leads.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

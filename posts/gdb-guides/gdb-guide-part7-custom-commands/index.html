@@ -305,13 +305,29 @@
 </span></span><span style="display:flex;"><span>&gt; info registers rdi
 </span></span><span style="display:flex;"><span>&gt; end
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Example of User-Defined Commands<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Example of User-Defined Commands
+  
+    <br><br>
+  
+</span>
 <video width=100% controls>
     <source src="/posts/gdb-guides/gdb-guide-part7-custom-commands/videos/gdb-syntax.webm" type="video/webm">
     Your browser does not support the video tag.  
 </video>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="video">Demo - Using User-Defined Commands<br><br></span>
+
+
+
+<span class="caption" data-type="video">
+  Demo - Using User-Defined Commands
+  
+    <br><br>
+  
+</span>
 <h2 id="3-python">3. Python</h2>
 <p>To create a new custom command in python, all you need to do is create a new class that inherits from the <em>gdb.Command</em> class.
 Let&rsquo;s break this down step by step!</p>
@@ -328,7 +344,15 @@ the class should be called <em>GetBaseAddr</em>.</p>
 </span></span><span style="display:flex;"><span>  
 </span></span><span style="display:flex;"><span>TestCommand()
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Python Class Overall Template<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Python Class Overall Template
+  
+    <br><br>
+  
+</span>
 <h3 id="32-defining-invoke-function">3.2 Defining Invoke Function</h3>
 <p>Still within the same class, we will also need to define our <em>invoke()</em> function which contains all the logic of our user-defined command.</p>
 <p>The snippet below replicates what we did <a href="/posts/gdb-guides/gdb-guide-part7-custom-commands/#test_command">previously</a>.</p>
@@ -338,7 +362,15 @@ the class should be called <em>GetBaseAddr</em>.</p>
 </span></span><span style="display:flex;"><span>    gdb<span style="color:#f92672">.</span>execute(<span style="color:#e6db74">&#34;info registers rdi&#34;</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Example of <em>invoke()</em> Function Logic<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Example of <em>invoke()</em> Function Logic
+  
+    <br><br>
+  
+</span>
 <link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert tip">
     <div class="alert-content">
@@ -367,7 +399,15 @@ successfully imported! The name of your command will follow what you have define
     Your browser does not support the video tag.  
 </video>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="video">Demo - Running Python User-Defined Command<br><br></span>
+
+
+
+<span class="caption" data-type="video">
+  Demo - Running Python User-Defined Command
+  
+    <br><br>
+  
+</span>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>Now that you have reached this stage of the tutorial, great job making it this far!</p>
 <p>If you are interested in more useful python extensions for GDB, you may check out some of the <a href="https://github.com/mathscantor/mGDB/tree/main/gdb_scripts/py_commands">commands</a> I wrote to help researchers debug their targets faster.</p>

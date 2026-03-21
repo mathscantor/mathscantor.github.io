@@ -304,7 +304,15 @@ For more information, see the help usage of <code>stepi / si</code>.</p>
 </span></span><span style="display:flex;"><span>Usage: stepi <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Step-Into Usage<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Step-Into Usage
+  
+    <br><br>
+  
+</span>
 <p>The following example shows the relevant commands for stepping into 5 instructions after we hit the breakpoint at the start of <em>fib_num()</em>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
@@ -339,7 +347,15 @@ For more information, see the help usage of <code>stepi / si</code>.</p>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
 </span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x4018d9 &lt;fib_num+36&gt;:       jne    0x4018e0 &lt;fib_num+43&gt;
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Example Usage of Stepping Into<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Example Usage of Stepping Into
+  
+    <br><br>
+  
+</span>
 <h2 id="4-stepping-over">4. Stepping Over</h2>
 <p>Stepping over is slightly different from stepping as it treats a function/subroutine call as one instruction. To step over instructions, the command to use is <code>nexti / ni</code>.
 To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
@@ -350,7 +366,15 @@ To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 </span></span><span style="display:flex;"><span>Usage: nexti <span style="color:#f92672">[</span>N<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>Argument N means step N times <span style="color:#f92672">(</span>or till program stops <span style="color:#66d9ef">for</span> another reason<span style="color:#f92672">)</span>.
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Step-Over Usage<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Step-Over Usage
+  
+    <br><br>
+  
+</span>
 <p>The following example shows the relevant commands for stepping over the fib_num call after we hit the breakpoint at the function call to <em>fib_num()</em>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
@@ -395,7 +419,15 @@ To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/i $pc
 </span></span><span style="display:flex;"><span><span style="color:#f92672">=</span>&gt; 0x401970 &lt;main+84&gt;:  mov    esi,eax
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Example Usage of Stepping Over<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Example Usage of Stepping Over
+  
+    <br><br>
+  
+</span>
 <h2 id="5-stepping-out">5. Stepping Out</h2>
 <p>The last method of stepping is to execute everything in the current function and return to the caller. To do so, use the
 <code>finish</code> command. To see more information on <code>finish</code>, refer to the help usage.</p>
@@ -406,7 +438,15 @@ To see more information on <code>nexti / ni</code>, refer to the help usage.</p>
 </span></span><span style="display:flex;"><span>Usage: finish
 </span></span><span style="display:flex;"><span>Upon <span style="color:#66d9ef">return</span>, the value returned is printed and put in the value history.
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Step-Out Usage<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Step-Out Usage
+  
+    <br><br>
+  
+</span>
 <p>The following example shows the relevant commands for stepping out of the <em>fib_num()</em> function and getting its return value.
 The</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
@@ -430,7 +470,15 @@ The</p>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $rax
 </span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Example Usage of Step Out<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Example Usage of Step Out
+  
+    <br><br>
+  
+</span>
 <h2 id="6-conclusion">6. Conclusion</h2>
 <p>Now that you have made it this far, you have mastered the basics of GDB! In the next few guides, I will be going through more advanced techniques to achieve greater efficiency in dynamic analysis through automation.</p>
 <p>Stay safe and healthy folks!</p>

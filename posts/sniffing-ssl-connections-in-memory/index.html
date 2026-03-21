@@ -351,7 +351,15 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Simple SSL Client - ssl_client.c<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Simple SSL Client - ssl_client.c
+  
+    <br><br>
+  
+</span>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
@@ -436,80 +444,200 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Simple SSL Server - ssl_server.c<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Simple SSL Server - ssl_server.c
+  
+    <br><br>
+  
+</span>
 <p>The server will also require a private key and a certificate generated with <em>openssl</em>. (See Listing 3)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days <span style="color:#ae81ff">365</span> -nodes
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Generating OpenSSL Private Key and Certificate<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Generating OpenSSL Private Key and Certificate
+  
+    <br><br>
+  
+</span>
 <p>Next, install the OpenSSL development libraries before compiling the client and server. (See Listing 4)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo apt install libssl-dev
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Installing OpenSSL Development Library<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Installing OpenSSL Development Library
+  
+    <br><br>
+  
+</span>
 <p>Lastly, compile both the client and the server. (See Listing 5)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc ssl_server.c -o ssl_server -lssl -lcrypto
 </span></span><span style="display:flex;"><span>$ gcc ssl_client.c -o ssl_client -lssl -lcrypto
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Compiling SSL Client and Server<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Compiling SSL Client and Server
+  
+    <br><br>
+  
+</span>
 <p>Now, run the server before the client. If everything is working as intended, the server will receive the client&rsquo;s message and echo it back to the client.</p>
 <p><img src="/posts/sniffing-ssl-connections-in-memory/images/simple_test.png" alt="simple_test"></p>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="figure">Server and Client SSL Message Exchange<br><br></span>
+
+
+
+<span class="caption" data-type="figure">
+  Server and Client SSL Message Exchange
+  
+    <br>
+  
+</span>
 <h2 id="3-inspecting-buffer-in-client">3. Inspecting Buffer in Client</h2>
 <p>To capture the plaintext buffer before it is encrypted, we just have to print the buffer right at the start of <em>SSL_write()</em>! Simple, isn&rsquo;t it?</p>
 <p>Start the server first, then attach to the client using <em>gdb</em>. (See Listing 6)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb ssl_client
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Attach to <em>ssl_client</em> with <em>gdb</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Attach to <em>ssl_client</em> with <em>gdb</em>
+  
+    <br><br>
+  
+</span>
 <p>Next, we will set a breakpoint at the start of SSL_write before running the binary. (See Listing 7)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b SSL_write
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting Breakpoint @ <em>SSL_write()</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting Breakpoint @ <em>SSL_write()</em>
+  
+    <br><br>
+  
+</span>
 <p>Once the breakpoint is hit, print the value of the second argument to SSL_write(). In my case, I am using the x86_64 architecture in Linux and therefore, the 2nd argument of <em>SSL_write()</em> refers to the <em>RSI</em> register. (See Listing 8)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers rsi
 </span></span><span style="display:flex;"><span>rsi            0x82205b            <span style="color:#ae81ff">8527963</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Inspecting Value of <em>RSI</em> Register<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Inspecting Value of <em>RSI</em> Register
+  
+    <br><br>
+  
+</span>
 <p>The value of <em>RSI</em> shown in the previous listing refers to the address of the buffer / the pointer to the string in plaintext. Inspecting the plaintext buffer is straightforward from here. (See Listing 9)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s $rsi
 </span></span><span style="display:flex;"><span>0x82205b:	<span style="color:#e6db74">&#34;Hello from client!&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Printing Plaintext Buffer<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Printing Plaintext Buffer
+  
+    <br><br>
+  
+</span>
 <h2 id="4-inspecting-buffer-in-server">4. Inspecting Buffer in Server</h2>
 <p>Now that we&rsquo;ve captured the plaintext message on the client side, let’s do the same on the server.
 This time, however, we will require two breakpoints within <em>SSL_read()</em>.</p>
 <p>Firstly, attach to the server with <em>gdb</em>. (See Listing 10)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb ssl_server
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Attach GDB to <em>ssl_server</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Attach GDB to <em>ssl_server</em>
+  
+    <br><br>
+  
+</span>
 <p>Set a breakpoint at the start of <em>SSL_read()</em> before running the server. (See Listing 11)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b SSL_read
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting Breakpoint @ <em>SSL_read()</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting Breakpoint @ <em>SSL_read()</em>
+  
+    <br><br>
+  
+</span>
 <p>Upon hitting the breakpoint (by running our client), we save the address stored in the <em>RSI</em> register for later reference. (See Listing 12)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Hit Breakpoint 1 (SSL_read)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $buf <span style="color:#f92672">=</span> $rsi
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Saving Buffer Address for Reference<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Saving Buffer Address for Reference
+  
+    <br><br>
+  
+</span>
 <p>Since the plaintext will be written to the buffer at the end of <em>SSL_read()</em>, we set a breakpoint at the <code>ret</code> instruction. Thus, we need to find the offset where this instruction occurs by reading its disassembly. In my case, this occurs at <code>SSL_read + 74</code>. (See Listing 13)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>(gdb) disass SSL_read
 </span></span><span style="display:flex;"><span>...
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x00007ffff7f3a5fa</span> <span style="color:#f92672">&lt;+</span><span style="color:#ae81ff">74</span><span style="color:#f92672">&gt;:</span>	ret
 </span></span><span style="display:flex;"><span>...
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Finding Offset of Return Instruction<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Finding Offset of Return Instruction
+  
+    <br><br>
+  
+</span>
 <p>After setting a 2nd breakpoint on the return instruction, resume the execution of the server. (See Listing 14)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>SSL_read + 74<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> <span style="color:#66d9ef">continue</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting Breakpoint @ <em>SSL_read()</em> + 74 &amp; Resuming Execution<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting Breakpoint @ <em>SSL_read()</em> + 74 &amp; Resuming Execution
+  
+    <br><br>
+  
+</span>
 <p>When we hit our 2nd breakpoint, we can read the plaintext string from our buffer address saved earlier. (See Listing 15)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Hit Breakpoint 2 (SSL_read + 74)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s $buf
 </span></span><span style="display:flex;"><span>0x7fffffffd860:	<span style="color:#e6db74">&#34;Hello from client!&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Reading Plaintext Buffer Reference<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Reading Plaintext Buffer Reference
+  
+    <br><br>
+  
+</span>
 <h2 id="5-conclusion">5. Conclusion</h2>
 <p>In short, you&rsquo;ve learned how to inspect TLS messages by setting appropriate breakpoints in <em>SSL_read()</em> and <em>SSL_write()</em>.
 I sure hope this short exercise has been fun and enlightening! Keep reading and stay curious.</p>

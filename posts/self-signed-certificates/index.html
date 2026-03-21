@@ -290,7 +290,15 @@
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;basicConstraints=critical,CA:true&#34;</span> <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;keyUsage=keyCertSign,cRLSign&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Generating CA Key &amp; Cert<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Generating CA Key &amp; Cert
+  
+    <br><br>
+  
+</span>
 <h2 id="3-generating-server-key--certificate-signing-request-csr">3. Generating Server Key &amp; Certificate Signing Request (CSR)</h2>
 <p>Before we can even get our server&rsquo;s certificate, we need to execute an intermediate step to generate a Certificate Signing Request (CSR), along with its private key.
 <link href="/posts/css/alert.css" rel="stylesheet">
@@ -317,7 +325,15 @@
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;keyUsage=digitalSignature,keyEncipherment&#34;</span> <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;subjectAltName=DNS:gitlab.nexus.org&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Generating Server Key &amp; CSR<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Generating Server Key &amp; CSR
+  
+    <br><br>
+  
+</span>
 <h2 id="4-signing-server-csr">4. Signing Server CSR</h2>
 <p>Lastly, we will use the CA private key and certificate to sign the CSR.
 <link href="/posts/css/alert.css" rel="stylesheet">
@@ -345,7 +361,15 @@
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -extfile &lt;<span style="color:#f92672">(</span>printf <span style="color:#e6db74">&#34;[ext]\nsubjectAltName=DNS:gitlab.nexus.org\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment&#34;</span><span style="color:#f92672">)</span> <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -extensions ext
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Signing Server CSR<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Signing Server CSR
+  
+    <br><br>
+  
+</span>
 <h2 id="5-conclusion">5. Conclusion</h2>
 <p>And that’s it! You’ve just created your own Certificate Authority (CA) and issued a self-signed certificate for a service under your domain. While this approach is perfectly fine for internal services, testing, or lab environments, remember that browsers and clients won’t trust your CA by default. You’ll need to explicitly import your CA certificate into their trust stores to avoid TLS warnings.</p>
 <p>For production-facing services, it’s strongly recommended to generate certificates from a trusted public CA (e.g., Let’s Encrypt) to ensure universal trust and avoid security pitfalls.</p>

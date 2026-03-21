@@ -304,7 +304,15 @@ In the video below, I demonstrated that the moment the watched process&rsquo;s e
 </video>
 
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="video">Demo - Watchdog Kills Unresponsive Watched Process<br><br></span></p>
+
+
+
+<span class="caption" data-type="video">
+  Demo - Watchdog Kills Unresponsive Watched Process
+  
+    <br><br>
+  
+</span></p>
 <p>It is recommended to get the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise.c">source file</a> or the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise">static binary</a> to follow along from this section onwards.</p>
 <h2 id="3-assigning-commands-to-breakpoints">3. Assigning Commands to Breakpoints</h2>
 <p>To assign a set of commands to any breakpoint, use <code>commands</code>.
@@ -321,7 +329,15 @@ According to the GDB manual:</p>
 </span></span><span style="display:flex;"><span>Give <span style="color:#e6db74">&#34;silent&#34;</span> as the first line to make the breakpoint silent;
 </span></span><span style="display:flex;"><span>then no output is printed when it is hit, except what the commands print.
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Commands Usage<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Commands Usage
+  
+    <br><br>
+  
+</span>
 <p>Let&rsquo;s test this out in practice by inspecting 3 arguments supplied to the <em>write</em> function call.
 To do so, we will write all our commands into a GDB script, called automation-exercise.gdb.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>set pag off
@@ -338,7 +354,15 @@ To do so, we will write all our commands into a GDB script, called automation-ex
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># After setting the breakpoint and  commands, resume the process.</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">continue</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">GDB Script - automation-exercise.gdb<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  GDB Script - automation-exercise.gdb
+  
+    <br><br>
+  
+</span>
 <p>In order to attach to the process and run the commands from our file, we need to supply our GDB command with <code>--batch</code> and <code>-x</code> arguments.</p>
 <link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert note">
@@ -362,7 +386,15 @@ To do so, we will write all our commands into a GDB script, called automation-ex
 <p>Thus, our GDB arguments will look like this:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb --batch -x automation-exercise.gdb -p $PID
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Attaching GDB to Process with Script<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Attaching GDB to Process with Script
+  
+    <br><br>
+  
+</span>
 <p>
  
 <video width=100% controls>
@@ -371,7 +403,15 @@ To do so, we will write all our commands into a GDB script, called automation-ex
 </video>
 
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="video">Demo - Automating the GDB Commands on <em>write()</em> Function Calls<br><br></span></p>
+
+
+
+<span class="caption" data-type="video">
+  Demo - Automating the GDB Commands on <em>write()</em> Function Calls
+  
+    <br><br>
+  
+</span></p>
 <p>Just for practice, edit the above GDB script to only print out messages sent from the child process to the watchdog.
 As a start, you need to find out which argument is the one that contains the buffer. You can also filter out irrelevant write calls by
 the file descriptor. Since we do not want <em>write()</em> calls from <em>printf()</em>, filter out <em>write()</em> calls whose file descriptor is 1 (stdout fd is 1).</p>
@@ -384,7 +424,15 @@ the file descriptor. Since we do not want <em>write()</em> calls from <em>printf
 </video>
 
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="video">Demo - Extra Exercise Answer<br><br></span></p>
+
+
+
+<span class="caption" data-type="video">
+  Demo - Extra Exercise Answer
+  
+    <br><br>
+  
+</span></p>
 <p>If you still cannot figure it out, that&rsquo;s alright. Here&rsquo;s the <a href="/posts/gdb-guides/gdb-guide-part6-automation/resources/automation-exercise-extras.gdb">answer</a> to the extra exercise.</p>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>After today&rsquo;s exercise, I hope you have gained more confidence in debugging targets that cannot have their executions paused indefinitely. In the next post, I will be sharing more about more automation techinques by defining your own custom commands.</p>

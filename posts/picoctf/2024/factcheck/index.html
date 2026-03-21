@@ -289,16 +289,40 @@
 <p>To objectively narrow down the scope, we can cheat a little by searching for &ldquo;picoCTF&rdquo; strings in the binary.</p>
 <p><img class="center" alt="ghidra-flag-strings" src="/posts/picoctf/2024/factcheck/images/ghidra-flag-strings.png"><br>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="figure">Flag Substring Search<br><br></span></p>
+
+
+
+<span class="caption" data-type="figure">
+  Flag Substring Search
+  
+    <br>
+  
+</span></p>
 <p>From the figure above, Ghidra suggests that the string is found at <code>0x00102005</code>.</p>
 <p>Clicking on it leads us to where the string was defined. However, you will notice that the flag is incomplete, and it is referenced in <em>main()</em>.</p>
 <p><img class="center" alt="ghidra-string-definition-offset" src="/posts/picoctf/2024/factcheck/images/ghidra-string-definition-offset.png"><br>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="figure">Flag Suffix Definition<br><br></span></p>
+
+
+
+<span class="caption" data-type="figure">
+  Flag Suffix Definition
+  
+    <br>
+  
+</span></p>
 <p>Again, click on the reference address, and it will bring us to <em>main()</em>.</p>
 <p><img class="center" alt="partial-flag-reference-in-main" src="/posts/picoctf/2024/factcheck/images/partial-flag-reference-in-main.png"><br>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="figure">Partial Flag Reference in <em>main()</em><br><br></span></p>
+
+
+
+<span class="caption" data-type="figure">
+  Partial Flag Reference in <em>main()</em>
+  
+    <br>
+  
+</span></p>
 <p>Looking at the decompiled code, the first part of the flag is assigned to the <code>local_248</code>, which is a pointer to memory in heap, where the constructed string will be placed. Subsequently, other strings are defined as well. (See Listing 1)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>undefined8 <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) { 
 </span></span><span style="display:flex;"><span>  ...
@@ -310,7 +334,15 @@
 </span></span><span style="display:flex;"><span>  ...
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Strings Initialization<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Strings Initialization
+  
+    <br><br>
+  
+</span>
 <p>After initializing a bunch of strings, it proceeds to append the other defined strings to the flag through a bunch of checks.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>undefined8 <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) { 
 </span></span><span style="display:flex;"><span>  ...
@@ -332,7 +364,15 @@
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Truncated: Calls to string deconstructor
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Flag Construction<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Flag Construction
+  
+    <br><br>
+  
+</span>
 <p>There are a few things we need to figure out before proceeding to dynamic analysis with GDB:</p>
 <ol>
 <li>What is the base address of <em>main()</em>?
@@ -357,7 +397,15 @@
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 0x5d2<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting Breakpoint &amp; Run<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting Breakpoint &amp; Run
+  
+    <br><br>
+  
+</span>
 <p>Once our breakpoint is hit, ensure that we really are at the correct instruction by listing 3 instructions before RIP and 6 instructions after RIP.
 <link href="/posts/css/alert.css" rel="stylesheet">
 <div class="alert tip">
@@ -383,7 +431,15 @@
 </span></span><span style="display:flex;"><span>   0x555555555871 &lt;main+1512&gt;:  lea    rax,<span style="color:#f92672">[</span>rbp-0x60<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>   0x555555555875 &lt;main+1516&gt;:  mov    rdi,rax
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Checking Instructions<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Checking Instructions
+  
+    <br><br>
+  
+</span>
 <p>Looking at the listing above, the flag pointer is stored in RDI just before the call. We can verify this by examining the string that is pointed to by the address in RDI.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/gx $rdi
 </span></span><span style="display:flex;"><span>0x7fffffffd530: 0x000055555556b2d0
@@ -394,19 +450,43 @@
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># For convenience we store this address into a variable</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $flag <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>unsigned long long<span style="color:#f92672">}</span>$rdi
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Getting Address of Flag<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Getting Address of Flag
+  
+    <br><br>
+  
+</span>
 <p>For completeness, step over this call and print the flag again.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> ni
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s $flag
 </span></span><span style="display:flex;"><span>0x55555556b2d0: <span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_e9da2c0e}&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Flag<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Flag
+  
+    <br><br>
+  
+</span>
 <h3 id="32-method-2---lazy-heap-memory-search">3.2 Method 2 - Lazy Heap Memory Search</h3>
 <p>If you are rather lazy and just want to get the flag before it is freed, you can set a breakpoint at the <code>ret</code> instruction. This happens to be at <code>main+0x9ca</code>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 1504<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Break At RET Instruction<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Break At RET Instruction
+  
+    <br><br>
+  
+</span>
 <p>When the breakpoint hits, identify where the start and end of the heap is.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info proc mappings
 </span></span><span style="display:flex;"><span>...
@@ -415,18 +495,42 @@
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $heap_start <span style="color:#f92672">=</span> 0x0000555555559000
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $heap_end <span style="color:#f92672">=</span> 0x000055555557a000 - <span style="color:#ae81ff">1</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Get Start and End of Heap Memory Region<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Get Start and End of Heap Memory Region
+  
+    <br><br>
+  
+</span>
 <p>We are now able to search through the heap for the substring &ldquo;pico&rdquo; to get its address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> find /b $heap_start, $heap_end, <span style="color:#e6db74">&#39;p&#39;</span>, <span style="color:#e6db74">&#39;i&#39;</span>, <span style="color:#e6db74">&#39;c&#39;</span>, <span style="color:#e6db74">&#39;o&#39;</span>
 </span></span><span style="display:flex;"><span>0x55555556b2d0
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> pattern found.
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Finding Address of Flag<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Finding Address of Flag
+  
+    <br><br>
+  
+</span>
 <p>As only 1 pattern is found, this becomes straightforward by examining the buffer stored in that address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s 0x55555556b2d0
 </span></span><span style="display:flex;"><span>0x55555556b2d0: <span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_e9da2c0e}&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Flag<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Flag
+  
+    <br><br>
+  
+</span>
 <h2 id="4-resources">4. Resources</h2>
 <ul>
 <li><a href="/posts/picoctf/2024/factcheck/resources/solution.gdb">solution.gdb</a></li>

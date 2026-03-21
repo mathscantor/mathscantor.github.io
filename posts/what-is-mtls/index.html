@@ -290,7 +290,15 @@
 <p>Still following? Good, here&rsquo;s a visual representation of how a client initiates a mTLS session with the server.</p>
 <p><img src="/posts/what-is-mtls/images/mtls-call-flow.drawio.png" alt="mtls-call-flow.drawio">
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="figure">mTLS Client-Server Call FLow<br><br></span></p>
+
+
+
+<span class="caption" data-type="figure">
+  mTLS Client-Server Call FLow
+  
+    <br>
+  
+</span></p>
 <h2 id="4-python-implementation">4. Python Implementation</h2>
 <p>For this simple experiement, we will generate a self-signed certificates for both the client and the server. If you do not know how to do so, I highly recommend to check out my <a href="/posts/self-signed-certificates/">previous</a> post on generating self-signed certificates using OpenSSL.</p>
 <p>Feeling lazy? Feel free to re-use these set of keys and certs but do take note that they will expire on 31st of May 2028:</p>
@@ -314,7 +322,15 @@
 </span></span><span style="display:flex;"><span>sock<span style="color:#f92672">.</span>bind((ip, port))
 </span></span><span style="display:flex;"><span>sock<span style="color:#f92672">.</span>listen(<span style="color:#ae81ff">5</span>)
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Create TCP socket and Listen<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Create TCP socket and Listen
+  
+    <br><br>
+  
+</span>
 <p>Next, we create a <em>SSLContext</em> to handle the TLS stuff. Here we load the server’s certificate and private key and tell Python to require a client certificate signed by the client CA.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>ssl_ctx <span style="color:#f92672">=</span> ssl<span style="color:#f92672">.</span>create_default_context(ssl<span style="color:#f92672">.</span>Purpose<span style="color:#f92672">.</span>CLIENT_AUTH)
 </span></span><span style="display:flex;"><span>
@@ -324,14 +340,30 @@
 </span></span><span style="display:flex;"><span>ssl_ctx<span style="color:#f92672">.</span>load_verify_locations(cafile<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;client_ca.crt&#34;</span>)
 </span></span><span style="display:flex;"><span>ssl_ctx<span style="color:#f92672">.</span>verify_mode <span style="color:#f92672">=</span> ssl<span style="color:#f92672">.</span>CERT_REQUIRED
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Create <em>SSLContext</em> object using Server&rsquo;s Cert &amp; Key<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Create <em>SSLContext</em> object using Server&rsquo;s Cert &amp; Key
+  
+    <br><br>
+  
+</span>
 <p>Finally, we sit in a loop and wait for clients to connect. When a client shows up, we wrap the socket in SSL and read some data from it.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
 </span></span><span style="display:flex;"><span>    newsock, addr <span style="color:#f92672">=</span> sock<span style="color:#f92672">.</span>accept()
 </span></span><span style="display:flex;"><span>    sslsock <span style="color:#f92672">=</span> ssl_ctx<span style="color:#f92672">.</span>wrap_socket(newsock, server_side<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
 </span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> sslsock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Await mTLS Client Connection<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Await mTLS Client Connection
+  
+    <br><br>
+  
+</span>
 <p>You may get my implementation of the server <a href="/posts/what-is-mtls/resources/server.py">here</a>.</p>
 <h3 id="42-mtls-client">4.2 mTLS Client</h3>
 <p>On the client side, we start with a regular TCP connection to the server. Pretty standard stuff.</p>
@@ -343,7 +375,15 @@
 </span></span><span style="display:flex;"><span>sock <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>socket(socket<span style="color:#f92672">.</span>AF_INET, socket<span style="color:#f92672">.</span>SOCK_STREAM)
 </span></span><span style="display:flex;"><span>sock<span style="color:#f92672">.</span>connect((server_ip, server_port))
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Create TCP connection to mTLS Server<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Create TCP connection to mTLS Server
+  
+    <br><br>
+  
+</span>
 <p>Next, we set up our <em>SSLContext</em> for the client. We load the client certificate and key and tell it to verify the server certificate using the server CA. Do take note that for the current client&rsquo;s implementation, I have set <code>ssl_ctx.check_hostname = True</code>. This is to show the Server Name Indication (SNI) extension later on in our experiment.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>ssl_ctx <span style="color:#f92672">=</span> ssl<span style="color:#f92672">.</span>create_default_context(ssl<span style="color:#f92672">.</span>Purpose<span style="color:#f92672">.</span>SERVER_AUTH)
 </span></span><span style="display:flex;"><span>
@@ -353,12 +393,28 @@
 </span></span><span style="display:flex;"><span>ssl_ctx<span style="color:#f92672">.</span>load_verify_locations(cafile<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;server_ca.crt&#34;</span>)
 </span></span><span style="display:flex;"><span>ssl_ctx<span style="color:#f92672">.</span>verify_mode <span style="color:#f92672">=</span> ssl<span style="color:#f92672">.</span>CERT_REQUIRED
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Create <em>SSLContext</em> object using Client&rsquo;s Cert &amp; Key<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Create <em>SSLContext</em> object using Client&rsquo;s Cert &amp; Key
+  
+    <br><br>
+  
+</span>
 <p>Finally, when wrapping our TCP socket in TLS to establish the secure session, we have to specify the <code>server_hostname</code> as we indicated to check host name in the previous listing. To put the cherry on top of the cake, we send a quick dummy message to the server just to prove the connection works.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>sslsock <span style="color:#f92672">=</span> ssl_ctx<span style="color:#f92672">.</span>wrap_socket(sock, server_hostname<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;server.mtls.example.org&#34;</span>)
 </span></span><span style="display:flex;"><span>sslsock<span style="color:#f92672">.</span>sendall(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;Hello from client&#34;</span>)
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Establish mTLS Session &amp; Send Dummy Data<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Establish mTLS Session &amp; Send Dummy Data
+  
+    <br><br>
+  
+</span>
 <p>You may get my implementation of the client <a href="/posts/what-is-mtls/resources/client.py">here</a>.</p>
 <h3 id="43-simulation">4.3 Simulation</h3>
 <ol>
@@ -383,7 +439,15 @@
     Your browser does not support the video tag.  
 </video>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="video">mTLS Client &amp; Server Simluation<br><br></span>
+
+
+
+<span class="caption" data-type="video">
+  mTLS Client &amp; Server Simluation
+  
+    <br><br>
+  
+</span>
 <h2 id="5-conclusion">5. Conclusion</h2>
 <p>And there you have it! We’ve gone from understanding what mTLS actually is, to seeing how it works in real life, and even got our hands dirty writing a simple Python client and server to play around with mutual authentication.</p>
 <p>mTLS might sound fancy, but at its core it’s just TLS with a little extra trust. If you’ve followed along with the code and the simulation video, you can now spot the handshake, check out the certificates, and see mutual authentication in action. Plus, playing around with Python makes it way easier to experiment without breaking anything in production.</p>

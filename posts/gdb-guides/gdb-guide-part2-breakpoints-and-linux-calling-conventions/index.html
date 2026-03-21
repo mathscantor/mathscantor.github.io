@@ -323,7 +323,15 @@ You can set a breakpoint with the following syntax:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break <span style="color:#f92672">[</span>Function<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break *<span style="color:#f92672">[</span>Address<span style="color:#f92672">]</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting Breakpoints - Syntax<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting Breakpoints - Syntax
+  
+    <br><br>
+  
+</span>
 <h3 id="22-regex-breakpoints">2.2 Regex Breakpoints</h3>
 <p>Apart from setting breakpoint at specific functions or addresses, there&rsquo;s another cool trick to break on functions that match a regular expression.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Break on every function available</span>
@@ -335,7 +343,15 @@ You can set a breakpoint with the following syntax:</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Break on function that ends with &#34;nc_1&#34;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> rbreak .nc_1$
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting Breakpoints via Regex<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting Breakpoints via Regex
+  
+    <br><br>
+  
+</span>
 <h3 id="23-viewing-breakpoints">2.3 Viewing Breakpoints</h3>
 <p>When you have too many breakpoints and things start to get a little messy, you can list down your current breakpoints by doing the following command:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info breakpoints
@@ -345,12 +361,28 @@ You can set a breakpoint with the following syntax:</p>
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span>       breakpoint     keep y   0x000062086fb611d1 &lt;func_1+8&gt;
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span>       breakpoint     keep y   0x000062086fb61203 &lt;func_2+8&gt;
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Listing Breakpoints<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Listing Breakpoints
+  
+    <br><br>
+  
+</span>
 <h3 id="24-deleting-breakpoints">2.4 Deleting Breakpoints</h3>
 <p>If you have finished debugging at one of the breakpoints, you can delete them via the following command:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> delete breakpoints <span style="color:#f92672">[</span>Breakpoint Number<span style="color:#f92672">]</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Deleting Breakpoints - Syntax<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Deleting Breakpoints - Syntax
+  
+    <br><br>
+  
+</span>
 <p>If you need to delete more than one breakpoint, here are some other examples:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># If no number is specified, it will delete all breakpoints</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> delete breakpoints 
@@ -361,20 +393,44 @@ You can set a breakpoint with the following syntax:</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Delete breakpoints 1 to 6</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> delete breakpoints 1-6
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Deleting Breakpoints - Examples<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Deleting Breakpoints - Examples
+  
+    <br><br>
+  
+</span>
 <h3 id="25-disabling--enabling-breakpoints">2.5 Disabling / Enabling Breakpoints</h3>
 <p>Depending on the situation, you may also want to consider disabling and re-enabling certain breakpoints.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disable breakpoints <span style="color:#f92672">[</span>Breakpoint Number<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> enable breakpoints <span style="color:#f92672">[</span>Breakpoint Number<span style="color:#f92672">]</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Disabling/Enabling Breakpoints - Syntax<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Disabling/Enabling Breakpoints - Syntax
+  
+    <br><br>
+  
+</span>
 <p>If you need to disable / enable more than one breakpoint, you can follow the syntax in <a href="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/#24-deleting-breakpoints">Section 2.4</a></p>
 <h3 id="26-conditional-breakpoints">2.6 Conditional Breakpoints</h3>
 <p>At times you will find that your breakpoint keeps getting triggered by random sources and is generating too much noise.
 In that case, you may consider adding a <code>condition</code> clause to the breakpoint.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> condition <span style="color:#f92672">[</span>Breakpoint Number<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>....<span style="color:#f92672">]</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting Conditions to Breakpoints - Syntax<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting Conditions to Breakpoints - Syntax
+  
+    <br><br>
+  
+</span>
 <p>The example below demonstrates how to set a conditional breakpoint to <em>func_1()</em>, such that this breakpoint only triggers if <code>valueAt(EBP + 0xC) == 0xD</code></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b func_1
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> condition <span style="color:#ae81ff">1</span> <span style="color:#f92672">{</span>unsigned long<span style="color:#f92672">}(</span>$ebp+0xc<span style="color:#f92672">)</span> <span style="color:#f92672">==</span> 0xd
@@ -382,7 +438,15 @@ In that case, you may consider adding a <code>condition</code> clause to the bre
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Alternatively</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> condition <span style="color:#ae81ff">1</span> *<span style="color:#f92672">(</span>unsigned long *<span style="color:#f92672">)(</span>$ebp+0xc<span style="color:#f92672">)</span> <span style="color:#f92672">==</span> 0xd
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting Conditional Breakpoint - Example<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting Conditional Breakpoint - Example
+  
+    <br><br>
+  
+</span>
 <h2 id="3-linux-calling-conventions">3. Linux Calling Conventions</h2>
 <p>Depending on the architecture, the way registers are &ldquo;loaded&rdquo; in memory will be different.
 Bear in mind that this section will not cover ARM. Perhaps in the future, I will do a separate post about it. For now, we will keep things simple and stick to x86(32 bit) and x86_64(64 bit) architectures.</p>
@@ -391,13 +455,29 @@ Bear in mind that this section will not cover ARM. Perhaps in the future, I will
 <img class="center" alt="epb-structure" src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_calling_convention.png">
 <br>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="figure">x86 Stack Frame<br><br></span>
+
+
+
+<span class="caption" data-type="figure">
+  x86 Stack Frame
+  
+    <br>
+  
+</span>
 <p>Following the above diagram as an example, if we have a function that takes in 3 parameters, the 3rd parameter will get pushed onto the stack first, followed by the 2nd then the 1st. 4 bytes after the address of EBP, it contains the return address after the function call.</p>
 <p>Unlike 64 bit binaries, <strong>addresses are only stored as a 4-byte value</strong>.</p>
 <p>We can actually test this out by compiling our <a href="/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c">test.c</a> program shown previously in part 1 of the tutorial, as a 32 bit ELF binary.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc -m32 test.c -o test32
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Compiling 32-Bit Binary<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Compiling 32-Bit Binary
+  
+    <br><br>
+  
+</span>
 <p>To practice what we have learned earlier, let us set a breakpoint on <em>func_2()</em> and print out its parameters and return address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Set the GDB configuration</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pagination off
@@ -419,7 +499,15 @@ Bear in mind that this section will not cover ARM. Perhaps in the future, I will
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>unsigned long<span style="color:#f92672">)</span>$param_2
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>void *<span style="color:#f92672">)</span>$return_addr
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Printing Parameters of <em>func_2()</em> - x86<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Printing Parameters of <em>func_2()</em> - x86
+  
+    <br><br>
+  
+</span>
 <p>
  
 <video width=100% controls>
@@ -428,7 +516,15 @@ Bear in mind that this section will not cover ARM. Perhaps in the future, I will
 </video>
 
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="video">Demonstrating x86 Calling Convention<br><br></span></p>
+
+
+
+<span class="caption" data-type="video">
+  Demonstrating x86 Calling Convention
+  
+    <br><br>
+  
+</span></p>
 <h3 id="32-64-bit---x86_64">3.2 64 Bit - x86_64</h3>
 <p>The <a href="http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html#:~:text=Calling%20Convention&amp;text=The%20caller%20uses%20registers%20to,off%20the%20stack%20in%20order.">MIT documentation</a> on 64-bit Linux does get straight to the point but lack concrete examples. Instead, I found out this other <a href="https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame">blog post</a>
 talking about it and found it a lot more comprehensible. You could give it a read if you have the time.</p>
@@ -436,7 +532,15 @@ talking about it and found it a lot more comprehensible. You could give it a rea
 <img class="center" alt="epb-structure" src="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/images/x86_64_calling_convention.png">
 <br>
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="figure">x86_64 Stack Frame<br><br></span>
+
+
+
+<span class="caption" data-type="figure">
+  x86_64 Stack Frame
+  
+    <br>
+  
+</span>
 <p>At the start of the function, the following parameters will be stored in its respective registers:</p>
 <ol>
 <li><code>RDI</code> &mdash; Param 1</li>
@@ -462,14 +566,30 @@ talking about it and found it a lot more comprehensible. You could give it a rea
 </span></span><span style="display:flex;"><span>   0x00005988a0e0c1e7 &lt;+30&gt;:    mov    DWORD PTR <span style="color:#f92672">[</span>rbp-0x20<span style="color:#f92672">]</span>,r9d
 </span></span><span style="display:flex;"><span>   0x00005988a0e0c1eb &lt;+34&gt;:    mov    rax,QWORD PTR <span style="color:#f92672">[</span>rbp-0x8<span style="color:#f92672">]</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">x86_64 Instruction Set at Start of test_func()<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  x86_64 Instruction Set at Start of test_func()
+  
+    <br><br>
+  
+</span>
 <p>Upon entry into <em>test_func()</em>, RIP is at <code>&lt;test_func+0&gt;</code>. At this point, all the parameter values are still stored in the 6 registers.
 However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame will be similar to the one shown in Figure 2.</p>
 <p>Enough talking and let&rsquo;s get to work!</p>
 <p>Similar to the GDB exercise shown in <a href="/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/#31-32-bit---x86">Section 3.1</a>, we will do the same here for a 64-bit binary. In case you haven&rsquo;t compiled already, please run the following command to compile a 64-bit ELF binary:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Compiling a x86_64 Test Binary<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Compiling a x86_64 Test Binary
+  
+    <br><br>
+  
+</span>
 <p>Again, we shall do the same to set a breakpoint on <em>func_2()</em> and print out its parameters and return address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Set the GDB configuration</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pagination off
@@ -491,7 +611,15 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>unsigned long<span style="color:#f92672">)</span>$param_2
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p <span style="color:#f92672">(</span>void *<span style="color:#f92672">)</span>$return_addr
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Printing Parameters of <em>func_2()</em> - x86_64<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Printing Parameters of <em>func_2()</em> - x86_64
+  
+    <br><br>
+  
+</span>
 <p>
  
 <video width=100% controls>
@@ -500,7 +628,15 @@ However, when the RIP is at <code>&lt;test_func+34&gt;</code>, the Stack Frame w
 </video>
 
 <link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="video">Demonstrating x86_64 Calling Convention<br><br></span></p>
+
+
+
+<span class="caption" data-type="video">
+  Demonstrating x86_64 Calling Convention
+  
+    <br><br>
+  
+</span></p>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>Good job making it this far! There won&rsquo;t be any more new posts for a while from now as Chinese New Year is around the corner.</p>
 <p>Until then, keep practicing and stay awesome!</p>

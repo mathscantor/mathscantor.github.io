@@ -305,40 +305,88 @@
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Example: </span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># └── call (int)add((int)$arg1, (int)$arg2)</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Syntax for Invoking Function Call<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Syntax for Invoking Function Call
+  
+    <br><br>
+  
+</span>
 <p>If the function returns a value and you want to store it in a GDB variable for later use:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>set $ret_val <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>return_type<span style="color:#f92672">)</span><span style="color:#66d9ef">function</span><span style="color:#f92672">((</span>arg_type<span style="color:#f92672">)</span>arg1, <span style="color:#f92672">(</span>arg_type<span style="color:#f92672">)</span>arg2, ...<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Example: </span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># └── set $ret = (int)add((int)$arg1, (int)$arg2)</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Assigning Return Value to GDB Variable<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Assigning Return Value to GDB Variable
+  
+    <br><br>
+  
+</span>
 <p>For cases where the function symbol is stripped, we can also directly invoke the function call through the known function address.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>call <span style="color:#f92672">(</span>return_type<span style="color:#f92672">)</span>function_addr<span style="color:#f92672">((</span>arg_type<span style="color:#f92672">)</span>arg1, <span style="color:#f92672">(</span>arg_type<span style="color:#f92672">)</span>arg2, ...<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Example: </span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># └── call (int)0x4004bc((int)$arg1, (int)$arg2)</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Invoking Function Call Through Known Address<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Invoking Function Call Through Known Address
+  
+    <br><br>
+  
+</span>
 <h2 id="3-examples">3. Examples</h2>
 <p>This section of the guide will solely reference <a href="/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/resources/gdb_invoke_function.c">gdb_invoke_function.c</a>.</p>
 <h3 id="31-no-arguments">3.1 No Arguments</h3>
 <p>For a start, let&rsquo;s invoke the <em>do_nothing()</em> function which takes in no arguments and does not return anything.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> call <span style="color:#f92672">(</span>void<span style="color:#f92672">)</span>do_nothing<span style="color:#f92672">()</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Calling <em>do_nothing()</em> Function<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Calling <em>do_nothing()</em> Function
+  
+    <br><br>
+  
+</span>
 <h3 id="32-one-argument">3.2 One Argument</h3>
 <p>Next, we can invoke the <i>hello(const char *name)</i> function which takes in a string as its only argument.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> call <span style="color:#f92672">(</span>void<span style="color:#f92672">)</span>hello<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Gerald&#34;</span><span style="color:#f92672">)</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Calling <i>hello(const char *name)</i> Function<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Calling <i>hello(const char *name)</i> Function
+  
+    <br><br>
+  
+</span>
 <h3 id="33-two-arguments">3.3 Two Arguments</h3>
 <p>Similarly, we can do the same for invoking the <i>add(int a, int b)</i> function which takes in 2 integers and returns the sum.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $sum <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>int<span style="color:#f92672">)</span>add<span style="color:#f92672">(</span>24, 10<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $sum
 </span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">34</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Calling <i>add(int a, int b)</i> Function<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Calling <i>add(int a, int b)</i> Function
+  
+    <br><br>
+  
+</span>
 <h3 id="34-struct-arguments">3.4 Struct Arguments</h3>
 <p>GDB is not just limited to primitive types. You can also pass struct pointers into functions, even in stripped binaries or cases where you no longer have symbol/type information.</p>
 <p>In our example, we want to invoke <i>get_person_name(person_t *person)</i>, which returns a pointer to the name field of a <em>person_t</em> struct.</p>
@@ -350,35 +398,91 @@
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">uint8_t</span> is_deceased;  <span style="color:#75715e">// 1 Byte
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>} <span style="color:#66d9ef">person_t</span>;               <span style="color:#75715e">/* Total: 259 Bytes */</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Definition of <em>person_t</em><br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Definition of <em>person_t</em>
+  
+    <br><br>
+  
+</span>
 <p>Thus, we allocate 259 bytes in the heap and assign the return address to a variable to store the pointer.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set $person <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>uint64_t<span style="color:#f92672">)</span>malloc<span style="color:#f92672">(</span>259<span style="color:#f92672">)</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Allocating 259 Bytes in Heap<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Allocating 259 Bytes in Heap
+  
+    <br><br>
+  
+</span>
 <p>Next, we populate the struct fields one by one.
 Set the <em>id</em> field (offset 0x0):</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set *<span style="color:#f92672">(</span>uint16_t *<span style="color:#f92672">)</span>$person <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting <em>id</em> Field at Offset 0x0<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting <em>id</em> Field at Offset 0x0
+  
+    <br><br>
+  
+</span>
 <p>Set the <em>name</em> field (offset 0x2):</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> call <span style="color:#f92672">(</span>void<span style="color:#f92672">)</span>strcpy<span style="color:#f92672">((</span>char *<span style="color:#f92672">)(</span>$person + 0x2<span style="color:#f92672">)</span>, <span style="color:#e6db74">&#34;Gerald&#34;</span><span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># OR</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> call <span style="color:#f92672">(</span>int<span style="color:#f92672">)</span>snprintf<span style="color:#f92672">((</span>char *<span style="color:#f92672">)(</span>$person + 0x2<span style="color:#f92672">)</span>, 256, <span style="color:#e6db74">&#34;%s&#34;</span>, <span style="color:#e6db74">&#34;Gerald&#34;</span><span style="color:#f92672">)</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting <em>name</em> Field at Offset 0x2<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting <em>name</em> Field at Offset 0x2
+  
+    <br><br>
+  
+</span>
 <p>Set the <em>is_deceased</em> field (offset 0x102):</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set *<span style="color:#f92672">(</span>uint8_t *<span style="color:#f92672">)(</span>$person + 0x102<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Setting <em>is_deceased</em> Field at Offset 0x102<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Setting <em>is_deceased</em> Field at Offset 0x102
+  
+    <br><br>
+  
+</span>
 <p>Once the struct is initialized, we can pass it to the function and print the returned name.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> call <span style="color:#f92672">(</span>char *<span style="color:#f92672">)</span>get_person_name<span style="color:#f92672">((</span>uint64_t *<span style="color:#f92672">)</span>$person<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span>$4 <span style="color:#f92672">=</span> 0x110b3ac2 <span style="color:#e6db74">&#34;Gerald&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Calling <i>get_person_name(person_t *person)</i> Function<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Calling <i>get_person_name(person_t *person)</i> Function
+  
+    <br><br>
+  
+</span>
 <p>As a good practice, we will free up our struct in the heap after we are done.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> call free<span style="color:#f92672">(</span>$person<span style="color:#f92672">)</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-<span class="caption" data-type="listing">Freeing Struct in Heap Memory<br><br></span>
+
+
+
+<span class="caption" data-type="listing">
+  Freeing Struct in Heap Memory
+  
+    <br><br>
+  
+</span>
 <h2 id="4-conclusion">4. Conclusion</h2>
 <p>Manually invoking functions within GDB opens up an entirely new level of power during debugging and reverse engineering. Whether you&rsquo;re verifying program behavior, modifying runtime values, or analyzing stripped binaries with no symbols, function calls allow for deep insight and control.</p>
 <p>We saw how you can:</p>

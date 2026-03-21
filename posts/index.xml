@@ -89,7 +89,17 @@
 <p>Unzip the installer and launch it using the JDK we configured earlier:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~/Downloads$ unzip fmw_12.2.1.4.0_wls_lite_Disk1_1of1.zip -d wls-install <span style="color:#f92672">&amp;&amp;</span> cd wls-install
 </span></span><span style="display:flex;"><span>wls@oracle-v12:~/Downloads/wls-install$ java -jar fmw_12.2.1.4.0_wls_lite_generic.jar 
-</span></span></code></pre></div></li>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Running The Installer
+  
+    <br><br>
+  
+</span>
+</li>
 <li>
 <p>The installer is mostly straightforward, and you can leave most options as default. However, a few selections are important to ensure a clean and reproducible lab setup:</p>
 <ul>

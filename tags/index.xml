@@ -7,8 +7,22 @@
     <generator>Hugo</generator>
     <language>en</language>
     <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Sun, 15 Feb 2026 09:34:42 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 21 Mar 2026 10:10:36 +0800</lastBuildDate>
     <atom:link href="https://mathscantor.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Cve-Studies</title>
+      <link>https://mathscantor.github.io/tags/cve-studies/</link>
+      <pubDate>Sat, 21 Mar 2026 10:10:36 +0800</pubDate>
+      <guid>https://mathscantor.github.io/tags/cve-studies/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Oracle</title>
+      <link>https://mathscantor.github.io/tags/oracle/</link>
+      <pubDate>Sat, 21 Mar 2026 10:10:36 +0800</pubDate>
+      <guid>https://mathscantor.github.io/tags/oracle/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Linux</title>
       <link>https://mathscantor.github.io/tags/linux/</link>
@@ -21,13 +35,6 @@
       <link>https://mathscantor.github.io/tags/edr/</link>
       <pubDate>Mon, 12 Jan 2026 08:24:15 +0800</pubDate>
       <guid>https://mathscantor.github.io/tags/edr/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Cve-Studies</title>
-      <link>https://mathscantor.github.io/tags/cve-studies/</link>
-      <pubDate>Tue, 09 Dec 2025 23:43:05 +0800</pubDate>
-      <guid>https://mathscantor.github.io/tags/cve-studies/</guid>
       <description></description>
     </item>
     <item>

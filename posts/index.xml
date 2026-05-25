@@ -6,8 +6,308 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Tue, 21 Apr 2026 20:21:33 +0800</lastBuildDate>
+        <lastBuildDate>Mon, 25 May 2026 10:51:00 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Spinning Up Local LLMs</title>
+            <link>https://mathscantor.github.io/posts/spinning-up-local-llms/</link>
+            <pubDate>Mon, 25 May 2026 10:51:00 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/spinning-up-local-llms/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;I have an old desktop with an NVIDIA RTX 2070 SUPER (8GB VRAM) sitting around, quietly collecting dust and judging me. So naturally, I decided to give it a job: run a local LLM server with &lt;a href=&#34;https://github.com/ggml-org/llama.cpp&#34;&gt;llama.cpp&lt;/a&gt;, then wire it up to an AI coding agent.&lt;/p&gt;
+&lt;p&gt;No cloud tokens, no monthly bill anxiety, no sending prompts halfway across the planet. Just one old GPU, a quantized model, and a little bit of stubbornness.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>I have an old desktop with an NVIDIA RTX 2070 SUPER (8GB VRAM) sitting around, quietly collecting dust and judging me. So naturally, I decided to give it a job: run a local LLM server with <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a>, then wire it up to an AI coding agent.</p>
+<p>No cloud tokens, no monthly bill anxiety, no sending prompts halfway across the planet. Just one old GPU, a quantized model, and a little bit of stubbornness.</p>
+<h2 id="2-pre-requisites">2. Pre-requisites</h2>
+<p>Before building llama.cpp, install the GPU toolkit for your card:</p>
+<ul>
+<li><strong>Install CUDA for NVIDIA cards</strong>:
+<ul>
+<li><a href="https://developer.nvidia.com/cuda-downloads">https://developer.nvidia.com/cuda-downloads</a></li>
+</ul>
+</li>
+<li><strong>Install ROCm for AMD cards</strong>:
+<ul>
+<li><a href="https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/quick-start.html">https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/quick-start.html</a></li>
+</ul>
+</li>
+</ul>
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert note">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Note</strong>
+        </div>
+        <div class="alert-body">llama.cpp wants GGUF models. If your model is still in SafeTensors, PyTorch, or some other training-friendly format, convert it first using the scripts in the llama.cpp repository.</div>
+    </div>
+</div>
+
+<h2 id="3-llamacpp-server-setup">3. llama.cpp Server Setup</h2>
+<p>First, grab the llama.cpp source:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ git clone https://github.com/ggml-org/llama.cpp
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Cloning the llama.cpp Repository
+  
+    <br><br>
+  
+</span>
+<p>Next, configure the CMake build depending on your graphics card:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cd llama.cpp
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># For NVIDIA Cards</span>
+</span></span><span style="display:flex;"><span>$ cmake -B build -DGGML_CUDA<span style="color:#f92672">=</span>ON -DCMAKE_CUDA_COMPILER<span style="color:#f92672">=</span>/usr/local/cuda-13.0/bin/nvcc
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># For AMD Cards</span>
+</span></span><span style="display:flex;"><span>$ HIPCXX<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>hipconfig -l<span style="color:#66d9ef">)</span><span style="color:#e6db74">/clang&#34;</span> HIP_PATH<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>hipconfig -R<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  cmake -S . -B build -DGGML_HIP<span style="color:#f92672">=</span>ON -DCMAKE_BUILD_TYPE<span style="color:#f92672">=</span>Release
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Configuring the Build for GPU Acceleration
+  
+    <br><br>
+  
+</span>
+<p>Once you are done configuring, build it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cmake --build build --config Release
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Building llama.cpp
+  
+    <br><br>
+  
+</span>
+<p>Before choosing a model, check how much VRAM you have available:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># For NVIDIA Cards</span>
+</span></span><span style="display:flex;"><span>$ nvidia-smi --query-gpu<span style="color:#f92672">=</span>memory.total --format<span style="color:#f92672">=</span>csv,noheader,nounits
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># For AMD Cards</span>
+</span></span><span style="display:flex;"><span>$ rocm-smi --showmeminfo vram
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Checking Available VRAM
+  
+    <br><br>
+  
+</span>
+<p>Now for the fun part: choosing a model that will not immediately bully your hardware into swapping itself to death.</p>
+<p>I went with <a href="https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF">unsloth/Qwen3.6-35B-A3B-GGUF</a>. It is a Mixture-of-Experts model: 35B total parameters, but only around 3B active per token. In other words, it looks huge on paper, but it is not trying to lift the entire gym on every rep.</p>
+<p>My rough fit check is:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>VRAM + RAM  &gt;=  GGUF file size + 2 GB  (minimum, tight)
+</span></span><span style="display:flex;"><span>VRAM + RAM  &gt;=  GGUF file size + 4 GB  (comfortable, allows larger context)
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Memory Rule of Thumb
+  
+    <br><br>
+  
+</span>
+<p>With 8GB VRAM and 16GB RAM, I try to stay around the ~20GB mark for the GGUF file. That makes the IQ4_NL_XL quant a reasonable target for this machine.</p>
+<p>Download the model into the <span style="font-family: Courier, monospace; font-weight: 600;">models</span> directory:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ wget -P models https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/resolve/main/Qwen3.6-35B-A3B-UD-IQ4_NL_XL.gguf
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Downloading the GGUF Model
+  
+    <br><br>
+  
+</span>
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert note">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Note</strong>
+        </div>
+        <div class="alert-body">Without <code>-c</code>, llama.cpp defaults to a 4096-token context window. That is fine for tiny chats, but agents chew through context like snacks. Set a larger value, but do not exceed the model&rsquo;s trained context length. For this Qwen3.6 model, that is 262144.</div>
+    </div>
+</div>
+
+<p>Start the server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ./build/bin/llama-server --host $HOST_IP --port $PORT -m models/Qwen3.6-35B-A3B-UD-IQ4_NL_XL.gguf -c <span style="color:#ae81ff">100000</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Starting the llama.cpp Server
+  
+    <br><br>
+  
+</span>
+<p>At this point, the model is alive. llama.cpp also ships with a built-in chat UI at <span style="font-family: Courier, monospace; font-weight: 600;">http://$HOST_IP:$PORT</span>, which is great for a quick sanity check:</p>
+<p><img class="center" alt="webui-test-prompt" src="/posts/spinning-up-local-llms/images/webui-test-prompt.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="figure">
+  Testing a Prompt via the Built-in Web UI</span>
+  
+    <br>
+  
+</span></p>
+<p>The web UI is neat, but let us be honest: we did not wake up today just to build another chatbot. We want agents. We want tools, and we want the GPU to feel useful.</p>
+<p>For that, start the server with API-key authentication:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Randomly generate an API key with &#39;sk-&#39; prefix</span>
+</span></span><span style="display:flex;"><span>$ echo sk-<span style="color:#66d9ef">$(</span>openssl rand -hex 32<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>sk-eaa43c9cbeccce851f82ab354faaaf2e423b76eef82d2e4f03e8b7fe324e8446
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Running the server with the API key for authentication</span>
+</span></span><span style="display:flex;"><span>$ ./build/bin/llama-server --host $HOST_IP --port $PORT -m models/Qwen3.6-35B-A3B-UD-IQ4_NL_XL.gguf -c <span style="color:#ae81ff">100000</span> --api-key <span style="color:#e6db74">&#34;sk-eaa43c9cbeccce851f82ab354faaaf2e423b76eef82d2e4f03e8b7fe324e8446&#34;</span>
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Generating an API Key and Starting the Authenticated Server
+  
+    <br><br>
+  
+</span>
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert note">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Note</strong>
+        </div>
+        <div class="alert-body">Multiple users? Multiple agents? Multiple personalities? Pass API keys as a comma-separated list:
+<code>--api-key &quot;${USER1_API_KEY},${USER2_API_KEY}&quot;</code></div>
+    </div>
+</div>
+
+<h2 id="4-opencode-agents-setup">4. OpenCode Agents Setup</h2>
+<p>For the agent side, I have recently taken a liking to <a href="https://opencode.ai">OpenCode</a>. It is an open-source coding agent that runs directly in the terminal, which is exactly the kind of chaos I enjoy.</p>
+<p>Install it on the client machine:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ curl -fsSL https://opencode.ai/install | bash
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Reinitialize PATH environment variable</span>
+</span></span><span style="display:flex;"><span>$ source ~/.bashrc
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Installing OpenCode
+  
+    <br><br>
+  
+</span>
+<p>Now point OpenCode at the llama.cpp server. Edit <span style="font-family: Courier, monospace; font-weight: 600;">~/.config/opencode/opencode.json</span>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;$schema&#34;</span>: <span style="color:#e6db74">&#34;https://opencode.ai/config.json&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;provider&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;local-llm&#34;</span>: {
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;npm&#34;</span>: <span style="color:#e6db74">&#34;@ai-sdk/openai-compatible&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;Local LLM (llama.cpp)&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;options&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Replace $HOST_IP and $PORT
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#f92672">&#34;baseURL&#34;</span>: <span style="color:#e6db74">&#34;http://$HOST_IP:$PORT/v1&#34;</span> 
+</span></span><span style="display:flex;"><span>      },
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&#34;models&#34;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;Qwen3.6-35B-A3B-UD-IQ4_NL_XL.gguf&#34;</span>: {
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;Qwen3.6 35B A3B (UD-IQ4-NL-XL)&#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  OpenCode Provider Configuration
+  
+    <br><br>
+  
+</span>
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert note">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Note</strong>
+        </div>
+        <div class="alert-body">The <code>npm</code> field matters. llama.cpp exposes an OpenAI-compatible API, so OpenCode needs <code>@ai-sdk/openai-compatible</code>. Also, the model key must match what <span style="font-family: Courier, monospace; font-weight: 600;">/v1/models</span> returns. The <span style="font-family: Courier, monospace; font-weight: 600;">.gguf</span> suffix counts.</div>
+    </div>
+</div>
+
+<p>Next, add the API key to <span style="font-family: Courier, monospace; font-weight: 600;">~/.local/share/opencode/auth.json</span>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;local-llm&#34;</span>: {
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;api&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;key&#34;</span>: <span style="color:#e6db74">&#34;sk-eaa43c9cbeccce851f82ab354faaaf2e423b76eef82d2e4f03e8b7fe324e8446&#34;</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  OpenCode Authentication
+  
+    <br><br>
+  
+</span>
+<p>With both files in place, unleash the agent:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ opencode 
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Launching OpenCode
+  
+    <br><br>
+  
+</span>
+<p>If everything is wired up correctly, OpenCode should now talk to your local model instead of running off to the cloud:</p>
+<p><img class="center" alt="opencode-test-prompt" src="/posts/spinning-up-local-llms/images/opencode-test-prompt.png"><br>
+<link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="figure">
+  OpenCode Connected to the Local LLM</span>
+  
+    <br>
+  
+</span></p>
+<h2 id="5-conclusion">5. Conclusion</h2>
+<p>That is the whole setup: one dusty desktop, llama.cpp, a GGUF model, and OpenCode pretending my RTX 2070 SUPER is still young and full of dreams.</p>
+<p>llama.cpp handles inference and exposes the OpenAI-compatible API. OpenCode connects to it like any other provider. No per-token bill, no external API dependency, and no mystery box between your prompt and your model.</p>
+<p>Will it beat a frontier cloud model? Obviously not. Will it run locally, privately, and cheaply on hardware you already own? Absolutely. Sometimes that is the entire point.</p>
+<h2 id="6-references">6. References</h2>
+<ol>
+<li><a href="https://github.com/ggml-org/llama.cpp">llama.cpp GitHub Repository</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/discussions/14758">Community Tutorial</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Sudo CVE-2023-22809 Analysis</title>

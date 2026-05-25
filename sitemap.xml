@@ -2,13 +2,28 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://mathscantor.github.io/tags/cve-studies/</loc>
-    <lastmod>2026-04-21T20:21:33+08:00</lastmod>
+    <loc>https://mathscantor.github.io/tags/ai/</loc>
+    <lastmod>2026-05-25T10:51:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/linux/</loc>
+    <lastmod>2026-05-25T10:51:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/llama-cpp/</loc>
+    <lastmod>2026-05-25T10:51:00+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/</loc>
-    <lastmod>2026-04-21T20:21:33+08:00</lastmod>
+    <lastmod>2026-05-25T10:51:00+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/</loc>
+    <lastmod>2026-05-25T10:51:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/posts/spinning-up-local-llms/</loc>
+    <lastmod>2026-05-25T10:51:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/</loc>
+    <lastmod>2026-05-25T10:51:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/cve-studies/</loc>
     <lastmod>2026-04-21T20:21:33+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/tags/sudo/</loc>
@@ -17,17 +32,11 @@
     <loc>https://mathscantor.github.io/posts/sudo-cve-2023-22809-analysis/</loc>
     <lastmod>2026-04-21T20:21:33+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/tags/</loc>
-    <lastmod>2026-04-21T20:21:33+08:00</lastmod>
-  </url><url>
     <loc>https://mathscantor.github.io/tags/oracle/</loc>
     <lastmod>2026-03-21T10:10:36+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/oracle-cve-2020-2555-analysis/</loc>
     <lastmod>2026-03-21T10:10:36+08:00</lastmod>
-  </url><url>
-    <loc>https://mathscantor.github.io/tags/linux/</loc>
-    <lastmod>2026-02-15T09:34:42+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</loc>
     <lastmod>2026-02-15T09:34:42+08:00</lastmod>

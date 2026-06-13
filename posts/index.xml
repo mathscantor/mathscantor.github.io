@@ -51,7 +51,7 @@
 <br>
 <h3 id="32-day-2--ghidra-mcp-and-agentic-fuzzing">3.2 Day 2 &ndash; Ghidra MCP and Agentic Fuzzing</h3>
 <p>Day 2 was reverse engineering day, but instead of doing everything ourselves, the instructors strongly encouraged us to let the agent handle tasks autonomously. I was reluctant at first, because handing reverse engineering work to an AI still felt slightly illegal to my ego. Then I watched it work, and unfortunately, it was very efficient.</p>
-<p>We used <a href="https://github.com/stairwell-inc/ghidra-mcp-server">GhidrAssistMCP</a> to let the Cursor agent talk to Ghidra. Instead of manually clicking through hundreds of functions, we could ask the agent to summarize suspicious code, follow references, and explain what a binary was doing. The challenges started small, like finding hidden secrets, then escalated into unpacking encoded data and finding actual bugs.</p>
+<p>We used <a href="https://github.com/symgraph/GhidrAssistMCP">GhidrAssistMCP</a> to let the Cursor agent talk to Ghidra. Instead of manually clicking through hundreds of functions, we could ask the agent to summarize suspicious code, follow references, and explain what a binary was doing. The challenges started small, like finding hidden secrets, then escalated into unpacking encoded data and finding actual bugs.</p>
 <p>The second half of the day moved into a fuzzing CTF challenge: find as many zero-day bugs as possible in <a href="https://github.com/hathach/tinyusb">TinyUSB</a>, an open-source USB stack for embedded devices.</p>
 <blockquote>
 <p><em>Panics internally</em>: &ldquo;All in half a day?!! You must be kidding me, right?&rdquo;</p>
@@ -202,7 +202,7 @@
 <li><a href="https://www.synacktiv.com/en/publications/exploiting-a-blind-format-string-vulnerability-in-modern-binaries-a-case-study-from">Synacktiv &ndash; Exploiting a Blind Format String Vulnerability in Modern Binaries</a></li>
 <li><a href="https://github.com/google/oss-fuzz-gen">Google &ndash; oss-fuzz-gen (GitHub)</a></li>
 <li><a href="https://introspector.oss-fuzz.com/project-profile?project=tinyusb">Fuzz Introspector &ndash; tinyusb Project Profile</a></li>
-<li><a href="https://github.com/stairwell-inc/ghidra-mcp-server">GhidrAssistMCP (GitHub)</a></li>
+<li><a href="https://github.com/symgraph/GhidrAssistMCP">GhidrAssistMCP (GitHub)</a></li>
 <li><a href="https://github.com/betab0t/skills">betab0t/skills &ndash; GDB Skill (GitHub)</a></li>
 <li><a href="https://www.cursor.com/docs/context/skills">Cursor &ndash; Agent Skills Documentation</a></li>
 <li><a href="https://cursor.com/docs/agent/subagents">Cursor &ndash; Subagents Documentation</a></li>

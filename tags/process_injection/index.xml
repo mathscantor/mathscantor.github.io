@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Process_injection on Mathscantor&#39;s Cybersecurity Blog</title>
+    <link>https://mathscantor.github.io/tags/process_injection/</link>
+    <description>Recent content in Process_injection on Mathscantor&#39;s Cybersecurity Blog</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Tue, 07 Jul 2026 23:51:00 +0800</lastBuildDate>
+    <atom:link href="https://mathscantor.github.io/tags/process_injection/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Step-by-Step Linux Process Injection Guide Part 1 - Overview</title>
+      <link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</link>
+      <pubDate>Tue, 07 Jul 2026 23:51:00 +0800</pubDate>
+      <guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</guid>
+      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Process injection is a technique where one process forces another already-running process to load and execute arbitrary code. On Windows, the classic approach is &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;CreateRemoteThread()&lt;/span&gt; combined with &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;LoadLibrary()&lt;/span&gt;. On Linux, the equivalent relies on &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;ptrace()&lt;/span&gt;. It&amp;rsquo;s the same system call that debuggers like GDB use to attach to processes, read and write their memory, and manipulate their registers.&lt;/p&gt;&#xA;&lt;p&gt;This series walks through a full ptrace-based injection from start to finish. We will cover attaching to a target, setting up a shellcode trampoline, resolving function addresses despite ASLR, loading a shared library into the target&amp;rsquo;s address space, and restoring the target to its original state. By the end, you should understand every step well enough to read (or write) an injector yourself.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

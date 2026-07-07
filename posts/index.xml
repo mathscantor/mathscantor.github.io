@@ -6,8 +6,80 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sat, 13 Jun 2026 11:53:02 +0800</lastBuildDate>
+        <lastBuildDate>Tue, 07 Jul 2026 23:51:00 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Step-by-Step Linux Process Injection Guide Part 1 - Overview</title>
+            <link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</link>
+            <pubDate>Tue, 07 Jul 2026 23:51:00 +0800</pubDate>
+            
+            <guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Process injection is a technique where one process forces another already-running process to load and execute arbitrary code. On Windows, the classic approach is &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;CreateRemoteThread()&lt;/span&gt; combined with &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;LoadLibrary()&lt;/span&gt;. On Linux, the equivalent relies on &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;ptrace()&lt;/span&gt;. It&amp;rsquo;s the same system call that debuggers like GDB use to attach to processes, read and write their memory, and manipulate their registers.&lt;/p&gt;
+&lt;p&gt;This series walks through a full ptrace-based injection from start to finish. We will cover attaching to a target, setting up a shellcode trampoline, resolving function addresses despite ASLR, loading a shared library into the target&amp;rsquo;s address space, and restoring the target to its original state. By the end, you should understand every step well enough to read (or write) an injector yourself.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Process injection is a technique where one process forces another already-running process to load and execute arbitrary code. On Windows, the classic approach is <span style="font-family: Courier, monospace; font-weight: 600;">CreateRemoteThread()</span> combined with <span style="font-family: Courier, monospace; font-weight: 600;">LoadLibrary()</span>. On Linux, the equivalent relies on <span style="font-family: Courier, monospace; font-weight: 600;">ptrace()</span>. It&rsquo;s the same system call that debuggers like GDB use to attach to processes, read and write their memory, and manipulate their registers.</p>
+<p>This series walks through a full ptrace-based injection from start to finish. We will cover attaching to a target, setting up a shellcode trampoline, resolving function addresses despite ASLR, loading a shared library into the target&rsquo;s address space, and restoring the target to its original state. By the end, you should understand every step well enough to read (or write) an injector yourself.</p>
+<h2 id="2-related-works">2. Related Works</h2>
+<p>This guide draws on the following sources:</p>
+<ol>
+<li>
+<p><a href="https://github.com/gaffe23/linux-inject">gaffe23/linux-inject</a> &ndash; an open-source injector that supports x86, x86_64, and ARM. It compiles a C function (<span style="font-family: Courier, monospace; font-weight: 600;">injectSharedLibrary()</span>) into position-independent shellcode, copies the compiled bytes into the target, and uses multi-breakpoint orchestration to call <span style="font-family: Courier, monospace; font-weight: 600;">__libc_dlopen_mode()</span>.</p>
+</li>
+<li>
+<p><a href="https://www.akamai.com/blog/security-research/the-definitive-guide-to-linux-process-injection">Akamai &ndash; The Definitive Guide to Linux Process Injection</a> &ndash; a thorough walkthrough of the injection technique with additional coverage on stealth: how to unload the injected library and remap its segments as anonymous memory so it no longer appears in <span style="font-family: Courier, monospace; font-weight: 600;">/proc/pid/maps</span>.</p>
+</li>
+</ol>
+<!-- 3. **linworm** -- the primary codebase this series follows. linworm takes a different approach from <span style="font-family: Courier, monospace; font-weight: 600;">linux-inject</span>: instead of compiling C into shellcode, it uses a minimal, architecture-specific shellcode trampoline (a static byte array) that aligns the stack and performs an indirect call through a register. It resolves libc function addresses using <span style="font-family: Courier, monospace; font-weight: 600;">dlinfo(RTLD_DI_LINKMAP)</span> rather than parsing <span style="font-family: Courier, monospace; font-weight: 600;">/proc/self/maps</span>, and handles the glibc >= 2.34 transition from <span style="font-family: Courier, monospace; font-weight: 600;">__libc_dlopen_mode()</span> to <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span>. -->
+<h2 id="3-tldr">3. TLDR</h2>
+<p>At its core, any ptrace-based injection follows five steps:</p>
+<ol>
+<li>
+<p><strong>Attach to the target process</strong> &ndash; Use <span style="font-family: Courier, monospace; font-weight: 600;">ptrace(PTRACE_ATTACH)</span> to pause the target and gain control of its execution.</p>
+</li>
+<li>
+<p><strong>Set the trampoline</strong> &ndash; Scan <span style="font-family: Courier, monospace; font-weight: 600;">/proc/pid/maps</span> for the first executable memory region. Back up the original bytes at that address and the target&rsquo;s register state. Then overwrite the first few bytes with a small shellcode trampoline that aligns the stack, calls a function whose address is loaded into a register, and traps back to the injector. On x86_64, this is just seven bytes:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0x48</span> <span style="color:#ae81ff">0x83</span> <span style="color:#ae81ff">0xe4</span> <span style="color:#ae81ff">0xf0</span>    <span style="color:#75715e">// and rsp, -16     (16-byte stack alignment)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">0xff</span> <span style="color:#ae81ff">0xd0</span>              <span style="color:#75715e">// call rax         (call function pointed to by rax)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">0xcc</span>                   <span style="color:#75715e">// int3             (trap back to injector)
+</span></span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Trampoline Shellcode
+  
+    <br><br>
+  
+</span>
+<p>With this trampoline in place, the injector can call any function in the target by loading the function address into <span style="font-family: Courier, monospace; font-weight: 600;">rax</span>, setting argument registers (<span style="font-family: Courier, monospace; font-weight: 600;">rdi</span>, <span style="font-family: Courier, monospace; font-weight: 600;">rsi</span>, <span style="font-family: Courier, monospace; font-weight: 600;">rdx</span>, &hellip;) per the calling convention, pointing <span style="font-family: Courier, monospace; font-weight: 600;">rip</span> at the trampoline, and resuming execution with <span style="font-family: Courier, monospace; font-weight: 600;">PTRACE_CONT</span>. The <span style="font-family: Courier, monospace; font-weight: 600;">int3</span> at the end raises <span style="font-family: Courier, monospace; font-weight: 600;">SIGTRAP</span>, which pauses the target and returns control to the injector so it can read the return value from <span style="font-family: Courier, monospace; font-weight: 600;">rax</span>.</p>
+</li>
+<li>
+<p><strong>Resolve libc function addresses</strong> &ndash; Both the injector and the target link against the same <span style="font-family: Courier, monospace; font-weight: 600;">libc.so.6</span>, so function offsets from the libc base are identical. linworm uses <span style="font-family: Courier, monospace; font-weight: 600;">dlsym()</span> and <span style="font-family: Courier, monospace; font-weight: 600;">dlinfo(RTLD_DI_LINKMAP)</span> in its own process to get the offset of <span style="font-family: Courier, monospace; font-weight: 600;">malloc</span>, <span style="font-family: Courier, monospace; font-weight: 600;">free</span>, and <span style="font-family: Courier, monospace; font-weight: 600;">dlopen</span> from the libc base, then reads the target&rsquo;s libc base address from <span style="font-family: Courier, monospace; font-weight: 600;">/proc/pid/maps</span> and adds the offset. This works regardless of ASLR.</p>
+</li>
+<li>
+<p><strong>Load the shared library</strong> &ndash; Using the trampoline, the injector makes a series of remote function calls in the target:</p>
+<ul>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">malloc(path_len)</span> to allocate a heap buffer</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">PTRACE_POKETEXT</span> to write the absolute path of the <span style="font-family: Courier, monospace; font-weight: 600;">.so</span> into that buffer</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">dlopen(path_buf, RTLD_NOW)</span> to load the library (any <span style="font-family: Courier, monospace; font-weight: 600;">__attribute__((constructor))</span> function runs automatically)</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">free(path_buf)</span> to release the path buffer</li>
+</ul>
+</li>
+<li>
+<p><strong>Restore and detach</strong> &ndash; Write the backed-up original bytes back to the injection site, restore the original register state, and call <span style="font-family: Courier, monospace; font-weight: 600;">ptrace(PTRACE_DETACH)</span>. The target resumes execution from where it was interrupted as if nothing happened. The loaded shared library remains mapped in the target&rsquo;s address space.</p>
+</li>
+</ol>
+<h2 id="4-conclusion">4. Conclusion</h2>
+<p>Now that you more or less get the big picture, we will do a deeper dive in parts to come. See you in the next one!</p>
+<h2 id="5-references">5. References</h2>
+<ol>
+<li><a href="https://github.com/gaffe23/linux-inject">gaffe23/linux-inject (GitHub)</a></li>
+<li><a href="https://www.akamai.com/blog/security-research/the-definitive-guide-to-linux-process-injection">Akamai &ndash; The Definitive Guide to Linux Process Injection</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>BlackHat Asia 2026 - Exploiting 10x Faster Experience</title>

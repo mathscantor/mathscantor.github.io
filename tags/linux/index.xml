@@ -12,9 +12,16 @@
 			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
 		
 		
-			<lastBuildDate>Sat, 18 Jul 2026 09:25:00 +0800</lastBuildDate>
+			<lastBuildDate>Sat, 18 Jul 2026 09:31:08 +0800</lastBuildDate>
 		
 			<atom:link href="https://mathscantor.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Step-by-Step Linux Process Injection Guide Part 2 - Attaching and Defeating ASLR</title>
+				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-2-attaching-and-defeating-aslr/</link>
+				<pubDate>Sat, 18 Jul 2026 09:31:08 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-2-attaching-and-defeating-aslr/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Before we can inject anything, we need to do two things:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Attach to the target process so we can control it.&lt;/li&gt;&#xA;&lt;li&gt;Figure out where libc functions like &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;malloc()&lt;/span&gt; and &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; live inside the target&amp;rsquo;s address space.&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;This part covers both. The first half is about stopping the target with &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;ptrace()&lt;/span&gt;. The second half is about defeating ASLR by resolving function addresses at runtime instead of hardcoding them.&lt;/p&gt;</description>
+			</item>
 			<item>
 				<title>Step-by-Step Linux Process Injection Guide Part 1 - Overview</title>
 				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</link>

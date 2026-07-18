@@ -1,20 +1,26 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Sudo on Mathscantor&#39;s Cybersecurity Blog</title>
-    <link>https://mathscantor.github.io/tags/sudo/</link>
-    <description>Recent content in Sudo on Mathscantor&#39;s Cybersecurity Blog</description>
-    <generator>Hugo</generator>
-    <language>en</language>
-    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Tue, 21 Apr 2026 20:21:33 +0800</lastBuildDate>
-    <atom:link href="https://mathscantor.github.io/tags/sudo/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Sudo CVE-2023-22809 Analysis</title>
-      <link>https://mathscantor.github.io/posts/sudo-cve-2023-22809-analysis/</link>
-      <pubDate>Tue, 21 Apr 2026 20:21:33 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/sudo-cve-2023-22809-analysis/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;If there is one binary that every Linux user has typed at least once, it&amp;rsquo;s &lt;em&gt;sudo&lt;/em&gt;. It is so deeply embedded in the muscle memory of sysadmins and developers alike that most people don&amp;rsquo;t even think twice about it. But CVE-2023-22809, discovered by Matthieu Barjole and Victor Cutillas of &lt;a href=&#34;https://www.synacktiv.com/&#34;&gt;Synacktiv&lt;/a&gt;, reminds us that even the most trusted tools can hide dangerous bugs.&lt;/p&gt;&#xA;&lt;p&gt;This vulnerability is a privilege escalation in &lt;em&gt;sudoedit&lt;/em&gt; (&lt;em&gt;sudo&lt;/em&gt;&amp;rsquo;s built-in file editing mode). By injecting a &lt;code&gt;--&lt;/code&gt; separator into an environment variable like &lt;code&gt;EDITOR&lt;/code&gt;, a local attacker can trick &lt;em&gt;sudo&lt;/em&gt; into editing arbitrary files as root, even if the sudoers policy only permits editing a single, specific file.&lt;/p&gt;</description>
-    </item>
-  </channel>
+	<channel>
+		<title>Sudo on Mathscantor&#39;s Cybersecurity Blog</title>
+		<link>https://mathscantor.github.io/tags/sudo/</link>
+		<description>Recent content in Sudo on Mathscantor&#39;s Cybersecurity Blog</description>
+		<generator>Hugo</generator>
+		<language>en-us</language>
+		
+		
+		
+			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+		
+		
+			<lastBuildDate>Tue, 21 Apr 2026 20:21:33 +0800</lastBuildDate>
+		
+			<atom:link href="https://mathscantor.github.io/tags/sudo/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Sudo CVE-2023-22809 Analysis</title>
+				<link>https://mathscantor.github.io/posts/sudo-cve-2023-22809-analysis/</link>
+				<pubDate>Tue, 21 Apr 2026 20:21:33 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/sudo-cve-2023-22809-analysis/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;If there is one binary that every Linux user has typed at least once, it&amp;rsquo;s &lt;em&gt;sudo&lt;/em&gt;. It is so deeply embedded in the muscle memory of sysadmins and developers alike that most people don&amp;rsquo;t even think twice about it. But CVE-2023-22809, discovered by Matthieu Barjole and Victor Cutillas of &lt;a href=&#34;https://www.synacktiv.com/&#34;&gt;Synacktiv&lt;/a&gt;, reminds us that even the most trusted tools can hide dangerous bugs.&lt;/p&gt;&#xA;&lt;p&gt;This vulnerability is a privilege escalation in &lt;em&gt;sudoedit&lt;/em&gt; (&lt;em&gt;sudo&lt;/em&gt;&amp;rsquo;s built-in file editing mode). By injecting a &lt;code&gt;--&lt;/code&gt; separator into an environment variable like &lt;code&gt;EDITOR&lt;/code&gt;, a local attacker can trick &lt;em&gt;sudo&lt;/em&gt; into editing arbitrary files as root, even if the sudoers policy only permits editing a single, specific file.&lt;/p&gt;</description>
+			</item>
+	</channel>
 </rss>

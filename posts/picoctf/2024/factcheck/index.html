@@ -42,32 +42,32 @@
 
 
 
-  <meta itemprop="name" content="picoCTF 2024 - FactCheck Walkthrough">
-  <meta itemprop="description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
-  <meta itemprop="datePublished" content="2025-08-01T09:53:25+08:00">
-  <meta itemprop="dateModified" content="2025-08-01T09:53:25+08:00">
-  <meta itemprop="wordCount" content="672">
-  <meta itemprop="image" content="https://mathscantor.github.io/posts/picoctf/2024/factcheck/images/cover.png">
-  <meta itemprop="keywords" content="PicoCTF">
+	<meta itemprop="name" content="picoCTF 2024 - FactCheck Walkthrough">
+	<meta itemprop="description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
+	<meta itemprop="datePublished" content="2025-08-01T09:53:25+08:00">
+	<meta itemprop="dateModified" content="2025-08-01T09:53:25+08:00">
+	<meta itemprop="wordCount" content="672">
+	<meta itemprop="image" content="https://mathscantor.github.io/posts/picoctf/2024/factcheck/images/cover.png">
+	<meta itemprop="keywords" content="PicoCTF">
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://mathscantor.github.io/posts/picoctf/2024/factcheck/images/cover.png">
-  <meta name="twitter:title" content="picoCTF 2024 - FactCheck Walkthrough">
-  <meta name="twitter:description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:image" content="https://mathscantor.github.io/posts/picoctf/2024/factcheck/images/cover.png">
+	<meta name="twitter:title" content="picoCTF 2024 - FactCheck Walkthrough">
+	<meta name="twitter:description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/picoctf/2024/factcheck/">
-  <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
-  <meta property="og:title" content="picoCTF 2024 - FactCheck Walkthrough">
-  <meta property="og:description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-08-01T09:53:25+08:00">
-    <meta property="article:modified_time" content="2025-08-01T09:53:25+08:00">
-    <meta property="article:tag" content="PicoCTF">
-    <meta property="og:image" content="https://mathscantor.github.io/posts/picoctf/2024/factcheck/images/cover.png">
+	<meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
+	<meta property="og:title" content="picoCTF 2024 - FactCheck Walkthrough">
+	<meta property="og:description" content="This is a walkthrough on the picoCTF 2024 reverse engineering challenge, FactCheck">
+	<meta property="og:locale" content="en_us">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="posts">
+		<meta property="article:published_time" content="2025-08-01T09:53:25+08:00">
+		<meta property="article:modified_time" content="2025-08-01T09:53:25+08:00">
+		<meta property="article:tag" content="PicoCTF">
+		<meta property="og:image" content="https://mathscantor.github.io/posts/picoctf/2024/factcheck/images/cover.png">
 
 
 
@@ -334,7 +334,7 @@
   
 </span></p>
 <p>Looking at the decompiled code, the first part of the flag is assigned to the <code>local_248</code>, which is a pointer to memory in heap, where the constructed string will be placed. Subsequently, other strings are defined as well. (See Listing 1)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>undefined8 <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) { 
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>undefined8 <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) { 
 </span></span><span style="display:flex;"><span>  ...
 </span></span><span style="display:flex;"><span>  std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span>string(local_248,<span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_&#34;</span>,<span style="color:#f92672">&amp;</span>local_249);
 </span></span><span style="display:flex;"><span>  ...
@@ -354,7 +354,7 @@
   
 </span>
 <p>After initializing a bunch of strings, it proceeds to append the other defined strings to the flag through a bunch of checks.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>undefined8 <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) { 
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>undefined8 <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) { 
 </span></span><span style="display:flex;"><span>  ...
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">*</span>pcVar2 <span style="color:#f92672">&lt;</span> <span style="color:#e6db74">&#39;B&#39;</span>) {
 </span></span><span style="display:flex;"><span>    std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span><span style="color:#66d9ef">operator</span><span style="color:#f92672">+=</span>(local_248,local_c8);
@@ -369,10 +369,10 @@
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  ...
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Flag&#39;s ending tag is appended
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span><span style="color:#66d9ef">operator</span><span style="color:#f92672">+=</span>(local_248,<span style="color:#e6db74">&#39;}&#39;</span>);
+</span></span></span><span style="display:flex;"><span>  std<span style="color:#f92672">::</span>__cxx11<span style="color:#f92672">::</span>string<span style="color:#f92672">::</span><span style="color:#66d9ef">operator</span><span style="color:#f92672">+=</span>(local_248,<span style="color:#e6db74">&#39;}&#39;</span>);
 </span></span><span style="display:flex;"><span>  ...
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Truncated: Calls to string deconstructor
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
 
@@ -400,7 +400,7 @@
 <h2 id="3-dynamic-analysis-in-gdb">3. Dynamic Analysis in GDB</h2>
 <h3 id="31-method-1---stepping-over-last-string-concat">3.1 Method 1 - Stepping Over Last String Concat</h3>
 <p>Start GDB by loading the binary and break on <code>main() + 0x5d2</code>, before running the binary.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb ./bin
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb ./bin
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set pag off
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set disassembly-flavor intel
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set output-radix <span style="color:#ae81ff">16</span>
@@ -428,7 +428,7 @@
     </div>
 </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Breakpoint 1, 0x000055555555585b in main <span style="color:#f92672">()</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Breakpoint 1, 0x000055555555585b in main <span style="color:#f92672">()</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/10i $pc-15
 </span></span><span style="display:flex;"><span>   0x55555555584c &lt;main+1475&gt;:  lea    rax,<span style="color:#f92672">[</span>rbp-0x240<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>   0x555555555853 &lt;main+1482&gt;:  mov    esi,0x7d
@@ -451,7 +451,7 @@
   
 </span>
 <p>Looking at the listing above, the flag pointer is stored in RDI just before the call. We can verify this by examining the string that is pointed to by the address in RDI.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/gx $rdi
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/gx $rdi
 </span></span><span style="display:flex;"><span>0x7fffffffd530: 0x000055555556b2d0
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s 0x000055555556b2d0
@@ -470,7 +470,7 @@
   
 </span>
 <p>For completeness, step over this call and print the flag again.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> ni
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> ni
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s $flag
 </span></span><span style="display:flex;"><span>0x55555556b2d0: <span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_e9da2c0e}&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
@@ -485,7 +485,7 @@
 </span>
 <h3 id="32-method-2---lazy-heap-memory-search">3.2 Method 2 - Lazy Heap Memory Search</h3>
 <p>If you are rather lazy and just want to get the flag before it is freed, you can set a breakpoint at the <code>ret</code> instruction. This happens to be at <code>main+0x9ca</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 1504<span style="color:#f92672">)</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *<span style="color:#f92672">(</span>main + 1504<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> run
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
@@ -498,7 +498,7 @@
   
 </span>
 <p>When the breakpoint hits, identify where the start and end of the heap is.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info proc mappings
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info proc mappings
 </span></span><span style="display:flex;"><span>...
 </span></span><span style="display:flex;"><span>0x0000555555559000 0x000055555557a000 0x21000            0x0                rw-p  <span style="color:#f92672">[</span>heap<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>...
@@ -515,7 +515,7 @@
   
 </span>
 <p>We are now able to search through the heap for the substring &ldquo;pico&rdquo; to get its address.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> find /b $heap_start, $heap_end, <span style="color:#e6db74">&#39;p&#39;</span>, <span style="color:#e6db74">&#39;i&#39;</span>, <span style="color:#e6db74">&#39;c&#39;</span>, <span style="color:#e6db74">&#39;o&#39;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> find /b $heap_start, $heap_end, <span style="color:#e6db74">&#39;p&#39;</span>, <span style="color:#e6db74">&#39;i&#39;</span>, <span style="color:#e6db74">&#39;c&#39;</span>, <span style="color:#e6db74">&#39;o&#39;</span>
 </span></span><span style="display:flex;"><span>0x55555556b2d0
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span> pattern found.
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
@@ -529,7 +529,7 @@
   
 </span>
 <p>As only 1 pattern is found, this becomes straightforward by examining the buffer stored in that address.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s 0x55555556b2d0
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/s 0x55555556b2d0
 </span></span><span style="display:flex;"><span>0x55555556b2d0: <span style="color:#e6db74">&#34;picoCTF{wELF_d0N3_mate_e9da2c0e}&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 

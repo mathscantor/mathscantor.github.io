@@ -42,40 +42,40 @@
 
 
 
-  <meta itemprop="name" content="GDB Guide Part 1 - Basics">
-  <meta itemprop="description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
-  <meta itemprop="datePublished" content="2025-01-19T10:37:22+08:00">
-  <meta itemprop="dateModified" content="2025-01-19T10:37:22+08:00">
-  <meta itemprop="wordCount" content="990">
-  <meta itemprop="image" content="https://mathscantor.github.io/">
-  <meta itemprop="keywords" content="Gdb,Linux">
+	<meta itemprop="name" content="GDB Guide Part 1 - Basics">
+	<meta itemprop="description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
+	<meta itemprop="datePublished" content="2025-01-19T10:37:22+08:00">
+	<meta itemprop="dateModified" content="2025-01-19T10:37:22+08:00">
+	<meta itemprop="wordCount" content="990">
+	<meta itemprop="image" content="https://mathscantor.github.io/">
+	<meta itemprop="keywords" content="Gdb,Linux">
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://mathscantor.github.io/">
-  <meta name="twitter:title" content="GDB Guide Part 1 - Basics">
-  <meta name="twitter:description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:image" content="https://mathscantor.github.io/">
+	<meta name="twitter:title" content="GDB Guide Part 1 - Basics">
+	<meta name="twitter:description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/">
-  <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
-  <meta property="og:title" content="GDB Guide Part 1 - Basics">
-  <meta property="og:description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-01-19T10:37:22+08:00">
-    <meta property="article:modified_time" content="2025-01-19T10:37:22+08:00">
-    <meta property="article:tag" content="Gdb">
-    <meta property="article:tag" content="Linux">
-    <meta property="og:image" content="https://mathscantor.github.io/">
-      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/">
-      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">
-      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">
-      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">
-      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">
-      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">
-      <meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">
+	<meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
+	<meta property="og:title" content="GDB Guide Part 1 - Basics">
+	<meta property="og:description" content="This post introduces GDB basics, covering how to attach to processes, configure GDB for dynamic analysis, inspect registers, and disassemble functions.">
+	<meta property="og:locale" content="en_us">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="posts">
+		<meta property="article:published_time" content="2025-01-19T10:37:22+08:00">
+		<meta property="article:modified_time" content="2025-01-19T10:37:22+08:00">
+		<meta property="article:tag" content="Gdb">
+		<meta property="article:tag" content="Linux">
+		<meta property="og:image" content="https://mathscantor.github.io/">
+			<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/">
+			<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/">
+			<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/">
+			<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/">
+			<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/">
+			<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/">
+			<meta property="og:see_also" content="https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/">
 
 
 
@@ -325,7 +325,7 @@
 </ol>
 <p>I will be providing an example C file <a href="/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c">here</a> for you to compile so that you may follow the walkthrough and deepen your understanding.</p>
 <p>To compile test.c:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
 
@@ -341,7 +341,7 @@
 The second way to do this is to attach to an already running process via its PID.</p>
 <h3 id="31-via-binary">3.1 Via Binary</h3>
 <p>If you have chosen this method, it means that you know the binary full path and also the parameters to run the binary.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb $BINARY_PATH
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb $BINARY_PATH
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
 
@@ -353,7 +353,7 @@ The second way to do this is to attach to an already running process via its PID
   
 </span>
 <p>Afterwards, run the binary with its parameters.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r $param1 $param2 ....
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r $param1 $param2 ....
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
 
@@ -369,7 +369,7 @@ The second way to do this is to attach to an already running process via its PID
 <ol>
 <li>
 <p>You can start either GDB first, then do <code>attach $PID</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> attach $pid
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
@@ -384,7 +384,7 @@ The second way to do this is to attach to an already running process via its PID
 </li>
 <li>
 <p>OR, you can start GDB with the <code>-p</code> parameter.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb -p <span style="color:#e6db74">`</span>pidof $PROC_NAME<span style="color:#e6db74">`</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gdb -p <span style="color:#e6db74">`</span>pidof $PROC_NAME<span style="color:#e6db74">`</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
 
@@ -441,7 +441,7 @@ The second way to do this is to attach to an already running process via its PID
 <p><code>set print pretty on</code></p>
 <ul>
 <li>By default, this is set to &ldquo;off&rdquo;. This is more of a personal preference for me. This is more for you to decide whether you want your structure to be printed in one line or in a more readable form.
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># set print pretty on</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># set print pretty on</span>
 </span></span><span style="display:flex;"><span>$1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
 </span></span><span style="display:flex;"><span>next <span style="color:#f92672">=</span> 0x0,
 </span></span><span style="display:flex;"><span>flags <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
@@ -487,7 +487,7 @@ The second way to do this is to attach to an already running process via its PID
 <h2 id="5-inspecting-registers">5. Inspecting Registers</h2>
 <p>There are actually several ways to print the values of the registers.</p>
 <h3 id="51-via-info-registers">5.1 Via <code>info registers</code></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Prints all registers&#39; values</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Prints all registers&#39; values</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Print only rax value</span>
@@ -506,7 +506,7 @@ The second way to do this is to attach to an already running process via its PID
   
 </span>
 <h3 id="52-via-print--printf">5.2 Via <code>print</code> / <code>printf</code></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Print rax value</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Print rax value</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $rax
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Printf rax value</span>
@@ -547,7 +547,7 @@ The second way to do this is to attach to an already running process via its PID
 Of course, you need not use GDB&rsquo;s disassembly feature for static analysis and can always use <a href="https://github.com/NationalSecurityAgency/ghidra">Ghidra</a> or IDA (<a href="https://hex-rays.com/ida-free">Free Version</a> or <a href="https://hex-rays.com/ida-pro">Pro</a>)
 which is a lot more user-friendly.</p>
 <p>Assuming we can only use GDB, then the way to go about doing this is to make use of the <code>disassemble</code> command.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># If no address/function is stated, disassemble function at current instruction.</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># If no address/function is stated, disassemble function at current instruction.</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> disassemble
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Disassemble the entire function</span>

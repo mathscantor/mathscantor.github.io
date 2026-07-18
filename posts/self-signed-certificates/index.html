@@ -42,32 +42,32 @@
 
 
 
-  <meta itemprop="name" content="Self Signed Certificates">
-  <meta itemprop="description" content="Learn more about self signed certificates with openssl commands.">
-  <meta itemprop="datePublished" content="2025-09-03T21:53:22+08:00">
-  <meta itemprop="dateModified" content="2025-09-03T21:53:22+08:00">
-  <meta itemprop="wordCount" content="413">
-  <meta itemprop="image" content="https://mathscantor.github.io/posts/self-signed-certificates/images/cover.png">
-  <meta itemprop="keywords" content="Ssl">
+	<meta itemprop="name" content="Self Signed Certificates">
+	<meta itemprop="description" content="Learn more about self signed certificates with openssl commands.">
+	<meta itemprop="datePublished" content="2025-09-03T21:53:22+08:00">
+	<meta itemprop="dateModified" content="2025-09-03T21:53:22+08:00">
+	<meta itemprop="wordCount" content="413">
+	<meta itemprop="image" content="https://mathscantor.github.io/posts/self-signed-certificates/images/cover.png">
+	<meta itemprop="keywords" content="Ssl">
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://mathscantor.github.io/posts/self-signed-certificates/images/cover.png">
-  <meta name="twitter:title" content="Self Signed Certificates">
-  <meta name="twitter:description" content="Learn more about self signed certificates with openssl commands.">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:image" content="https://mathscantor.github.io/posts/self-signed-certificates/images/cover.png">
+	<meta name="twitter:title" content="Self Signed Certificates">
+	<meta name="twitter:description" content="Learn more about self signed certificates with openssl commands.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/self-signed-certificates/">
-  <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
-  <meta property="og:title" content="Self Signed Certificates">
-  <meta property="og:description" content="Learn more about self signed certificates with openssl commands.">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-09-03T21:53:22+08:00">
-    <meta property="article:modified_time" content="2025-09-03T21:53:22+08:00">
-    <meta property="article:tag" content="Ssl">
-    <meta property="og:image" content="https://mathscantor.github.io/posts/self-signed-certificates/images/cover.png">
+	<meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
+	<meta property="og:title" content="Self Signed Certificates">
+	<meta property="og:description" content="Learn more about self signed certificates with openssl commands.">
+	<meta property="og:locale" content="en_us">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="posts">
+		<meta property="article:published_time" content="2025-09-03T21:53:22+08:00">
+		<meta property="article:modified_time" content="2025-09-03T21:53:22+08:00">
+		<meta property="article:tag" content="Ssl">
+		<meta property="og:image" content="https://mathscantor.github.io/posts/self-signed-certificates/images/cover.png">
 
 
 
@@ -289,16 +289,16 @@
 <p>Using this example, we will be covering some basic, yet convenient OpenSSL commands to easily get you started on self-signed certificates!</p>
 <h2 id="2-generating-ca-key--cert">2. Generating CA Key &amp; Cert</h2>
 <p>If you already have a set of existing CA key and certificate, you can ignore this section. Else, we will need to generate one first. You may follow the template below and edit the values only for <code>-days</code>, <code>-keyout</code>, <code>-out</code> and <code>-subj</code> options.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl req -x509 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -newkey rsa:4096 -sha256 -nodes <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -days <span style="color:#ae81ff">1000</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keyout ca.key <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -out ca.crt -outform PEM <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -subj <span style="color:#e6db74">&#34;/C=SG/ST=Singapore/L=Singapore/O=Nexus/OU=Infra/CN=ca.nexus.org/emailAddress=admin@nexus.org&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;subjectKeyIdentifier=hash&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;authorityKeyIdentifier=keyid:always,issuer&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;basicConstraints=critical,CA:true&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;keyUsage=keyCertSign,cRLSign&#34;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl req -x509 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -newkey rsa:4096 -sha256 -nodes <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -days <span style="color:#ae81ff">1000</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -keyout ca.key <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -out ca.crt -outform PEM <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -subj <span style="color:#e6db74">&#34;/C=SG/ST=Singapore/L=Singapore/O=Nexus/OU=Infra/CN=ca.nexus.org/emailAddress=admin@nexus.org&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -addext <span style="color:#e6db74">&#34;subjectKeyIdentifier=hash&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -addext <span style="color:#e6db74">&#34;authorityKeyIdentifier=keyid:always,issuer&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -addext <span style="color:#e6db74">&#34;basicConstraints=critical,CA:true&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -addext <span style="color:#e6db74">&#34;keyUsage=keyCertSign,cRLSign&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
 
@@ -325,15 +325,15 @@
     </div>
 </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl req <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -newkey rsa:2048 -sha256 -nodes <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keyout server.key <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -out server.csr -outform PEM <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -subj <span style="color:#e6db74">&#34;/C=SG/ST=Singapore/L=Singapore/O=Nexus/CN=gitlab.nexus.org/emailAddress=admin@nexus.org&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;subjectKeyIdentifier=hash&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;basicConstraints=CA:FALSE&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;keyUsage=digitalSignature,keyEncipherment&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -addext <span style="color:#e6db74">&#34;subjectAltName=DNS:gitlab.nexus.org&#34;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl req <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -newkey rsa:2048 -sha256 -nodes <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -keyout server.key <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -out server.csr -outform PEM <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -subj <span style="color:#e6db74">&#34;/C=SG/ST=Singapore/L=Singapore/O=Nexus/CN=gitlab.nexus.org/emailAddress=admin@nexus.org&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -addext <span style="color:#e6db74">&#34;subjectKeyIdentifier=hash&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -addext <span style="color:#e6db74">&#34;basicConstraints=CA:FALSE&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -addext <span style="color:#e6db74">&#34;keyUsage=digitalSignature,keyEncipherment&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -addext <span style="color:#e6db74">&#34;subjectAltName=DNS:gitlab.nexus.org&#34;</span>
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
 
@@ -360,16 +360,16 @@
     </div>
 </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl x509 -req <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -in server.csr <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -CA ca.crt <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -CAkey ca.key <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -CAcreateserial <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -out server.crt <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -days <span style="color:#ae81ff">1000</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -sha256 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -extfile &lt;<span style="color:#f92672">(</span>printf <span style="color:#e6db74">&#34;[ext]\nsubjectAltName=DNS:gitlab.nexus.org\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment&#34;</span><span style="color:#f92672">)</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -extensions ext
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ openssl x509 -req <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -in server.csr <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -CA ca.crt <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -CAkey ca.key <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -CAcreateserial <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -out server.crt <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -days <span style="color:#ae81ff">1000</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -sha256 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -extfile &lt;<span style="color:#f92672">(</span>printf <span style="color:#e6db74">&#34;[ext]\nsubjectAltName=DNS:gitlab.nexus.org\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment&#34;</span><span style="color:#f92672">)</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>  -extensions ext
 </span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
 
 

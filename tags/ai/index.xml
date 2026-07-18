@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>AI on Mathscantor&#39;s Cybersecurity Blog</title>
-    <link>https://mathscantor.github.io/tags/ai/</link>
-    <description>Recent content in AI on Mathscantor&#39;s Cybersecurity Blog</description>
-    <generator>Hugo</generator>
-    <language>en</language>
-    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Sat, 13 Jun 2026 11:53:02 +0800</lastBuildDate>
-    <atom:link href="https://mathscantor.github.io/tags/ai/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>BlackHat Asia 2026 - Exploiting 10x Faster Experience</title>
-      <link>https://mathscantor.github.io/posts/bha2026-exploiting-10x-faster-experience/</link>
-      <pubDate>Sat, 13 Jun 2026 11:53:02 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/bha2026-exploiting-10x-faster-experience/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Before attending this course, I was firmly in the AI skeptic camp. I was not anti-AI, but I was definitely not building a shrine to it either. My usage was mostly the boring stuff: explaining weird-looking code, renaming functions in Ghidra, or acting like a slightly more talkative Google search.&lt;/p&gt;&#xA;&lt;p&gt;I had played around with AI tooling before. I even wrote an MCP server for GDB during an in-house hackathon, which is a fancy way of saying I built a bridge so an AI assistant could talk to a debugger. Cool? Yes. Life-changing? Not quite. At that point, I still saw AI as a helpful intern that occasionally makes things up with great confidence.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Spinning Up Local LLMs</title>
-      <link>https://mathscantor.github.io/posts/spinning-up-local-llms/</link>
-      <pubDate>Mon, 25 May 2026 10:51:00 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/spinning-up-local-llms/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;I have an old desktop with an NVIDIA RTX 2070 SUPER (8GB VRAM) sitting around, quietly collecting dust and judging me. So naturally, I decided to give it a job: run a local LLM server with &lt;a href=&#34;https://github.com/ggml-org/llama.cpp&#34;&gt;llama.cpp&lt;/a&gt;, then wire it up to an AI coding agent.&lt;/p&gt;&#xA;&lt;p&gt;No cloud tokens, no monthly bill anxiety, no sending prompts halfway across the planet. Just one old GPU, a quantized model, and a little bit of stubbornness.&lt;/p&gt;</description>
-    </item>
-  </channel>
+	<channel>
+		<title>AI on Mathscantor&#39;s Cybersecurity Blog</title>
+		<link>https://mathscantor.github.io/tags/ai/</link>
+		<description>Recent content in AI on Mathscantor&#39;s Cybersecurity Blog</description>
+		<generator>Hugo</generator>
+		<language>en-us</language>
+		
+		
+		
+			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+		
+		
+			<lastBuildDate>Sat, 13 Jun 2026 11:53:02 +0800</lastBuildDate>
+		
+			<atom:link href="https://mathscantor.github.io/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>BlackHat Asia 2026 - Exploiting 10x Faster Experience</title>
+				<link>https://mathscantor.github.io/posts/bha2026-exploiting-10x-faster-experience/</link>
+				<pubDate>Sat, 13 Jun 2026 11:53:02 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/bha2026-exploiting-10x-faster-experience/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Before attending this course, I was firmly in the AI skeptic camp. I was not anti-AI, but I was definitely not building a shrine to it either. My usage was mostly the boring stuff: explaining weird-looking code, renaming functions in Ghidra, or acting like a slightly more talkative Google search.&lt;/p&gt;&#xA;&lt;p&gt;I had played around with AI tooling before. I even wrote an MCP server for GDB during an in-house hackathon, which is a fancy way of saying I built a bridge so an AI assistant could talk to a debugger. Cool? Yes. Life-changing? Not quite. At that point, I still saw AI as a helpful intern that occasionally makes things up with great confidence.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Spinning Up Local LLMs</title>
+				<link>https://mathscantor.github.io/posts/spinning-up-local-llms/</link>
+				<pubDate>Mon, 25 May 2026 10:51:00 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/spinning-up-local-llms/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;I have an old desktop with an NVIDIA RTX 2070 SUPER (8GB VRAM) sitting around, quietly collecting dust and judging me. So naturally, I decided to give it a job: run a local LLM server with &lt;a href=&#34;https://github.com/ggml-org/llama.cpp&#34;&gt;llama.cpp&lt;/a&gt;, then wire it up to an AI coding agent.&lt;/p&gt;&#xA;&lt;p&gt;No cloud tokens, no monthly bill anxiety, no sending prompts halfway across the planet. Just one old GPU, a quantized model, and a little bit of stubbornness.&lt;/p&gt;</description>
+			</item>
+	</channel>
 </rss>

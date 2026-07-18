@@ -42,33 +42,33 @@
 
 
 
-  <meta itemprop="name" content="Writing Packets to Pcapng in C">
-  <meta itemprop="description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
-  <meta itemprop="datePublished" content="2025-01-17T10:56:44+08:00">
-  <meta itemprop="dateModified" content="2025-01-17T10:56:44+08:00">
-  <meta itemprop="wordCount" content="1115">
-  <meta itemprop="image" content="https://mathscantor.github.io/">
-  <meta itemprop="keywords" content="C-C&#43;&#43;,Packet-Capture">
+	<meta itemprop="name" content="Writing Packets to Pcapng in C">
+	<meta itemprop="description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
+	<meta itemprop="datePublished" content="2025-01-17T10:56:44+08:00">
+	<meta itemprop="dateModified" content="2025-01-17T10:56:44+08:00">
+	<meta itemprop="wordCount" content="1115">
+	<meta itemprop="image" content="https://mathscantor.github.io/">
+	<meta itemprop="keywords" content="C-C&#43;&#43;,Packet-Capture">
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://mathscantor.github.io/">
-  <meta name="twitter:title" content="Writing Packets to Pcapng in C">
-  <meta name="twitter:description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:image" content="https://mathscantor.github.io/">
+	<meta name="twitter:title" content="Writing Packets to Pcapng in C">
+	<meta name="twitter:description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
 
 
 
     <meta property="og:url" content="https://mathscantor.github.io/posts/writing-packets-to-pcapng-in-c/">
-  <meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
-  <meta property="og:title" content="Writing Packets to Pcapng in C">
-  <meta property="og:description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
-  <meta property="og:locale" content="en">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-01-17T10:56:44+08:00">
-    <meta property="article:modified_time" content="2025-01-17T10:56:44+08:00">
-    <meta property="article:tag" content="C-C&#43;&#43;">
-    <meta property="article:tag" content="Packet-Capture">
-    <meta property="og:image" content="https://mathscantor.github.io/">
+	<meta property="og:site_name" content="Mathscantor&#39;s Cybersecurity Blog">
+	<meta property="og:title" content="Writing Packets to Pcapng in C">
+	<meta property="og:description" content="This post provides a detailed guide on writing packets to a PcapNG file using C, covering the PcapNG structure, section blocks, and providing source code examples for creating a custom PcapNG library.">
+	<meta property="og:locale" content="en_us">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="posts">
+		<meta property="article:published_time" content="2025-01-17T10:56:44+08:00">
+		<meta property="article:modified_time" content="2025-01-17T10:56:44+08:00">
+		<meta property="article:tag" content="C-C&#43;&#43;">
+		<meta property="article:tag" content="Packet-Capture">
+		<meta property="og:image" content="https://mathscantor.github.io/">
 
 
 
@@ -331,7 +331,7 @@ The PcapNG file structure can be found on the <a href="https://pcapng.com/">Offi
 <img class="center" alt="shb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/shb-structure.png">
 <div style="text-align: center;"><p>Figure 2. SHB Structure</p></div>
 <p>Figure 2 can be partially translated into the following SHB header struct:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_type;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_length;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> bom;      
@@ -352,9 +352,9 @@ a variable size and therefore, we have to declare it separately. The same logic 
 <li>Section Length = <code>0xFFFFFFFFFFFFFFFF</code> &ndash;&gt; -1</li>
 </ul>
 <p>The writing of the SHB section can be translated into the following C snippet:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SHB_TYPE 0x0A0D0D0A
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SHB_TYPE 0x0A0D0D0A
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define BOM 0x1A2B3C4D
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_shb_section</span>(FILE <span style="color:#f92672">*</span>pcapng_file) {
 </span></span><span style="display:flex;"><span>    
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">shb_headers_t</span>) <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
@@ -389,7 +389,7 @@ a variable size and therefore, we have to declare it separately. The same logic 
 <img class="center" alt="idb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/idb-structure.png">
 <div style="text-align: center;"><p>Figure 3. IDB Structure</p></div>
 <p>Figure 3 can be partially translated into the following IDB header struct:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_type;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_length;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint16_t</span> link_type;
@@ -407,8 +407,8 @@ a variable size and therefore, we have to declare it separately. The same logic 
         = <code>0x00000000</code>(No Limit) <br></li>
 </ul>
 <p>The writing of the IDB section to a PcapNG file can be translated into the following C snippet:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define IDB_TYPE 0x00000001
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define IDB_TYPE 0x00000001
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_idb_section</span>(FILE <span style="color:#f92672">*</span>pcapng_file) {
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">idb_headers_t</span>) <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
@@ -443,7 +443,7 @@ a variable size and therefore, we have to declare it separately. The same logic 
 <img class="center" alt="epb-structure" src="/posts/writing-packets-to-pcapng-in-c/images/epb-structure.png">
 <div style="text-align: center;"><p>Figure 4. EPB Structure</p></div>
 <p>Figure 4 can be partially translated into the following EPB header struct:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_type;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_length;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> interface_id;
@@ -467,7 +467,7 @@ a variable size and therefore, we have to declare it separately. The same logic 
 <li>If a packet is truncated due to a short snap length stated in the IDB section, then <code>captured_length &lt; original_len</code>.</li>
 </ul>
 <p>The writing of the EPB section to a PcapNG file can be translated into the following C snippet:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_packet</span>(FILE<span style="color:#f92672">*</span> pcapng_file, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>packet_data, <span style="color:#66d9ef">uint32_t</span> packet_length) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">pcapng_write_packet</span>(FILE<span style="color:#f92672">*</span> pcapng_file, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>packet_data, <span style="color:#66d9ef">uint32_t</span> packet_length) {
 </span></span><span style="display:flex;"><span>    
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> block_length <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">epb_headers_t</span>) <span style="color:#f92672">+</span> packet_length <span style="color:#f92672">+</span> <span style="color:#66d9ef">sizeof</span>(block_length);
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> padding_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">-</span> (block_length <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span>);
@@ -516,9 +516,9 @@ a variable size and therefore, we have to declare it separately. The same logic 
 <p>After putting all the logic into a header file called &ldquo;pcapng.h&rdquo;, and asking chatgpt to generate some sample data for us to test,
 we are ready to go! If you want to follow along for this part of the walkthrough, you can get a copy of my files <a href="/posts/writing-packets-to-pcapng-in-c/resources/pcapng-example.zip">here</a>.</p>
 <p>The following listing shows a simple example of saving packets to a PcapNG file called &ldquo;output.pcapng&rdquo; in the same directory.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;pcapng.h&#34;</span><span style="color:#75715e">
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;pcapng.h&#34;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;pcapng_samples.h&#34;</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span> (<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    FILE <span style="color:#f92672">*</span>pcapng_file <span style="color:#f92672">=</span> <span style="color:#a6e22e">pcapng_init_file</span>(<span style="color:#e6db74">&#34;output.pcapng&#34;</span>);
@@ -530,7 +530,7 @@ we are ready to go! If you want to follow along for this part of the walkthrough
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><div style="text-align: center;"><p>Listing 7. test.c</p></div>
 <p>Compile the C program and run it.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ gcc test.c -o test
 </span></span><span style="display:flex;"><span>$ ./test
 </span></span></code></pre></div><div style="text-align: center;"><p>Listing 8. Running Test Case</p></div>
 <p>We can now view our &ldquo;output.pcapng&rdquo; file with Wireshark!

@@ -1,160 +1,166 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Linux on Mathscantor&#39;s Cybersecurity Blog</title>
-    <link>https://mathscantor.github.io/tags/linux/</link>
-    <description>Recent content in Linux on Mathscantor&#39;s Cybersecurity Blog</description>
-    <generator>Hugo</generator>
-    <language>en</language>
-    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-    <lastBuildDate>Tue, 07 Jul 2026 23:51:00 +0800</lastBuildDate>
-    <atom:link href="https://mathscantor.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Step-by-Step Linux Process Injection Guide Part 1 - Overview</title>
-      <link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</link>
-      <pubDate>Tue, 07 Jul 2026 23:51:00 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Process injection is a technique where one process forces another already-running process to load and execute arbitrary code. On Windows, the classic approach is &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;CreateRemoteThread()&lt;/span&gt; combined with &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;LoadLibrary()&lt;/span&gt;. On Linux, the equivalent relies on &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;ptrace()&lt;/span&gt;. It&amp;rsquo;s the same system call that debuggers like GDB use to attach to processes, read and write their memory, and manipulate their registers.&lt;/p&gt;&#xA;&lt;p&gt;This series walks through a full ptrace-based injection from start to finish. We will cover attaching to a target, setting up a shellcode trampoline, resolving function addresses despite ASLR, loading a shared library into the target&amp;rsquo;s address space, and restoring the target to its original state. By the end, you should understand every step well enough to read (or write) an injector yourself.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>BlackHat Asia 2026 - Exploiting 10x Faster Experience</title>
-      <link>https://mathscantor.github.io/posts/bha2026-exploiting-10x-faster-experience/</link>
-      <pubDate>Sat, 13 Jun 2026 11:53:02 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/bha2026-exploiting-10x-faster-experience/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Before attending this course, I was firmly in the AI skeptic camp. I was not anti-AI, but I was definitely not building a shrine to it either. My usage was mostly the boring stuff: explaining weird-looking code, renaming functions in Ghidra, or acting like a slightly more talkative Google search.&lt;/p&gt;&#xA;&lt;p&gt;I had played around with AI tooling before. I even wrote an MCP server for GDB during an in-house hackathon, which is a fancy way of saying I built a bridge so an AI assistant could talk to a debugger. Cool? Yes. Life-changing? Not quite. At that point, I still saw AI as a helpful intern that occasionally makes things up with great confidence.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Spinning Up Local LLMs</title>
-      <link>https://mathscantor.github.io/posts/spinning-up-local-llms/</link>
-      <pubDate>Mon, 25 May 2026 10:51:00 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/spinning-up-local-llms/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;I have an old desktop with an NVIDIA RTX 2070 SUPER (8GB VRAM) sitting around, quietly collecting dust and judging me. So naturally, I decided to give it a job: run a local LLM server with &lt;a href=&#34;https://github.com/ggml-org/llama.cpp&#34;&gt;llama.cpp&lt;/a&gt;, then wire it up to an AI coding agent.&lt;/p&gt;&#xA;&lt;p&gt;No cloud tokens, no monthly bill anxiety, no sending prompts halfway across the planet. Just one old GPU, a quantized model, and a little bit of stubbornness.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Linux Kernel Module Debugging</title>
-      <link>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</link>
-      <pubDate>Sun, 15 Feb 2026 09:34:42 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Kernel module debugging is the art you master after &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;printk()&lt;/span&gt; betrays you.&lt;/p&gt;&#xA;&lt;p&gt;If you are a kernel developer, writing drivers, hacking on memory management, or building experimental things like verification or virtualization logic in kernel space, being able to debug LKMs matters a lot. Once your code is running below userspace, &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;printk()&lt;/span&gt; quickly stops being enough. Without symbols, every crash turns into guesswork and every bug feels expensive.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Managing SSH Users with Certs</title>
-      <link>https://mathscantor.github.io/posts/managing-ssh-users-with-certs/</link>
-      <pubDate>Tue, 14 Oct 2025 20:29:32 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/managing-ssh-users-with-certs/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Traditional SSH authentication methods typically rely on passwords or static public keys stored in the &lt;em&gt;authorized_keys&lt;/em&gt; file. While this works well for a handful of systems, it quickly becomes unmanageable at scale. Every user key must be manually distributed, and revoked keys stay valid until manually removed. Today, we are going to explore how SSH credentials can be centrally managed by the server using SSH certificates and a certificate authority (CA).&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>General Firmware Analysis Guide</title>
-      <link>https://mathscantor.github.io/posts/general-firmware-analysis-guide/</link>
-      <pubDate>Tue, 19 Aug 2025 22:24:27 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/general-firmware-analysis-guide/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This guide is meant for anyone working with embedded systems, particularly when performing firmware analysis or vulnerability research. Embedded systems are specialized computer systems designed to perform specific tasks within a larger device or machine. Examples include routers, firewalls, or IoT devices.&lt;/p&gt;&#xA;&lt;p&gt;Such systems often restrict both users and administrators to a limited shell and employ root file system integrity checks. Without understanding and customizing the firmware, debugging or conducting security research is extremely difficult.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>GDB Guide Part 8 - Invoking Function Calls</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/</link>
-      <pubDate>Sun, 20 Jul 2025 12:34:19 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;It&amp;rsquo;s been quite a while hasn&amp;rsquo;t it? I hope you have been doing well and taking care of yourself. I recently had some junior colleagues asking me how it is possible to directly invoke certain functions while using GDB. Thus, I thought it would be a great opportunity to share some useful tips.&lt;/p&gt;&#xA;&lt;p&gt;We will be looking at how to invoke different functions of different return types using a simple example: &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/resources/gdb_invoke_function.c&#34;&gt;gdb_invoke_function.c&lt;/a&gt;&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>eBPF Malware Techniques Part 4 - Hiding Processes</title>
-      <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</link>
-      <pubDate>Fri, 09 May 2025 08:16:42 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In this post, we explore techniques employed by eBPF to hide processes. When I wrote my first rootkit that hides targeted directories, my go-to reference was this well-written &lt;a href=&#34;https://xcellerator.github.io/posts/linux_rootkits_06/&#34;&gt;blog post&lt;/a&gt; by &lt;a href=&#34;https://github.com/xcellerator&#34;&gt;TheXcellerator&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;p&gt;As PIDs are tracked under &lt;em&gt;/proc&lt;/em&gt; as a directory, there&amp;rsquo;s no need to re-invent the wheel when it comes to hiding processes. That’s because Linux veterans know that directory listings are handled by the getdents64 syscall — a well-known technique.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>eBPF Malware Techniques Part 3 - Hiding BPF Traces</title>
-      <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</link>
-      <pubDate>Sat, 26 Apr 2025 10:45:47 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;We&amp;rsquo;re finally gonna talk about the juicy stuff now that you are all geared up! Today, we are gonna go into a deep dive on how an eBPF application can hide itself and its child processes by understanding specific crucial Linux internals and how to circumvent them. I will be mainly using &lt;a href=&#34;https://github.com/eeriedusk/nysm&#34;&gt;&lt;em&gt;nysm&lt;/em&gt;&lt;/a&gt;, a eBPF-based malware as my prime example for hiding BPF traces.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-ebpf-enumeration-with-bpf-syscalls&#34;&gt;2. eBPF Enumeration with BPF Syscalls&lt;/h2&gt;&#xA;&lt;p&gt;When working with eBPF, it&amp;rsquo;s important to understand what&amp;rsquo;s actually loaded into the kernel at any point in time. Fortunately, &lt;em&gt;bpftool&lt;/em&gt; gives us powerful inspection capabilities through &lt;em&gt;bpf()&lt;/em&gt; syscalls., which we will take a deeper look in a second.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>eBPF Malware Techniques Part 2 - Setting Appropriate Hooks</title>
-      <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</link>
-      <pubDate>Fri, 11 Apr 2025 23:42:35 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.&lt;/p&gt;&#xA;&lt;p&gt;To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>eBPF Malware Techniques Part 1 - Introduction</title>
-      <link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</link>
-      <pubDate>Sat, 05 Apr 2025 09:20:03 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</guid>
-      <description>&lt;h2 id=&#34;1-background&#34;&gt;1. Background&lt;/h2&gt;&#xA;&lt;p&gt;As a cybersecurity researcher, understanding both traditional and modern methods of kernel-level code execution is crucial. Two prominent techniques you&amp;rsquo;ll encounter are LKM (Loadable Kernel Module) rootkits and eBPF-based applications.&lt;/p&gt;&#xA;&lt;p&gt;eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows safe, user-defined code to run in kernel context. Originally intended for packet filtering, eBPF has evolved into a generic in-kernel virtual machine — enabling dynamic tracing, monitoring, networking, and even security enforcement.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>GDB Guide Part 7 - Custom Commands</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</link>
-      <pubDate>Wed, 19 Mar 2025 22:15:30 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, &lt;a href=&#34;https://github.com/hugsy/gef&#34;&gt;GEF (GDB Enhanced Features)&lt;/a&gt; provides many QoL features that aid dynamic analysis.&lt;/p&gt;&#xA;&lt;p&gt;However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands using native GDB syntax first, then extending them further with python to enhance GDB&amp;rsquo;s capabilities.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Linux File Monitoring With Fanotify</title>
-      <link>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</link>
-      <pubDate>Fri, 14 Mar 2025 20:09:42 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Let&amp;rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.&lt;/p&gt;&#xA;&lt;p&gt;Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Real-time security monitoring (e.g., antivirus scanning)&lt;/li&gt;&#xA;&lt;li&gt;Auditing and compliance (e.g., logging file accesses)&lt;/li&gt;&#xA;&lt;li&gt;File system activity tracking (e.g., synchronizing backups)&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the &lt;code&gt;FAN_ALLOW&lt;/code&gt; or &lt;code&gt;FAN_DENY&lt;/code&gt; response.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>GDB Guide Part 6 - Automation</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</link>
-      <pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands.&#xA;Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation&#xA;will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your&#xA;sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>GDB Guide Part 5 - Stepping</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</link>
-      <pubDate>Sun, 23 Feb 2025 13:08:30 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This part of the guide will demonstrate to you the differences between stepping in, over and out.&#xA;In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples&#xA;I provide will only be for stepping through instructions and not source lines.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-example-program&#34;&gt;2. Example Program&lt;/h2&gt;&#xA;&lt;p&gt;For this part of the tutorial, either compile &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise.c&#34;&gt;stepping-exercise.c&lt;/a&gt; or download the static binary &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise&#34;&gt;stepping-exercise&lt;/a&gt; to follow along.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>GDB Guide Part 4 - Examining Memory</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
-      <pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.&lt;/p&gt;&#xA;&lt;p&gt;Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with &lt;em&gt;eval&lt;/em&gt;.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-examine-command-x&#34;&gt;2. Examine Command (x/)&lt;/h2&gt;&#xA;&lt;p&gt;To examine the process&amp;rsquo;s memory, we will always start of with the prefix &lt;code&gt;x/&lt;/code&gt;, followed by whatever we which to examine at a particular address.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>GDB Guide Part 3 - Process Maps</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
-      <pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-overview&#34;&gt;2. Overview&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.&#xA;However, I think it is also important to cover some background on dynamic and static executables before talking about Process Maps.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
-      <pubDate>Tue, 21 Jan 2025 12:21:39 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This post is a continuation from the &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/&#34;&gt;previous post in this series&lt;/a&gt; and will cover more fundamentals on GDB and dynamic analysis.&lt;/p&gt;&#xA;&lt;p&gt;To ensure this post is not too long-winded, I have decided to only go through the following topics today:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Breakpoints&lt;/li&gt;&#xA;&lt;li&gt;Linux x86 vs x86_64 Calling Convention&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h2 id=&#34;2-breakpoints&#34;&gt;2. Breakpoints&lt;/h2&gt;&#xA;&lt;p&gt;A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>GDB Guide Part 1 - Basics</title>
-      <link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</link>
-      <pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-overview&#34;&gt;2. Overview&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s guide will show you how to:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Attach to a Process&lt;/li&gt;&#xA;&lt;li&gt;Set useful GDB Configuration&lt;/li&gt;&#xA;&lt;li&gt;Inspect Registers&lt;/li&gt;&#xA;&lt;li&gt;Disassemble Functions&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;I will be providing an example C file &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c&#34;&gt;here&lt;/a&gt; for you to compile so that you may follow the walkthrough and deepen your understanding.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Installing Linux Packages Offline</title>
-      <link>https://mathscantor.github.io/posts/installing-packages-offline/</link>
-      <pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/installing-packages-offline/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.&lt;/p&gt;&#xA;&lt;p&gt;For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.&lt;/p&gt;&#xA;&lt;p&gt;Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Getting Root Shell Mikrotik RouterOS</title>
-      <link>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</link>
-      <pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
-      <guid>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</guid>
-      <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.&lt;/p&gt;&#xA;&lt;p&gt;For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.&lt;/p&gt;</description>
-    </item>
-  </channel>
+	<channel>
+		<title>Linux on Mathscantor&#39;s Cybersecurity Blog</title>
+		<link>https://mathscantor.github.io/tags/linux/</link>
+		<description>Recent content in Linux on Mathscantor&#39;s Cybersecurity Blog</description>
+		<generator>Hugo</generator>
+		<language>en-us</language>
+		
+		
+		
+			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+		
+		
+			<lastBuildDate>Sat, 18 Jul 2026 09:25:00 +0800</lastBuildDate>
+		
+			<atom:link href="https://mathscantor.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Step-by-Step Linux Process Injection Guide Part 1 - Overview</title>
+				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</link>
+				<pubDate>Tue, 07 Jul 2026 23:51:00 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Process injection is a technique where one process forces another already-running process to load and execute arbitrary code. On Windows, the classic approach is &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;CreateRemoteThread()&lt;/span&gt; combined with &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;LoadLibrary()&lt;/span&gt;. On Linux, the equivalent relies on &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;ptrace()&lt;/span&gt;. It&amp;rsquo;s the same system call that debuggers like GDB use to attach to processes, read and write their memory, and manipulate their registers.&lt;/p&gt;&#xA;&lt;p&gt;This series walks through a full ptrace-based injection from start to finish. We will cover attaching to a target, setting up a shellcode trampoline, resolving function addresses despite ASLR, loading a shared library into the target&amp;rsquo;s address space, and restoring the target to its original state. By the end, you should understand every step well enough to read (or write) an injector yourself.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>BlackHat Asia 2026 - Exploiting 10x Faster Experience</title>
+				<link>https://mathscantor.github.io/posts/bha2026-exploiting-10x-faster-experience/</link>
+				<pubDate>Sat, 13 Jun 2026 11:53:02 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/bha2026-exploiting-10x-faster-experience/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Before attending this course, I was firmly in the AI skeptic camp. I was not anti-AI, but I was definitely not building a shrine to it either. My usage was mostly the boring stuff: explaining weird-looking code, renaming functions in Ghidra, or acting like a slightly more talkative Google search.&lt;/p&gt;&#xA;&lt;p&gt;I had played around with AI tooling before. I even wrote an MCP server for GDB during an in-house hackathon, which is a fancy way of saying I built a bridge so an AI assistant could talk to a debugger. Cool? Yes. Life-changing? Not quite. At that point, I still saw AI as a helpful intern that occasionally makes things up with great confidence.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Spinning Up Local LLMs</title>
+				<link>https://mathscantor.github.io/posts/spinning-up-local-llms/</link>
+				<pubDate>Mon, 25 May 2026 10:51:00 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/spinning-up-local-llms/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;I have an old desktop with an NVIDIA RTX 2070 SUPER (8GB VRAM) sitting around, quietly collecting dust and judging me. So naturally, I decided to give it a job: run a local LLM server with &lt;a href=&#34;https://github.com/ggml-org/llama.cpp&#34;&gt;llama.cpp&lt;/a&gt;, then wire it up to an AI coding agent.&lt;/p&gt;&#xA;&lt;p&gt;No cloud tokens, no monthly bill anxiety, no sending prompts halfway across the planet. Just one old GPU, a quantized model, and a little bit of stubbornness.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Linux Kernel Module Debugging</title>
+				<link>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</link>
+				<pubDate>Sun, 15 Feb 2026 09:34:42 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/linux-kernel-module-debugging/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Kernel module debugging is the art you master after &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;printk()&lt;/span&gt; betrays you.&lt;/p&gt;&#xA;&lt;p&gt;If you are a kernel developer, writing drivers, hacking on memory management, or building experimental things like verification or virtualization logic in kernel space, being able to debug LKMs matters a lot. Once your code is running below userspace, &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;printk()&lt;/span&gt; quickly stops being enough. Without symbols, every crash turns into guesswork and every bug feels expensive.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Managing SSH Users with Certs</title>
+				<link>https://mathscantor.github.io/posts/managing-ssh-users-with-certs/</link>
+				<pubDate>Tue, 14 Oct 2025 20:29:32 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/managing-ssh-users-with-certs/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Traditional SSH authentication methods typically rely on passwords or static public keys stored in the &lt;em&gt;authorized_keys&lt;/em&gt; file. While this works well for a handful of systems, it quickly becomes unmanageable at scale. Every user key must be manually distributed, and revoked keys stay valid until manually removed. Today, we are going to explore how SSH credentials can be centrally managed by the server using SSH certificates and a certificate authority (CA).&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>General Firmware Analysis Guide</title>
+				<link>https://mathscantor.github.io/posts/general-firmware-analysis-guide/</link>
+				<pubDate>Tue, 19 Aug 2025 22:24:27 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/general-firmware-analysis-guide/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This guide is meant for anyone working with embedded systems, particularly when performing firmware analysis or vulnerability research. Embedded systems are specialized computer systems designed to perform specific tasks within a larger device or machine. Examples include routers, firewalls, or IoT devices.&lt;/p&gt;&#xA;&lt;p&gt;Such systems often restrict both users and administrators to a limited shell and employ root file system integrity checks. Without understanding and customizing the firmware, debugging or conducting security research is extremely difficult.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>GDB Guide Part 8 - Invoking Function Calls</title>
+				<link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/</link>
+				<pubDate>Sun, 20 Jul 2025 12:34:19 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;It&amp;rsquo;s been quite a while hasn&amp;rsquo;t it? I hope you have been doing well and taking care of yourself. I recently had some junior colleagues asking me how it is possible to directly invoke certain functions while using GDB. Thus, I thought it would be a great opportunity to share some useful tips.&lt;/p&gt;&#xA;&lt;p&gt;We will be looking at how to invoke different functions of different return types using a simple example: &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part8-invoking-function-calls/resources/gdb_invoke_function.c&#34;&gt;gdb_invoke_function.c&lt;/a&gt;&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>eBPF Malware Techniques Part 4 - Hiding Processes</title>
+				<link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</link>
+				<pubDate>Fri, 09 May 2025 08:16:42 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-4-hiding-processes/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In this post, we explore techniques employed by eBPF to hide processes. When I wrote my first rootkit that hides targeted directories, my go-to reference was this well-written &lt;a href=&#34;https://xcellerator.github.io/posts/linux_rootkits_06/&#34;&gt;blog post&lt;/a&gt; by &lt;a href=&#34;https://github.com/xcellerator&#34;&gt;TheXcellerator&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;p&gt;As PIDs are tracked under &lt;em&gt;/proc&lt;/em&gt; as a directory, there&amp;rsquo;s no need to re-invent the wheel when it comes to hiding processes. That’s because Linux veterans know that directory listings are handled by the getdents64 syscall — a well-known technique.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>eBPF Malware Techniques Part 3 - Hiding BPF Traces</title>
+				<link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</link>
+				<pubDate>Sat, 26 Apr 2025 10:45:47 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-3-hiding-bpf-traces/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;We&amp;rsquo;re finally gonna talk about the juicy stuff now that you are all geared up! Today, we are gonna go into a deep dive on how an eBPF application can hide itself and its child processes by understanding specific crucial Linux internals and how to circumvent them. I will be mainly using &lt;a href=&#34;https://github.com/eeriedusk/nysm&#34;&gt;&lt;em&gt;nysm&lt;/em&gt;&lt;/a&gt;, a eBPF-based malware as my prime example for hiding BPF traces.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-ebpf-enumeration-with-bpf-syscalls&#34;&gt;2. eBPF Enumeration with BPF Syscalls&lt;/h2&gt;&#xA;&lt;p&gt;When working with eBPF, it&amp;rsquo;s important to understand what&amp;rsquo;s actually loaded into the kernel at any point in time. Fortunately, &lt;em&gt;bpftool&lt;/em&gt; gives us powerful inspection capabilities through &lt;em&gt;bpf()&lt;/em&gt; syscalls., which we will take a deeper look in a second.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>eBPF Malware Techniques Part 2 - Setting Appropriate Hooks</title>
+				<link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</link>
+				<pubDate>Fri, 11 Apr 2025 23:42:35 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-2-setting-appropriate-hooks/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In my previous post, you were introduced to the 3 different major frameworks that eBPFs have to offer. I also briefly talked about how the logic of its hooks.&lt;/p&gt;&#xA;&lt;p&gt;To begin crafting your own eBPF-based malware, you need to understand where and what to hook on to. You don’t just throw an eBPF program into the void and hope it latches onto something juicy. No — you need a plan, a strategy, and most importantly, knowledge of the landscape.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>eBPF Malware Techniques Part 1 - Introduction</title>
+				<link>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</link>
+				<pubDate>Sat, 05 Apr 2025 09:20:03 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/ebpf-malware-techniques/ebpf-malware-techniques-part-1-introduction/</guid>
+				<description>&lt;h2 id=&#34;1-background&#34;&gt;1. Background&lt;/h2&gt;&#xA;&lt;p&gt;As a cybersecurity researcher, understanding both traditional and modern methods of kernel-level code execution is crucial. Two prominent techniques you&amp;rsquo;ll encounter are LKM (Loadable Kernel Module) rootkits and eBPF-based applications.&lt;/p&gt;&#xA;&lt;p&gt;eBPF (extended Berkeley Packet Filter) is a Linux kernel technology that allows safe, user-defined code to run in kernel context. Originally intended for packet filtering, eBPF has evolved into a generic in-kernel virtual machine — enabling dynamic tracing, monitoring, networking, and even security enforcement.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>GDB Guide Part 7 - Custom Commands</title>
+				<link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</link>
+				<pubDate>Wed, 19 Mar 2025 22:15:30 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part7-custom-commands/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s lesson will focus primarily on creating custom commands in GDB. If you are a long term user of the vanilla GDB, you may find yourself wanting more features to support your research needs. To fulfill those needs, the open-source project, &lt;a href=&#34;https://github.com/hugsy/gef&#34;&gt;GEF (GDB Enhanced Features)&lt;/a&gt; provides many QoL features that aid dynamic analysis.&lt;/p&gt;&#xA;&lt;p&gt;However, GEF is not what I want to talk about today. Instead of using GEF, we will be writing our user-defined commands using native GDB syntax first, then extending them further with python to enhance GDB&amp;rsquo;s capabilities.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Linux File Monitoring With Fanotify</title>
+				<link>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</link>
+				<pubDate>Fri, 14 Mar 2025 20:09:42 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/linux-file-monitoring-with-fanotify/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Let&amp;rsquo;s take a break from the GDB exercises and instead look into something that I have yet to talk about in this blog, and that is - Linux file monitoring with the fanotify API.&lt;/p&gt;&#xA;&lt;p&gt;Fanotify is a Linux kernel API that enables applications to receive notifications about file system events. It is commonly used for:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Real-time security monitoring (e.g., antivirus scanning)&lt;/li&gt;&#xA;&lt;li&gt;Auditing and compliance (e.g., logging file accesses)&lt;/li&gt;&#xA;&lt;li&gt;File system activity tracking (e.g., synchronizing backups)&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;The main reason why so many antivirus software products use fanotify over inotify, is because it provides information on the triggering process PID and can even allow/deny any process trying to read a file via the &lt;code&gt;FAN_ALLOW&lt;/code&gt; or &lt;code&gt;FAN_DENY&lt;/code&gt; response.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>GDB Guide Part 6 - Automation</title>
+				<link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</link>
+				<pubDate>Sat, 01 Mar 2025 09:09:02 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part6-automation/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Now that we have more or less grasp most of the basics commands in GDB, it is time to start automating all these commands.&#xA;Most of the time in my research, watch dog processes will monitor the performance of our target processes very closely. Any performance degradation&#xA;will usually lead to the process getting killed or the entire VM getting restarted. This means that if you use interactive GDB and take your&#xA;sweet time to type out the commands, the process would have held its funeral before you can even type out your 5th command.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>GDB Guide Part 5 - Stepping</title>
+				<link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</link>
+				<pubDate>Sun, 23 Feb 2025 13:08:30 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This part of the guide will demonstrate to you the differences between stepping in, over and out.&#xA;In most cases while doing cyber security research, we will not have access to symbols and source code. Thus, the examples&#xA;I provide will only be for stepping through instructions and not source lines.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-example-program&#34;&gt;2. Example Program&lt;/h2&gt;&#xA;&lt;p&gt;For this part of the tutorial, either compile &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise.c&#34;&gt;stepping-exercise.c&lt;/a&gt; or download the static binary &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part5-stepping/resources/stepping-exercise&#34;&gt;stepping-exercise&lt;/a&gt; to follow along.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>GDB Guide Part 4 - Examining Memory</title>
+				<link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</link>
+				<pubDate>Wed, 05 Feb 2025 13:05:09 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part4-examining-memory/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 4 of this guide will be kept unusually short as I am currently down with a fever. However, I still wanted to get something out this week.&lt;/p&gt;&#xA;&lt;p&gt;Today, we will be taking a look into the examination of process memory using GDB, and I will even showcase a useful trick to examine memory with &lt;em&gt;eval&lt;/em&gt;.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-examine-command-x&#34;&gt;2. Examine Command (x/)&lt;/h2&gt;&#xA;&lt;p&gt;To examine the process&amp;rsquo;s memory, we will always start of with the prefix &lt;code&gt;x/&lt;/code&gt;, followed by whatever we which to examine at a particular address.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>GDB Guide Part 3 - Process Maps</title>
+				<link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</link>
+				<pubDate>Wed, 29 Jan 2025 08:58:52 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part3-process-maps/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Happy Chinese New Year! In my previous post, I did mention that I will be taking a break from posting anything due to the holiday season. However, my workaholic self jolted me out of my bed earlier this morning just so that I can squeeze out part 3 of this guide.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-overview&#34;&gt;2. Overview&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s guide will mainly focus on process mappings as I only have about an hour to quickly get this guide out.&#xA;However, I think it is also important to cover some background on dynamic and static executables before talking about Process Maps.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>GDB Guide Part 2 - Breakpoints &amp; Linux Calling Conventions</title>
+				<link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</link>
+				<pubDate>Tue, 21 Jan 2025 12:21:39 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part2-breakpoints-and-linux-calling-conventions/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This post is a continuation from the &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/&#34;&gt;previous post in this series&lt;/a&gt; and will cover more fundamentals on GDB and dynamic analysis.&lt;/p&gt;&#xA;&lt;p&gt;To ensure this post is not too long-winded, I have decided to only go through the following topics today:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Breakpoints&lt;/li&gt;&#xA;&lt;li&gt;Linux x86 vs x86_64 Calling Convention&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h2 id=&#34;2-breakpoints&#34;&gt;2. Breakpoints&lt;/h2&gt;&#xA;&lt;p&gt;A breakpoint is a special marker that you can set in your program to tell GDB to pause (or &amp;ldquo;break&amp;rdquo;) the program&amp;rsquo;s execution when it reaches a certain point.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>GDB Guide Part 1 - Basics</title>
+				<link>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</link>
+				<pubDate>Sun, 19 Jan 2025 10:37:22 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 1 of this series is meant as an introduction to GDB for beginners. As I progress through this series, I will be sharing more advanced tips and even provide a nice template in writing your own custom GDB commands using python!&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-overview&#34;&gt;2. Overview&lt;/h2&gt;&#xA;&lt;p&gt;Today&amp;rsquo;s guide will show you how to:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Attach to a Process&lt;/li&gt;&#xA;&lt;li&gt;Set useful GDB Configuration&lt;/li&gt;&#xA;&lt;li&gt;Inspect Registers&lt;/li&gt;&#xA;&lt;li&gt;Disassemble Functions&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;I will be providing an example C file &lt;a href=&#34;https://mathscantor.github.io/posts/gdb-guides/gdb-guide-part1-basics/resources/test.c&#34;&gt;here&lt;/a&gt; for you to compile so that you may follow the walkthrough and deepen your understanding.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Installing Linux Packages Offline</title>
+				<link>https://mathscantor.github.io/posts/installing-packages-offline/</link>
+				<pubDate>Sun, 05 Jan 2025 11:45:27 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/installing-packages-offline/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Hi there 😊. Another day, another post. Today, I thought it would be useful to share some tips and tricks when installing new software on a standalone linux machine / VM.&lt;/p&gt;&#xA;&lt;p&gt;For cybersecurity researchers that have to adhere to company policy to disconnect research machines from the internet, this post will be useful for your future workflows.&lt;/p&gt;&#xA;&lt;p&gt;Before I begin the walkthrough, it is important to have 1 internet-connected machine that is of a similar OS Version to the offline machine so as to minimize incompatibilities between systems.&lt;/p&gt;</description>
+			</item>
+			<item>
+				<title>Getting Root Shell Mikrotik RouterOS</title>
+				<link>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</link>
+				<pubDate>Fri, 03 Jan 2025 20:26:00 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/getting-root-shell-mikrotik-routeros/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;I was digging through some of the stuff I did previously several years ago and I thought that this technique may come in handy one day for researchers doing Vulnerability Research on Mikrotik RouterOS systems.&lt;/p&gt;&#xA;&lt;p&gt;For those that have already done their hands-on spinning up a Mikrotik RouterOS with the default installation on a VM, you will quickly realize that you are restricted to only using the MikroTik Command Line Interface. In other words, no bash 🙁.&lt;/p&gt;</description>
+			</item>
+	</channel>
 </rss>

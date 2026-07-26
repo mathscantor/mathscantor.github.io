@@ -12,9 +12,16 @@
 			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
 		
 		
-			<lastBuildDate>Sat, 18 Jul 2026 09:31:08 +0800</lastBuildDate>
+			<lastBuildDate>Sun, 26 Jul 2026 12:37:00 +0800</lastBuildDate>
 		
 			<atom:link href="https://mathscantor.github.io/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Step-by-Step Linux Process Injection Guide Part 3 - Shellcode and Remote Function Calls</title>
+				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/</link>
+				<pubDate>Sun, 26 Jul 2026 12:37:00 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In Part 2 we attached to the target process and resolved the addresses of &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;malloc()&lt;/span&gt;, &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;free()&lt;/span&gt;, and &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; inside the target despite ASLR. We know where those functions live, but we have not called them yet.&lt;/p&gt;&#xA;&lt;p&gt;This part covers the mechanism that makes remote function calls possible: a small shellcode trampoline. We will walk through how &lt;em&gt;linworm&lt;/em&gt; finds an executable memory region in the target, backs up the original bytes and registers, writes the trampoline into place, and then uses it to invoke any function by manipulating registers and resuming execution with &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;ptrace()&lt;/span&gt;.&lt;/p&gt;</description>
+			</item>
 			<item>
 				<title>Step-by-Step Linux Process Injection Guide Part 2 - Attaching and Defeating ASLR</title>
 				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-2-attaching-and-defeating-aslr/</link>

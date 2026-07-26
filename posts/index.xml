@@ -6,8 +6,547 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sat, 18 Jul 2026 09:31:08 +0800</lastBuildDate>
+        <lastBuildDate>Sun, 26 Jul 2026 12:37:00 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Step-by-Step Linux Process Injection Guide Part 3 - Shellcode and Remote Function Calls</title>
+            <link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/</link>
+            <pubDate>Sun, 26 Jul 2026 12:37:00 +0800</pubDate>
+            <guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;In Part 2 we attached to the target process and resolved the addresses of &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;malloc()&lt;/span&gt;, &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;free()&lt;/span&gt;, and &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; inside the target despite ASLR. We know where those functions live, but we have not called them yet.&lt;/p&gt;
+&lt;p&gt;This part covers the mechanism that makes remote function calls possible: a small shellcode trampoline. We will walk through how &lt;em&gt;linworm&lt;/em&gt; finds an executable memory region in the target, backs up the original bytes and registers, writes the trampoline into place, and then uses it to invoke any function by manipulating registers and resuming execution with &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;ptrace()&lt;/span&gt;.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>In Part 2 we attached to the target process and resolved the addresses of <span style="font-family: Courier, monospace; font-weight: 600;">malloc()</span>, <span style="font-family: Courier, monospace; font-weight: 600;">free()</span>, and <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> inside the target despite ASLR. We know where those functions live, but we have not called them yet.</p>
+<p>This part covers the mechanism that makes remote function calls possible: a small shellcode trampoline. We will walk through how <em>linworm</em> finds an executable memory region in the target, backs up the original bytes and registers, writes the trampoline into place, and then uses it to invoke any function by manipulating registers and resuming execution with <span style="font-family: Courier, monospace; font-weight: 600;">ptrace()</span>.</p>
+<h2 id="2-the-trampoline-shellcode">2. The Trampoline Shellcode</h2>
+<p>The trampoline is a tiny, static byte array defined at compile time in <span style="font-family: Courier, monospace; font-weight: 600;">src/arch/arch.h</span>. Its job is simple: call whatever function address the injector loaded into a designated register, then trap back so the injector can inspect the result.</p>
+<p>On x86_64, the primary trampoline is seven bytes:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">uint8_t</span> ARCH_INJECT_CODE[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">0x48</span>, <span style="color:#ae81ff">0x83</span>, <span style="color:#ae81ff">0xe4</span>, <span style="color:#ae81ff">0xf0</span>, <span style="color:#ae81ff">0xff</span>, <span style="color:#ae81ff">0xd0</span>, <span style="color:#ae81ff">0xcc</span>,   <span style="color:#75715e">/* and rsp,-16; call rax; int3    */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">0xf0</span>, <span style="color:#ae81ff">0x48</span>, <span style="color:#ae81ff">0x0f</span>, <span style="color:#ae81ff">0xb1</span>, <span style="color:#ae81ff">0x37</span>, <span style="color:#ae81ff">0xcc</span>          <span style="color:#75715e">/* lock cmpxchg [rdi],rsi; int3   */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  x86_64 trampoline shellcode from <span style="font-family: Courier, monospace; font-weight: 600;">src/arch/arch.h</span>
+  
+    <br><br>
+  
+</span>
+<p>The first seven bytes are the call trampoline. The remaining bytes are a secondary atomic-patching trampoline (<code>lock cmpxchg</code>) that is not used during the injection flow, so we will focus on the first half.</p>
+<p>Breaking it down instruction by instruction:</p>
+<table>
+	<thead>
+			<tr>
+					<th>Bytes</th>
+					<th>Instruction</th>
+					<th>Purpose</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>48 83 E4 F0</code></td>
+					<td><code>and rsp, -16</code></td>
+					<td>Align the stack pointer to a 16-byte boundary. The x86-64 System V ABI requires 16-byte stack alignment before a <code>call</code> instruction. Without this, libc functions that use SSE instructions will segfault.</td>
+			</tr>
+			<tr>
+					<td><code>FF D0</code></td>
+					<td><code>call rax</code></td>
+					<td>Indirect call through <code>rax</code>. The injector loads the target function address into <code>rax</code> before resuming the target, so this calls whatever function we want.</td>
+			</tr>
+			<tr>
+					<td><code>CC</code></td>
+					<td><code>int3</code></td>
+					<td>Software breakpoint. This raises <span style="font-family: Courier, monospace; font-weight: 600;">SIGTRAP</span>, which stops the target and returns control to the injector via <span style="font-family: Courier, monospace; font-weight: 600;">waitpid()</span>. At this point the injector can read the return value from <code>rax</code>.</td>
+			</tr>
+	</tbody>
+</table>
+<p>The design is deliberately minimal. Rather than compiling a C function into position-independent shellcode (as <span style="font-family: Courier, monospace; font-weight: 600;">linux-inject</span> does), <em>linworm</em> uses a static trampoline and orchestrates each function call individually from the injector side. This makes the shellcode trivial to audit and architecture-portable.</p>
+<h3 id="21-other-architectures">2.1 Other Architectures</h3>
+<p>On AARCH64, the trampoline is even simpler &ndash; no stack alignment is needed because <span style="font-family: Courier, monospace; font-weight: 600;">blr</span> does not push a return address onto the stack:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">uint8_t</span> ARCH_INJECT_CODE[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x02</span>, <span style="color:#ae81ff">0x3f</span>, <span style="color:#ae81ff">0xd6</span>,        <span style="color:#75715e">/* blr x16 */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x20</span>, <span style="color:#ae81ff">0xd4</span>         <span style="color:#75715e">/* brk #0  */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  AARCH64 trampoline: branch-with-link to <span style="font-family: Courier, monospace; font-weight: 600;">x16</span>, then breakpoint
+  
+    <br><br>
+  
+</span>
+<p>On ARM (32-bit):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">uint8_t</span> ARCH_INJECT_CODE[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">0x3c</span>, <span style="color:#ae81ff">0xff</span>, <span style="color:#ae81ff">0x2f</span>, <span style="color:#ae81ff">0xe1</span>,        <span style="color:#75715e">/* blx r12 */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">0x70</span>, <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x20</span>, <span style="color:#ae81ff">0xe1</span>         <span style="color:#75715e">/* bkpt #0 */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  ARM trampoline: branch-with-link-exchange to <span style="font-family: Courier, monospace; font-weight: 600;">r12</span>, then breakpoint
+  
+    <br><br>
+  
+</span>
+<p>Each architecture uses a different register to hold the function pointer:</p>
+<table>
+	<thead>
+			<tr>
+					<th>Architecture</th>
+					<th>Function Pointer Register</th>
+					<th>Return Value Register</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>x86_64</td>
+					<td><code>rax</code></td>
+					<td><code>rax</code></td>
+			</tr>
+			<tr>
+					<td>AARCH64</td>
+					<td><code>x16</code> (IP0 scratch)</td>
+					<td><code>x0</code></td>
+			</tr>
+			<tr>
+					<td>ARM</td>
+					<td><code>r12</code> (IP scratch)</td>
+					<td><code>r0</code></td>
+			</tr>
+	</tbody>
+</table>
+<p>The rest of this article focuses on x86_64, but the flow is identical on other architectures &ndash; only the register names and shellcode bytes differ.</p>
+<h2 id="3-finding-an-injection-site">3. Finding an Injection Site</h2>
+<p>The trampoline needs to live in executable memory inside the target. <em>linworm</em> finds a suitable address by scanning <span style="font-family: Courier, monospace; font-weight: 600;">/proc/pid/maps</span> for the first mapping with execute permission.</p>
+<p>The function <span style="font-family: Courier, monospace; font-weight: 600;">get_target_exec_addr()</span> in <span style="font-family: Courier, monospace; font-weight: 600;">src/helpers/common.c</span> handles this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">get_target_exec_addr</span>(<span style="color:#66d9ef">pid_t</span> target_pid) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">sprintf</span>(filename, <span style="color:#e6db74">&#34;/proc/%d/maps&#34;</span>, target_pid);
+</span></span><span style="display:flex;"><span>    fp <span style="color:#f92672">=</span> <span style="color:#a6e22e">fopen</span>(filename, <span style="color:#e6db74">&#34;r&#34;</span>);
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">get_target_exec_addr()</span>: Opening The Target&rsquo;s Memory Map
+  
+    <br><br>
+  
+</span>
+<p>It then iterates each line, parsing the start address and the four-character permissions field:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">get_target_exec_addr</span>(<span style="color:#66d9ef">pid_t</span> target_pid) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">fgets</span>(line, <span style="color:#ae81ff">850</span>, fp) <span style="color:#f92672">!=</span> NULL) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">sscanf</span>(line, <span style="color:#e6db74">&#34;%lx-%*s %4s %*s %*s %*d&#34;</span>, <span style="color:#f92672">&amp;</span>addr, perms);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">strstr</span>(perms, <span style="color:#e6db74">&#34;x&#34;</span>) <span style="color:#f92672">!=</span> NULL) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">get_target_exec_addr()</span>: Finding The First Executable Region
+  
+    <br><br>
+  
+</span>
+<p>The first mapping whose permissions contain <code>x</code> (execute) is chosen. This is typically the target&rsquo;s own <code>.text</code> segment. The function returns the start address of that region:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">get_target_exec_addr</span>(<span style="color:#66d9ef">pid_t</span> target_pid) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fclose</span>(fp);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">get_target_exec_addr()</span>: Returning The Injection Address
+  
+    <br><br>
+  
+</span>
+<p>This address becomes the injection site. <em>linworm</em> will overwrite the first few bytes at this address with the trampoline, so it must back them up first.</p>
+<h2 id="4-backing-up-state">4. Backing Up State</h2>
+<p>Before touching anything, <em>linworm</em> saves two things: the original bytes at the injection address (so they can be restored later) and the target&rsquo;s full register state.</p>
+<p>First, it reads the original code at the injection site:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">ptrace_read</span>(user_args.ropts_target_pid, inject_addr, orig_code, inject_code_size)) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Failed to read original code from target PID %d&#34;</span>, user_args.ropts_target_pid);
+</span></span><span style="display:flex;"><span>    retval <span style="color:#f92672">=</span> EXIT_FAILURE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Backing Up Original Bytes At The Injection Address
+  
+    <br><br>
+  
+</span>
+<p>The variable <code>inject_code_size</code> is the shellcode length rounded up to the machine word size (<span style="font-family: Courier, monospace; font-weight: 600;">ALIGN_LONG(sizeof(inject_code))</span>). This ensures <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_read()</span> operates on word-aligned boundaries, which is required by <span style="font-family: Courier, monospace; font-weight: 600;">PTRACE_PEEKTEXT</span>.</p>
+<p>Next, it snapshots the target&rsquo;s registers:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">ptrace_getregs</span>(user_args.ropts_target_pid, <span style="color:#f92672">&amp;</span>orig_regs)) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Failed to get original registers from target PID %d&#34;</span>, user_args.ropts_target_pid);
+</span></span><span style="display:flex;"><span>    retval <span style="color:#f92672">=</span> EXIT_FAILURE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Saving The Target&rsquo;s Register State
+  
+    <br><br>
+  
+</span>
+<p>Finally, <em>linworm</em> creates a working copy of the registers. The original snapshot is preserved for restoration at the end; the working copy is what gets mutated during remote calls:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">memcpy</span>(<span style="color:#f92672">&amp;</span>regs, <span style="color:#f92672">&amp;</span>orig_regs, <span style="color:#66d9ef">sizeof</span>(REG)) <span style="color:#f92672">==</span> NULL) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Failed to copy original registers&#34;</span>);
+</span></span><span style="display:flex;"><span>    retval <span style="color:#f92672">=</span> EXIT_FAILURE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Creating a Working Copy of The Registers
+  
+    <br><br>
+  
+</span>
+<p>At this point, the injector has everything it needs to restore the target to its exact pre-injection state when it is done.</p>
+<h2 id="5-writing-and-verifying-the-shellcode">5. Writing and Verifying the Shellcode</h2>
+<p>With the backup complete, <em>linworm</em> overwrites the injection site with the trampoline:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">ptrace_write</span>(user_args.ropts_target_pid, inject_addr, inject_code, inject_code_size)) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Failed to write injection code to target PID %d&#34;</span>, user_args.ropts_target_pid);
+</span></span><span style="display:flex;"><span>    retval <span style="color:#f92672">=</span> EXIT_FAILURE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>code_injected <span style="color:#f92672">=</span> true;
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Writing The Trampoline Shellcode Into The Target
+  
+    <br><br>
+  
+</span>
+<p>Under the hood, <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_write()</span> uses <span style="font-family: Courier, monospace; font-weight: 600;">PTRACE_POKETEXT</span> to write one machine word at a time:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">ptrace_write</span>(<span style="color:#66d9ef">pid_t</span> target, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> addr, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>vptr, <span style="color:#66d9ef">int</span> len)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> byte_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">long</span> word <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (byte_count <span style="color:#f92672">&lt;</span> len) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">memcpy</span>(<span style="color:#f92672">&amp;</span>word, vptr <span style="color:#f92672">+</span> byte_count, <span style="color:#66d9ef">sizeof</span>(word));
+</span></span><span style="display:flex;"><span>        word <span style="color:#f92672">=</span> <span style="color:#a6e22e">ptrace</span>(PTRACE_POKETEXT, target, addr <span style="color:#f92672">+</span> byte_count, word);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(word <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>            ...
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> false;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        byte_count <span style="color:#f92672">+=</span> <span style="color:#66d9ef">sizeof</span>(word);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> true;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_write()</span>: Word-At-A-Time Memory Write via <span style="font-family: Courier, monospace; font-weight: 600;">PTRACE_POKETEXT</span>
+  
+    <br><br>
+  
+</span>
+<p>After writing, <em>linworm</em> reads the bytes back and hexdumps both the original and injected code to the log. This is a sanity check to confirm the write succeeded:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">ptrace_read</span>(user_args.ropts_target_pid, inject_addr, verify_code, inject_code_size)) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">log_message</span>(INFO, __func__, <span style="color:#e6db74">&#34;Original code at 0x%lx (size: %zu bytes):&#34;</span>, inject_addr, inject_code_size);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">hexdump</span>(orig_code, inject_code_size);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">log_message</span>(INFO, __func__, <span style="color:#e6db74">&#34;Injected code at 0x%lx (size: %zu bytes):&#34;</span>, inject_addr, inject_code_size);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">hexdump</span>(verify_code, inject_code_size);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Verifying The Shellcode Was Written Correctly
+  
+    <br><br>
+  
+</span>
+<p>At this point, the trampoline is live in the target&rsquo;s executable memory. The target is still stopped. Now <em>linworm</em> can use it to call functions.</p>
+<h2 id="6-making-remote-function-calls">6. Making Remote Function Calls</h2>
+<p>The function <span style="font-family: Courier, monospace; font-weight: 600;">call_target_func()</span> in <span style="font-family: Courier, monospace; font-weight: 600;">src/helpers/common.c</span> is the engine that drives every remote call. It takes the target PID, the trampoline address, a mutable register struct, and a call descriptor:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">call_target_func</span>(<span style="color:#66d9ef">pid_t</span> target, <span style="color:#66d9ef">long</span> inject_addr, REG <span style="color:#f92672">*</span>regs,
+</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">call_args_t</span> <span style="color:#f92672">*</span>call);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">call_target_func()</span>: Signature
+  
+    <br><br>
+  
+</span>
+<p>The call descriptor is a simple struct that bundles the function address and its arguments:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> func_addr;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> args[CALL_MAX_ARGS];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>           nargs;
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">call_args_t</span>;
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">call_args_t</span>: Remote Call Descriptor from <span style="font-family: Courier, monospace; font-weight: 600;">src/arch/arch.h</span>
+  
+    <br><br>
+  
+</span>
+<h3 id="61-setting-up-the-registers">6.1 Setting Up the Registers</h3>
+<p>The first thing <span style="font-family: Courier, monospace; font-weight: 600;">call_target_func()</span> does is point the instruction pointer at the trampoline and load the function address into the designated register:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">call_target_func</span>(<span style="color:#66d9ef">pid_t</span> target, <span style="color:#66d9ef">long</span> inject_addr, REG <span style="color:#f92672">*</span>regs,
+</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">call_args_t</span> <span style="color:#f92672">*</span>call) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">arch_set_ip</span>(regs, (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)inject_addr);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">arch_set_func</span>(regs, call<span style="color:#f92672">-&gt;</span>func_addr);
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Pointing Execution At The Trampoline and Setting The Function Pointer
+  
+    <br><br>
+  
+</span>
+<p>On x86_64, <span style="font-family: Courier, monospace; font-weight: 600;">arch_set_ip()</span> sets <code>rip</code> to the trampoline address, and <span style="font-family: Courier, monospace; font-weight: 600;">arch_set_func()</span> loads the target function address into <code>rax</code>. When the trampoline executes <code>call rax</code>, it will jump to whatever function we specified.</p>
+<p>Next, it loads the function arguments into registers following the platform&rsquo;s calling convention:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">call_target_func</span>(<span style="color:#66d9ef">pid_t</span> target, <span style="color:#66d9ef">long</span> inject_addr, REG <span style="color:#f92672">*</span>regs,
+</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">call_args_t</span> <span style="color:#f92672">*</span>call) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> reg_args <span style="color:#f92672">=</span> (call<span style="color:#f92672">-&gt;</span>nargs <span style="color:#f92672">&lt;</span> ARCH_MAX_REG_ARGS) <span style="color:#f92672">?</span> call<span style="color:#f92672">-&gt;</span>nargs : ARCH_MAX_REG_ARGS;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> reg_args; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">arch_set_reg_arg</span>(regs, i, call<span style="color:#f92672">-&gt;</span>args[i]);
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Loading Function Arguments Into Registers
+  
+    <br><br>
+  
+</span>
+<p>On x86_64, the System V ABI passes the first six integer arguments in <code>rdi</code>, <code>rsi</code>, <code>rdx</code>, <code>rcx</code>, <code>r8</code>, and <code>r9</code>. The <span style="font-family: Courier, monospace; font-weight: 600;">arch_set_reg_arg()</span> inline function maps argument index to the correct register:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">arch_set_reg_arg</span>(REG <span style="color:#f92672">*</span>r, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> v) {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#if defined(LINWORM_ARCH_X86_64)
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">switch</span> (n) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">:</span> r<span style="color:#f92672">-&gt;</span>rdi <span style="color:#f92672">=</span> v; <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">:</span> r<span style="color:#f92672">-&gt;</span>rsi <span style="color:#f92672">=</span> v; <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">:</span> r<span style="color:#f92672">-&gt;</span>rdx <span style="color:#f92672">=</span> v; <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">3</span><span style="color:#f92672">:</span> r<span style="color:#f92672">-&gt;</span>rcx <span style="color:#f92672">=</span> v; <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">4</span><span style="color:#f92672">:</span> r<span style="color:#f92672">-&gt;</span>r8  <span style="color:#f92672">=</span> v; <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">5</span><span style="color:#f92672">:</span> r<span style="color:#f92672">-&gt;</span>r9  <span style="color:#f92672">=</span> v; <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">arch_set_reg_arg()</span>: mapping argument index to x86_64 registers
+  
+    <br><br>
+  
+</span>
+<p>If there are more arguments than fit in registers (relevant on ARM with 4 register args, or x86 with 0), the overflow arguments are written directly onto the target&rsquo;s stack via <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_write()</span>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">call_target_func</span>(<span style="color:#66d9ef">pid_t</span> target, <span style="color:#66d9ef">long</span> inject_addr, REG <span style="color:#f92672">*</span>regs,
+</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">call_args_t</span> <span style="color:#f92672">*</span>call) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (call<span style="color:#f92672">-&gt;</span>nargs <span style="color:#f92672">&gt;</span> ARCH_MAX_REG_ARGS) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> stack_base <span style="color:#f92672">=</span> <span style="color:#a6e22e">arch_stack_args_base</span>(regs);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> ARCH_MAX_REG_ARGS; i <span style="color:#f92672">&lt;</span> call<span style="color:#f92672">-&gt;</span>nargs; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> val <span style="color:#f92672">=</span> call<span style="color:#f92672">-&gt;</span>args[i];
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> offset <span style="color:#f92672">=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)(i <span style="color:#f92672">-</span> ARCH_MAX_REG_ARGS) <span style="color:#f92672">*</span> ARCH_WORD_SIZE;
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">ptrace_write</span>(target, stack_base <span style="color:#f92672">+</span> offset, <span style="color:#f92672">&amp;</span>val, ARCH_WORD_SIZE);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Writing overflow arguments to the target&rsquo;s stack
+  
+    <br><br>
+  
+</span>
+<h3 id="62-execute-and-trap">6.2 Execute and Trap</h3>
+<p>With the registers prepared, <em>linworm</em> writes them into the target, resumes it, and then reads the result:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">call_target_func</span>(<span style="color:#66d9ef">pid_t</span> target, <span style="color:#66d9ef">long</span> inject_addr, REG <span style="color:#f92672">*</span>regs,
+</span></span><span style="display:flex;"><span>                      <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">call_args_t</span> <span style="color:#f92672">*</span>call) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">ptrace_setregs</span>(target, regs)) {
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">ptrace_cont</span>(target)) {
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">ptrace_getregs</span>(target, regs)) {
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">arch_get_ret</span>(regs);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  The Execute-And-Trap Cycle
+  
+    <br><br>
+  
+</span>
+<p>Here is what happens step by step:</p>
+<ol>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">ptrace_setregs()</span>
+<ul>
+<li>Writes the prepared registers into the target. At this point <code>rip</code> points at the trampoline and <code>rax</code> holds the function address.</li>
+</ul>
+</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">ptrace_cont()</span>
+<ul>
+<li>Calls <span style="font-family: Courier, monospace; font-weight: 600;">ptrace(PTRACE_CONT)</span> to resume the target. The target executes the trampoline: it aligns the stack, calls the function, and hits <code>int3</code>.</li>
+<li>The <code>int3</code> raises <span style="font-family: Courier, monospace; font-weight: 600;">SIGTRAP</span>, which stops the target. <span style="font-family: Courier, monospace; font-weight: 600;">waitpid()</span> inside <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_cont()</span> returns.</li>
+</ul>
+</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">ptrace_getregs()</span>
+<ul>
+<li>Reads the registers back. The function&rsquo;s return value is now in <code>rax</code>.</li>
+</ul>
+</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">arch_get_ret()</span>
+<ul>
+<li>Extracts and returns that value.</li>
+</ul>
+</li>
+</ol>
+<h3 id="63-sigtrap-handling">6.3 SIGTRAP Handling</h3>
+<p>The <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_cont()</span> implementation in <span style="font-family: Courier, monospace; font-weight: 600;">src/helpers/ptrace.c</span> does more than just resume the target. It waits for the stop and validates the signal:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">ptrace_cont</span>(<span style="color:#66d9ef">pid_t</span> target) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> status;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">ptrace</span>(PTRACE_CONT, target, NULL, NULL) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> false;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">waitpid</span>(target, <span style="color:#f92672">&amp;</span>status, <span style="color:#ae81ff">0</span>) <span style="color:#f92672">!=</span> target) {
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> false;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">WIFSTOPPED</span>(status)) {
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> false;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">check_target_sig</span>(target);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> true;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_cont()</span>: Resume, Wait, Validate
+  
+    <br><br>
+  
+</span>
+<p>The <span style="font-family: Courier, monospace; font-weight: 600;">check_target_sig()</span> helper uses <span style="font-family: Courier, monospace; font-weight: 600;">PTRACE_GETSIGINFO</span> to confirm that the target stopped because of <span style="font-family: Courier, monospace; font-weight: 600;">SIGTRAP</span> (our <code>int3</code>) and not because of something unexpected like a segfault:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">check_target_sig</span>(<span style="color:#66d9ef">pid_t</span> target) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">siginfo_t</span> targetsig;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ptrace_getsiginfo</span>(target, <span style="color:#f92672">&amp;</span>targetsig);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(targetsig.si_signo <span style="color:#f92672">!=</span> SIGTRAP)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Instead of expected SIGTRAP, target stopped with signal %d: %s&#34;</span>,
+</span></span><span style="display:flex;"><span>                    targetsig.si_signo, <span style="color:#a6e22e">strsignal</span>(targetsig.si_signo));
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Sending process %d a SIGSTOP signal for debugging purposes&#34;</span>, target);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ptrace</span>(PTRACE_CONT, target, NULL, SIGSTOP);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">check_target_sig()</span>: Validating The Trap Signal
+  
+    <br><br>
+  
+</span>
+<p>If the target stopped with any signal other than <span style="font-family: Courier, monospace; font-weight: 600;">SIGTRAP</span>, something went wrong. When this happens, the trampoline most likely jumped to an invalid address and segfaulted. In that case, <em>linworm</em> sends the target a <span style="font-family: Courier, monospace; font-weight: 600;">SIGSTOP</span> for post-mortem debugging and exits.</p>
+<h2 id="7-conclusion">7. Conclusion</h2>
+<p>At this point, the injection machinery is fully operational. The injector has:</p>
+<ol>
+<li>Written a minimal trampoline shellcode (<code>and rsp,-16; call rax; int3</code> on x86_64) into the target&rsquo;s executable memory.</li>
+<li>Backed up the original bytes and registers so the target can be restored later.</li>
+<li>Established a general-purpose remote call mechanism:
+<ul>
+<li>Load a function address and arguments into registers</li>
+<li>Point <code>rip</code> at the trampoline, resume, wait for <span style="font-family: Courier, monospace; font-weight: 600;">SIGTRAP</span>, then read the return value.</li>
+</ul>
+</li>
+</ol>
+<p>This <span style="font-family: Courier, monospace; font-weight: 600;">call_target_func()</span> pattern can invoke <em>any</em> function inside the target that the injector knows the address of. It is the building block for everything that comes next.</p>
+<p>In Part 4, we will walk through the sequence of remote calls needed to load a shared library into the target process.</p>
+<h2 id="8-references">8. References</h2>
+<ol>
+<li><a href="https://github.com/mathscantor/linworm">mathscantor/linworm (GitHub)</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Step-by-Step Linux Process Injection Guide Part 2 - Attaching and Defeating ASLR</title>

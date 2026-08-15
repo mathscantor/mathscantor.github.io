@@ -6,8 +6,191 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sun, 26 Jul 2026 12:37:00 +0800</lastBuildDate>
+        <lastBuildDate>Sat, 15 Aug 2026 16:39:00 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</title>
+            <link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-4-loading-the-library/</link>
+            <pubDate>Sat, 15 Aug 2026 16:39:00 +0800</pubDate>
+            <guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-4-loading-the-library/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Part 3 gave us the hard part: a reliable way to call functions inside another process. Now we can use it for the thing we actually wanted from the start &amp;ndash; loading a shared library into the target.&lt;/p&gt;
+&lt;p&gt;In &lt;em&gt;linworm&lt;/em&gt;, the payload-loading phase is small:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Resolve the payload&amp;rsquo;s absolute path.&lt;/li&gt;
+&lt;li&gt;Call &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;malloc()&lt;/span&gt; in the target.&lt;/li&gt;
+&lt;li&gt;Write the path into that target-side buffer.&lt;/li&gt;
+&lt;li&gt;Call &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; in the target.&lt;/li&gt;
+&lt;li&gt;Call &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;free()&lt;/span&gt; to clean up the temporary buffer.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The idea is simple.  Just put a filename where the target can read it, then ask the target&amp;rsquo;s own dynamic linker to load it.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Part 3 gave us the hard part: a reliable way to call functions inside another process. Now we can use it for the thing we actually wanted from the start &ndash; loading a shared library into the target.</p>
+<p>In <em>linworm</em>, the payload-loading phase is small:</p>
+<ol>
+<li>Resolve the payload&rsquo;s absolute path.</li>
+<li>Call <span style="font-family: Courier, monospace; font-weight: 600;">malloc()</span> in the target.</li>
+<li>Write the path into that target-side buffer.</li>
+<li>Call <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> in the target.</li>
+<li>Call <span style="font-family: Courier, monospace; font-weight: 600;">free()</span> to clean up the temporary buffer.</li>
+</ol>
+<p>The idea is simple.  Just put a filename where the target can read it, then ask the target&rsquo;s own dynamic linker to load it.</p>
+<h2 id="2-preparing-the-path">2. Preparing the Path</h2>
+<p>The path passed to <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> will be interpreted inside the target process. If we pass a relative path, the target&rsquo;s current working directory decides what it means. That is too fragile, so <em>linworm</em> starts by resolving the user-supplied path with <span style="font-family: Courier, monospace; font-weight: 600;">realpath()</span>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>abs_lib_path <span style="color:#f92672">=</span> <span style="color:#a6e22e">realpath</span>(user_args.ropts_library_path, NULL);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (abs_lib_path <span style="color:#f92672">==</span> NULL) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Failed to resolve library path &#39;%s&#39;: %s&#34;</span>, 
+</span></span><span style="display:flex;"><span>        user_args.ropts_library_path, <span style="color:#a6e22e">strerror</span>(errno));
+</span></span><span style="display:flex;"><span>    retval <span style="color:#f92672">=</span> EXIT_FAILURE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Resolving The Library Path with <span style="font-family: Courier, monospace; font-weight: 600;">realpath()</span>
+  
+    <br><br>
+  
+</span>
+<p>Then it works out how many bytes need to be copied:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">size_t</span> path_len <span style="color:#f92672">=</span> <span style="color:#a6e22e">strlen</span>(abs_lib_path) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">size_t</span> aligned_path_len <span style="color:#f92672">=</span> <span style="color:#a6e22e">ALIGN_LONG</span>(path_len);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Computing The Aligned Path Length
+  
+    <br><br>
+  
+</span>
+<p>The <code>+ 1</code> keeps the null terminator. <code>ALIGN_LONG()</code> rounds the length up to the machine word size because <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_write()</span> writes with <code>PTRACE_POKETEXT</code>, one word at a time.</p>
+<h2 id="3-allocating-a-buffer-in-the-target">3. Allocating a Buffer in the Target</h2>
+<p>The injector cannot pass a pointer to its own memory into the target&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span>. That address only makes sense in the injector. So the first remote call asks the target to allocate a buffer for itself:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> target_heap_buf <span style="color:#f92672">=</span> <span style="color:#a6e22e">call_target_func</span>(user_args.ropts_target_pid, inject_addr, <span style="color:#f92672">&amp;</span>regs,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span>(<span style="color:#66d9ef">call_args_t</span>){ .func_addr <span style="color:#f92672">=</span> target_malloc_addr, .args <span style="color:#f92672">=</span> { aligned_path_len }, .nargs <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> });
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (target_heap_buf <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Target malloc failed (returned NULL)&#34;</span>);
+</span></span><span style="display:flex;"><span>    retval <span style="color:#f92672">=</span> EXIT_FAILURE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Calling <span style="font-family: Courier, monospace; font-weight: 600;">malloc()</span> in The Target via <span style="font-family: Courier, monospace; font-weight: 600;">call_target_func()</span>
+  
+    <br><br>
+  
+</span>
+<p>The <code>call_args_t</code> says: call the target&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">malloc()</span>, pass <code>aligned_path_len</code>, and return the result. If <code>target_heap_buf</code> is zero, there is nowhere safe to write the path, so injection stops.</p>
+<h2 id="4-writing-the-library-path-into-the-target">4. Writing the Library Path into the Target</h2>
+<p>Now the injector has a target-side address. It prepares a zero-padded copy of the path, then writes it into the buffer returned by <span style="font-family: Courier, monospace; font-weight: 600;">malloc()</span>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path_buf <span style="color:#f92672">=</span> <span style="color:#a6e22e">calloc</span>(<span style="color:#ae81ff">1</span>, aligned_path_len);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">memcpy</span>(path_buf, abs_lib_path, path_len);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">ptrace_write</span>(user_args.ropts_target_pid, target_heap_buf, path_buf, aligned_path_len)) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Failed to write library path to target heap buffer at 0x%lx&#34;</span>,
+</span></span><span style="display:flex;"><span>        target_heap_buf);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">free</span>(path_buf);
+</span></span><span style="display:flex;"><span>    retval <span style="color:#f92672">=</span> EXIT_FAILURE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">free</span>(path_buf);
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Writing The Path String into The Target&rsquo;s Heap Buffer
+  
+    <br><br>
+  
+</span>
+<p>The padding keeps the final word clean when <span style="font-family: Courier, monospace; font-weight: 600;">ptrace_write()</span> copies the data with <code>PTRACE_POKETEXT</code>. This is not a remote function call; it is a direct ptrace write into target memory. After this step, <code>target_heap_buf</code> points to a valid null-terminated path inside the target.</p>
+<h2 id="5-loading-the-shared-library">5. Loading the Shared Library</h2>
+<p>Now comes the real load. <em>linworm</em> calls <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> in the target, using the buffer address as the path argument:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">long</span> lib_handle <span style="color:#f92672">=</span> <span style="color:#a6e22e">call_target_func</span>(user_args.ropts_target_pid, inject_addr, <span style="color:#f92672">&amp;</span>regs,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span>(<span style="color:#66d9ef">call_args_t</span>){ .func_addr <span style="color:#f92672">=</span> target_dlopen_addr, .args <span style="color:#f92672">=</span> { target_heap_buf, RTLD_NOW }, .nargs <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> });
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (lib_handle <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(ERROR, __func__, <span style="color:#e6db74">&#34;Target dlopen failed (returned NULL)&#34;</span>);
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log_message</span>(INFO, __func__, <span style="color:#e6db74">&#34;Library loaded successfully (handle: 0x%lx)&#34;</span>, lib_handle);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Calling <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> in The Target to Load the Shared Library
+  
+    <br><br>
+  
+</span>
+<p><code>RTLD_NOW</code> tells the dynamic linker to resolve symbols immediately. If something cannot be resolved, <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> fails right away instead of leaving a delayed crash for later.</p>
+<p>As covered in Part 2, <code>target_dlopen_addr</code> may point to <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> or <span style="font-family: Courier, monospace; font-weight: 600;">__libc_dlopen_mode()</span>, depending on the glibc version. A non-zero <code>lib_handle</code> means the library is now mapped into the target, and its constructors have already run.</p>
+<h2 id="6-freeing-the-path-buffer">6. Freeing the Path Buffer</h2>
+<p>The path buffer was only needed long enough to call <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span>. Afterward, <em>linworm</em> frees it in the target and checks whether the load succeeded:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">call_target_func</span>(user_args.ropts_target_pid, inject_addr, <span style="color:#f92672">&amp;</span>regs,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span>(<span style="color:#66d9ef">call_args_t</span>){ .func_addr <span style="color:#f92672">=</span> target_free_addr, .args <span style="color:#f92672">=</span> { target_heap_buf }, .nargs <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> });
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (lib_handle <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    retval <span style="color:#f92672">=</span> EXIT_FAILURE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> cleanup;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Freeing The Path Buffer and Checking The <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> Result
+  
+    <br><br>
+  
+</span>
+<p>It is important for <em>linworm</em> frees the temporary path buffer before failing out. Even if <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> returned <code>NULL</code>, the target should not keep a leaked heap allocation around.</p>
+<h2 id="7-how-the-payload-executes">7. How the Payload Executes</h2>
+<p>The injector does not call a payload function by name. It only loads the shared library. The payload runs because the shared library defines a constructor:</p>
+<p><em>linworm</em> ships a minimal example payload in <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/lib.c</span>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">__attribute__</span>((constructor))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">on_load</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;[payload] Library injected into PID %d!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">getpid</span>());
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fflush</span>(stdout);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/lib.c</span> - Example Payload With A Constructor Function
+  
+    <br><br>
+  
+</span>
+<p><code>__attribute__((constructor))</code> places <span style="font-family: Courier, monospace; font-weight: 600;">on_load()</span> in the ELF <code>.init_array</code> list. When <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> finishes loading the library, the runtime walks that list and calls each constructor. That is why the injector only needs to load the file.</p>
+<p>The example payload only prints the target PID. A real payload would put its hook installation, background thread setup, or other startup logic there.</p>
+<h2 id="8-conclusion">8. Conclusion</h2>
+<p>Once the trampoline can call target-side functions, loading the library is just a short chain:</p>
+<ol>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">malloc()</span> to allocate a heap buffer for the library path.</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> to load the shared library (after writing the path into the buffer with <code>PTRACE_POKETEXT</code>).</li>
+<li><span style="font-family: Courier, monospace; font-weight: 600;">free()</span> to release the path buffer.</li>
+</ol>
+<p>At this point, the library is loaded and the constructor has run. The example payload above only prints a line to stdout, which is not very practical. In Part 5, we will explore different examples of how we could weaponize threads to do various cool stuff!</p>
+<h2 id="9-references">9. References</h2>
+<ol>
+<li><a href="https://github.com/mathscantor/linworm">mathscantor/linworm (GitHub)</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Step-by-Step Linux Process Injection Guide Part 3 - Shellcode and Remote Function Calls</title>

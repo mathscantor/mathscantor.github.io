@@ -12,9 +12,16 @@
 			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
 		
 		
-			<lastBuildDate>Sun, 26 Jul 2026 12:37:00 +0800</lastBuildDate>
+			<lastBuildDate>Sat, 15 Aug 2026 16:39:00 +0800</lastBuildDate>
 		
 			<atom:link href="https://mathscantor.github.io/tags/process_injection/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</title>
+				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-4-loading-the-library/</link>
+				<pubDate>Sat, 15 Aug 2026 16:39:00 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-4-loading-the-library/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 3 gave us the hard part: a reliable way to call functions inside another process. Now we can use it for the thing we actually wanted from the start &amp;ndash; loading a shared library into the target.&lt;/p&gt;&#xA;&lt;p&gt;In &lt;em&gt;linworm&lt;/em&gt;, the payload-loading phase is small:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Resolve the payload&amp;rsquo;s absolute path.&lt;/li&gt;&#xA;&lt;li&gt;Call &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;malloc()&lt;/span&gt; in the target.&lt;/li&gt;&#xA;&lt;li&gt;Write the path into that target-side buffer.&lt;/li&gt;&#xA;&lt;li&gt;Call &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; in the target.&lt;/li&gt;&#xA;&lt;li&gt;Call &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;free()&lt;/span&gt; to clean up the temporary buffer.&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;The idea is simple.  Just put a filename where the target can read it, then ask the target&amp;rsquo;s own dynamic linker to load it.&lt;/p&gt;</description>
+			</item>
 			<item>
 				<title>Step-by-Step Linux Process Injection Guide Part 3 - Shellcode and Remote Function Calls</title>
 				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/</link>

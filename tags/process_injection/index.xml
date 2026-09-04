@@ -12,9 +12,16 @@
 			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
 		
 		
-			<lastBuildDate>Sat, 15 Aug 2026 16:39:00 +0800</lastBuildDate>
+			<lastBuildDate>Fri, 04 Sep 2026 10:00:00 +0800</lastBuildDate>
 		
 			<atom:link href="https://mathscantor.github.io/tags/process_injection/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Step-by-Step Linux Process Injection Guide Part 5 - Weaponizing Payloads</title>
+				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/</link>
+				<pubDate>Fri, 04 Sep 2026 10:00:00 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 4 loaded a shared library into the target and ran a constructor that printed a single line to stdout. That proves injection works, but it is not very useful on its own. A real payload needs to keep running (holding a shell open, beaconing home, or patching the target&amp;rsquo;s behaviour) without freezing the process it just hijacked.&lt;/p&gt;&#xA;&lt;p&gt;&lt;em&gt;linworm&lt;/em&gt; solves this with a small framework that every payload shares. The constructor starts a background thread; the framework gives that thread a way to sleep, a way to stop, and a &lt;code&gt;SIGUSR2&lt;/code&gt; path that later lets the library unload itself. This article walks through that design, then shows three payloads built on top of it: a reverse shell, a heartbeat beacon, and a runtime memory patcher.&lt;/p&gt;</description>
+			</item>
 			<item>
 				<title>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</title>
 				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-4-loading-the-library/</link>

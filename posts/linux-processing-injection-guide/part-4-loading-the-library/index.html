@@ -26,7 +26,7 @@
 
 
 
-<link rel="stylesheet" href="/main.f6f782c824f6dd87699befc194c23b539768dd232f320940bfeb2e17f8317145.css">
+<link rel="stylesheet" href="/main.7da8ae858213ccfe3d558ea382bfa6ca3e522db15741ca7b8a85d0302c21ef6c.css">
 
 
 
@@ -69,6 +69,7 @@
 		<meta property="article:tag" content="Process_injection">
 		<meta property="article:tag" content="Linux">
 		<meta property="og:image" content="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-4-loading-the-library/images/cover.png">
+			<meta property="og:see_also" content="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-6-unloading-payload/">
 			<meta property="og:see_also" content="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/">
 			<meta property="og:see_also" content="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/">
 			<meta property="og:see_also" content="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-2-attaching-and-defeating-aslr/">
@@ -295,7 +296,7 @@
         <hr>
         
           <div class="post-series"><h3 id="series"> Step-by-Step Linux Process Injection Guide Series:</h3> 
-    <ol><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/">Step-by-Step Linux Process Injection Guide Part 1 - Overview</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-2-attaching-and-defeating-aslr/">Step-by-Step Linux Process Injection Guide Part 2 - Attaching and Defeating ASLR</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/">Step-by-Step Linux Process Injection Guide Part 3 - Shellcode and Remote Function Calls</a></li><li><b>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</b></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/">Step-by-Step Linux Process Injection Guide Part 5 - Weaponizing Payloads</a></li></ol></div>
+    <ol><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/">Step-by-Step Linux Process Injection Guide Part 1 - Overview</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-2-attaching-and-defeating-aslr/">Step-by-Step Linux Process Injection Guide Part 2 - Attaching and Defeating ASLR</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/">Step-by-Step Linux Process Injection Guide Part 3 - Shellcode and Remote Function Calls</a></li><li><b>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</b></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/">Step-by-Step Linux Process Injection Guide Part 5 - Weaponizing Payloads</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-6-unloading-payload/">Step-by-Step Linux Process Injection Guide Part 6 - Unloading the Payload</a></li></ol></div>
           <hr>
         
         <h2 id="1-introduction">1. Introduction</h2>
@@ -466,7 +467,7 @@
         
           <hr>
           <div class="post-series"><h3 id="series"> Step-by-Step Linux Process Injection Guide Series:</h3> 
-    <ol><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/">Step-by-Step Linux Process Injection Guide Part 1 - Overview</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-2-attaching-and-defeating-aslr/">Step-by-Step Linux Process Injection Guide Part 2 - Attaching and Defeating ASLR</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/">Step-by-Step Linux Process Injection Guide Part 3 - Shellcode and Remote Function Calls</a></li><li><b>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</b></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/">Step-by-Step Linux Process Injection Guide Part 5 - Weaponizing Payloads</a></li></ol></div>
+    <ol><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-1-overview/">Step-by-Step Linux Process Injection Guide Part 1 - Overview</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-2-attaching-and-defeating-aslr/">Step-by-Step Linux Process Injection Guide Part 2 - Attaching and Defeating ASLR</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/">Step-by-Step Linux Process Injection Guide Part 3 - Shellcode and Remote Function Calls</a></li><li><b>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</b></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/">Step-by-Step Linux Process Injection Guide Part 5 - Weaponizing Payloads</a></li><li><a href="https://mathscantor.github.io/posts/linux-processing-injection-guide/part-6-unloading-payload/">Step-by-Step Linux Process Injection Guide Part 6 - Unloading the Payload</a></li></ol></div>
         
       </div>
     </article>
@@ -627,6 +628,9 @@
 
 
 <script type="text/javascript" src="/bundle.min.d96dc9197435c7dcc63d512bceea911b84103cacefdc682a4153b249da02faa7545001728de6ad84557229050a79bed5e55964e16f97079122cfad4cebcb0c96.js" integrity="sha512-2W3JGXQ1x9zGPVErzuqRG4QQPKzv3GgqQVOySdoC&#43;qdUUAFyjeathFVyKQUKeb7V5Vlk4W&#43;XB5Eiz61M68sMlg=="></script>
+
+
+
 
 
 

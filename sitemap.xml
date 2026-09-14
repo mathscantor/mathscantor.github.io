@@ -3,28 +3,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://mathscantor.github.io/tags/ipsec/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/posts/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/series/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/vpn/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/tags/vr/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/series/vr-on-ipsec-vpn/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
+    <loc>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-1-first-peek-into-the-rabbit-hole/</loc>
+    <lastmod>2026-09-14T09:34:00+08:00</lastmod>
+  </url><url>
     <loc>https://mathscantor.github.io/tags/linux/</loc>
     <lastmod>2026-09-11T12:40:00+08:00</lastmod>
   </url><url>
-    <loc>https://mathscantor.github.io/</loc>
-    <lastmod>2026-09-11T12:40:00+08:00</lastmod>
-  </url><url>
-    <loc>https://mathscantor.github.io/posts/</loc>
-    <lastmod>2026-09-11T12:40:00+08:00</lastmod>
-  </url><url>
     <loc>https://mathscantor.github.io/tags/process_injection/</loc>
-    <lastmod>2026-09-11T12:40:00+08:00</lastmod>
-  </url><url>
-    <loc>https://mathscantor.github.io/series/</loc>
     <lastmod>2026-09-11T12:40:00+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/series/step-by-step-linux-process-injection-guide/</loc>
     <lastmod>2026-09-11T12:40:00+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-6-unloading-payload/</loc>
-    <lastmod>2026-09-11T12:40:00+08:00</lastmod>
-  </url><url>
-    <loc>https://mathscantor.github.io/tags/</loc>
     <lastmod>2026-09-11T12:40:00+08:00</lastmod>
   </url><url>
     <loc>https://mathscantor.github.io/posts/linux-processing-injection-guide/part-5-weaponizing-payloads/</loc>

@@ -6,8 +6,119 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Fri, 11 Sep 2026 12:40:00 +0800</lastBuildDate>
+        <lastBuildDate>Mon, 14 Sep 2026 09:34:00 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>VR on IPsec VPN Part 1 - First Peek Into The Rabbit Hole</title>
+            <link>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-1-first-peek-into-the-rabbit-hole/</link>
+            <pubDate>Mon, 14 Sep 2026 09:34:00 +0800</pubDate>
+            <guid>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-1-first-peek-into-the-rabbit-hole/</guid>
+            <description>&lt;h2 id=&#34;1-background&#34;&gt;1. Background&lt;/h2&gt;
+&lt;h3 id=&#34;11-what-is-ipsec&#34;&gt;1.1 What is IPsec?&lt;/h3&gt;
+&lt;p&gt;IPsec (Internet Protocol Security) is a suite of protocols used to secure IP communications over untrusted networks such as the Internet. It provides:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Confidentiality&lt;/strong&gt; &amp;ndash; encryption prevents eavesdropping on traffic.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Integrity&lt;/strong&gt; &amp;ndash; tamper detection ensures packets have not been modified in transit.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Authentication&lt;/strong&gt; &amp;ndash; both peers verify each other&amp;rsquo;s identity before exchanging data.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Anti-replay protection&lt;/strong&gt; &amp;ndash; sequence numbers prevent an attacker from capturing and replaying legitimate packets.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-background">1. Background</h2>
+<h3 id="11-what-is-ipsec">1.1 What is IPsec?</h3>
+<p>IPsec (Internet Protocol Security) is a suite of protocols used to secure IP communications over untrusted networks such as the Internet. It provides:</p>
+<ul>
+<li>
+<p><strong>Confidentiality</strong> &ndash; encryption prevents eavesdropping on traffic.</p>
+</li>
+<li>
+<p><strong>Integrity</strong> &ndash; tamper detection ensures packets have not been modified in transit.</p>
+</li>
+<li>
+<p><strong>Authentication</strong> &ndash; both peers verify each other&rsquo;s identity before exchanging data.</p>
+</li>
+<li>
+<p><strong>Anti-replay protection</strong> &ndash; sequence numbers prevent an attacker from capturing and replaying legitimate packets.</p>
+</li>
+</ul>
+<p>IPsec is commonly used for site-to-site VPNs (connecting two office networks over the Internet) and remote access VPNs (allowing individual users to connect securely to a corporate network).</p>
+<h2 id="2-motivations">2 Motivations</h2>
+<p>IPsec is widely deployed on edge devices from vendors like Palo Alto, Cisco, and F5. This makes it a highly valuable attack surface:</p>
+<ul>
+<li>It is an entry point directly reachable from the Internet or other untrusted networks.</li>
+<li>A remote code execution (RCE) vulnerability in an IPsec implementation can give an attacker access to internal networks behind the VPN gateway.</li>
+</ul>
+<p>CVE-2026-33824 is one such vulnerability: a double-free in the Windows IKEv2 implementation caused by improper ownership handling of a heap-allocated blob pointer during IKEv2 fragment reassembly.</p>
+<p>Even FortiGate made a move to only support IPsec VPN from 7.6.3, ridding itself of the ever-vulnerable SSL VPN.</p>
+<h2 id="3--internet-key-exchange-ike">3.  Internet Key Exchange (IKE)</h2>
+<p>IPsec relies on the Internet Key Exchange (IKE) protocol to automate the negotiation and establishment of Security Associations (SAs). An SA is essentially an agreement between two peers on which cryptographic algorithms and keys to use. IKE runs on UDP port 500 (or port 4500 when NAT traversal is in use).</p>
+<p>There are two versions of IKE:</p>
+<table>
+	<thead>
+			<tr>
+					<th>IKEv1</th>
+					<th>IKEv2</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>Phase 1</strong>: Establish IKE SA (secure control channel). Uses Main Mode or Aggressive Mode.</td>
+					<td><strong>IKE_SA_INIT</strong>: Negotiate crypto algorithms and generate shared secrets.</td>
+			</tr>
+			<tr>
+					<td><strong>Phase 2</strong>: Negotiate IPsec SA and establish the encrypted tunnel.</td>
+					<td><strong>IKE_AUTH</strong>: Authenticate the peer and create the encrypted tunnel.</td>
+			</tr>
+			<tr>
+					<td>Legacy protocol.</td>
+					<td>Most common today.</td>
+			</tr>
+	</tbody>
+</table>
+<p>The rest of this series focuses on IKEv2.</p>
+<h2 id="4-difficulty-for-vr">4. Difficulty for VR</h2>
+<p>Vulnerability research against IKEv2 is hard &ndash; and &ldquo;hard&rdquo; is an understatement. The protocol is deeply stateful: a responder only does anything interesting after a valid <code>IKE_SA_INIT</code> exchange and a completed Diffie-Hellman handshake. A coverage-guided fuzzer feeding random bytes at UDP/500 will almost never reach the deeper code paths, because the very first state-machine checks reject anything that does not look like a well-formed initiation.</p>
+<p>On top of that statefulness, there are many distinct branches an implementation has to handle:</p>
+<ul>
+<li><code>IKE_SA_INIT</code>, <code>IKE_AUTH</code>, <code>IKE_INTERMEDIATE</code>, <code>CREATE_CHILD_SA</code>, and <code>INFORMATIONAL</code> exchanges.</li>
+<li>Fragmentation and reassembly, rekeying, EAP, redirect, and NAT-D payloads.</li>
+</ul>
+<p>Then there is the combinatorial explosion of configurations: certificate-based versus PSK authentication, a wide range of Diffie-Hellman (DH) groups, and &ndash; increasingly &ndash; Post-Quantum key exchange negotiated via Additional Key Exchanges (ADDKE) per <a href="https://www.rfc-editor.org/rfc/rfc9370">RFC 9370</a>.</p>
+<p>But precisely because the surface is this large and this stateful, something somewhere is bound to mishandle a transition. That is exactly what makes it worth attacking.</p>
+<h2 id="5-approach">5. Approach</h2>
+<p>Our approach is to combine a controlled lab environment with both static and dynamic analysis of the target implementation:</p>
+<ul>
+<li>
+<p><strong>Lab environment.</strong> A strongSwan server and client on Linux, on an isolated network, give us a known-good reference implementation to drive and observe.</p>
+</li>
+<li>
+<p><strong>Verbose debugging.</strong> With strongSwan&rsquo;s <code>ike</code> subsystem log level set to 4 (or the <code>save-keys</code> plugin enabled), the daemon dumps the <code>Sk*</code> session keys into a Wireshark-compatible <code>ike2_decryption_table</code>, so we can decrypt captured IKEv2 traffic and inspect every payload.</p>
+</li>
+<li>
+<p><strong>Packet crafting.</strong> Scapy&rsquo;s <code>ikev2</code> contrib layer lets us build and mutate raw IKEv2 packets &ndash; including fragments for replay and targeted fuzzing.</p>
+</li>
+<li>
+<p><strong>Static and dynamic analysis.</strong> On the server side, we combine static reverse engineering (Ghidra, and CodeQL where source is available) with dynamic analysis of the process that handles incoming client traffic.</p>
+</li>
+</ul>
+<h2 id="6-conclusion">6. Conclusion</h2>
+<p>This first part covered the IPsec and IKEv2 background and laid out why the protocol is a worthwhile target. The rest of the series will walk through the lab setup and packet crafting &ndash; and, if we&rsquo;re lucky, turn up some new bugs in strongSwan along the way!</p>
+<p>Before we get ahead of ourselves, we need to take a deeper look at the different messaget types IKEv2 has to offer.</p>
+<h2 id="7-references">7. References</h2>
+<ol>
+<li><a href="https://www.rfc-editor.org/rfc/rfc7296">RFC 7296 &ndash; Internet Key Exchange Protocol Version 2 (IKEv2)</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc9370">RFC 9370 &ndash; Multiple Key Exchanges in IKEv2 (ADDKE)</a></li>
+<li><a href="https://scapy.readthedocs.io/en/latest/api/scapy.contrib.ikev2.html">Scapy IKEv2 contrib layer</a></li>
+<li><a href="https://docs.strongswan.org/docs/latest/config/logging.html">strongSwan Logging documentation</a></li>
+<li><a href="https://docs.strongswan.org/docs/latest/plugins/save-keys.html">strongSwan save-keys plugin</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>Step-by-Step Linux Process Injection Guide Part 6 - Unloading the Payload</title>

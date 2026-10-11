@@ -12,9 +12,16 @@
 			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
 		
 		
-			<lastBuildDate>Mon, 14 Sep 2026 09:34:00 +0800</lastBuildDate>
+			<lastBuildDate>Mon, 14 Sep 2026 10:04:00 +0800</lastBuildDate>
 		
 			<atom:link href="https://mathscantor.github.io/series/vr-on-ipsec-vpn/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>VR on IPsec VPN Part 2 - Experimental Setup</title>
+				<link>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-2-experimental-setup/</link>
+				<pubDate>Mon, 14 Sep 2026 10:04:00 +0800</pubDate>
+				<guid>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-2-experimental-setup/</guid>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;In &lt;a href=&#34;../part-1-first-peek-into-the-rabbit-hole&#34;&gt;Part 1&lt;/a&gt;, we went through why IKEv2 is such a juicy (and painful) target. Before we can start crafting packets or poking at the state machine, we need a lab that we fully control.&lt;/p&gt;&#xA;&lt;p&gt;We will be building &lt;em&gt;strongSwan&lt;/em&gt; from source instead of pulling it from the package manager. There are two good reasons for this:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;Debug symbols &amp;ndash; Compiling with &lt;code&gt;-g -O0&lt;/code&gt; makes life a lot easier when we start stepping through the daemon with gdb or cross-referencing functions in Ghidra later on.&lt;/p&gt;</description>
+			</item>
 			<item>
 				<title>VR on IPsec VPN Part 1 - First Peek Into The Rabbit Hole</title>
 				<link>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-1-first-peek-into-the-rabbit-hole/</link>

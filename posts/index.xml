@@ -6,8 +6,595 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>en-us</language>
         <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
-        <lastBuildDate>Mon, 14 Sep 2026 09:34:00 +0800</lastBuildDate>
+        <lastBuildDate>Mon, 14 Sep 2026 10:04:00 +0800</lastBuildDate>
         <atom:link href="https://mathscantor.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>VR on IPsec VPN Part 2 - Experimental Setup</title>
+            <link>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-2-experimental-setup/</link>
+            <pubDate>Mon, 14 Sep 2026 10:04:00 +0800</pubDate>
+            <guid>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-2-experimental-setup/</guid>
+            <description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;In &lt;a href=&#34;../part-1-first-peek-into-the-rabbit-hole&#34;&gt;Part 1&lt;/a&gt;, we went through why IKEv2 is such a juicy (and painful) target. Before we can start crafting packets or poking at the state machine, we need a lab that we fully control.&lt;/p&gt;
+&lt;p&gt;We will be building &lt;em&gt;strongSwan&lt;/em&gt; from source instead of pulling it from the package manager. There are two good reasons for this:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Debug symbols &amp;ndash; Compiling with &lt;code&gt;-g -O0&lt;/code&gt; makes life a lot easier when we start stepping through the daemon with gdb or cross-referencing functions in Ghidra later on.&lt;/p&gt;</description>
+            <content type="html"><![CDATA[<h2 id="1-introduction">1. Introduction</h2>
+<p>In <a href="../part-1-first-peek-into-the-rabbit-hole">Part 1</a>, we went through why IKEv2 is such a juicy (and painful) target. Before we can start crafting packets or poking at the state machine, we need a lab that we fully control.</p>
+<p>We will be building <em>strongSwan</em> from source instead of pulling it from the package manager. There are two good reasons for this:</p>
+<ol>
+<li>
+<p>Debug symbols &ndash; Compiling with <code>-g -O0</code> makes life a lot easier when we start stepping through the daemon with gdb or cross-referencing functions in Ghidra later on.</p>
+</li>
+<li>
+<p>Session key extraction &ndash; The <code>save-keys</code> plugin is not enabled in most distro builds. With it, <em>strongSwan</em> dumps the IKE and ESP session keys in a format Wireshark understands, so we can decrypt every captured message.</p>
+</li>
+</ol>
+<p>The lab consists of two Linux hosts on the same isolated network:</p>
+<table>
+	<thead>
+			<tr>
+					<th>Role</th>
+					<th>IP Address</th>
+					<th>IKE Identity</th>
+					<th>Notes</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Client</td>
+					<td><span style="font-family: Courier, monospace; font-weight: 600;">192.168.122.3</span></td>
+					<td>road@lab</td>
+					<td>Requests a virtual IP from the server</td>
+			</tr>
+			<tr>
+					<td>Server</td>
+					<td><span style="font-family: Courier, monospace; font-weight: 600;">192.168.122.4</span></td>
+					<td><span style="font-family: Courier, monospace; font-weight: 600;">192.168.122.4</span></td>
+					<td>Protects <span style="font-family: Courier, monospace; font-weight: 600;">192.168.100.4/32</span>  and hands out virtual IPs from <span style="font-family: Courier, monospace; font-weight: 600;">10.8.0.0/24</span></td>
+			</tr>
+	</tbody>
+</table>
+<link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="table">
+  Road Warrior Setup Plan
+  
+    <br><br>
+  
+</span>
+<p><img class="center" alt="roadwarrior-setup-diagram" src="/posts/vr-on-ipsec-vpn/part-2-experimental-setup/images/roadwarrior-setup-diagram.png"><br></p>
+<link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="figure">
+  Road Warrior Setup Diagram
+  
+    <br>
+  
+</span>
+<p>We will configure two flavours of the same road warrior connection: one authenticated with a Pre-Shared Key (PSK), and the other with digital signatures (certificates). This gives us captures of both <span style="font-family: Courier, monospace; font-weight: 600;">IKE_AUTH</span> variants to compare against in the later parts.</p>
+<h2 id="2-building-strongswan-from-source">2. Building strongSwan from Source</h2>
+<p>The steps in this section apply to <strong>both</strong> the client and the server.</p>
+<h3 id="21-installing-build-dependencies">2.1 Installing Build Dependencies</h3>
+<p>First, get rid of any package-managed <em>strongSwan</em> so that it does not clash with our own build, then install the build dependencies.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Remove any legacy / package-managed strongSwan</span>
+</span></span><span style="display:flex;"><span>$ sudo apt remove --purge strongswan strongswan-starter strongswan-charon 2&gt;/dev/null
+</span></span><span style="display:flex;"><span>$ sudo apt autoremove
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Build dependencies</span>
+</span></span><span style="display:flex;"><span>$ sudo apt update
+</span></span><span style="display:flex;"><span>$ sudo apt install -y build-essential pkg-config libssl-dev libsystemd-dev
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Removing Existing <em>strongSwan</em> and Installing Build Dependencies
+  
+    <br><br>
+  
+</span>
+<h3 id="22-downloading-the-source">2.2 Downloading the Source</h3>
+<p>At the time of writing, the latest release is <em>strongSwan 6.1.0</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cd /usr/local/src
+</span></span><span style="display:flex;"><span>$ sudo wget https://download.strongswan.org/strongswan-6.1.0.tar.gz
+</span></span><span style="display:flex;"><span>$ sudo tar -zxvf strongswan-6.1.0.tar.gz
+</span></span><span style="display:flex;"><span>$ cd strongswan-6.1.0
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Downloading and Extracting <em>strongSwan</em> 6.1.0
+  
+    <br><br>
+  
+</span>
+<h3 id="23-compilation--installation">2.3 Compilation &amp; Installation</h3>
+<p>Now, let&rsquo;s configure the build. The important options here are:</p>
+<ul>
+<li><code>--enable-systemd</code> builds <em>charon-systemd</em>, a daemon that integrates with systemd and logs straight into the journal.</li>
+<li><code>--enable-save-keys</code> builds the plugin that dumps session keys for Wireshark.</li>
+<li><code>CFLAGS=&quot;-g -O0&quot;</code> keeps debug symbols and disables optimizations, so that what we see in the debugger matches the source code.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo ./configure <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --prefix<span style="color:#f92672">=</span>/usr <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --sysconfdir<span style="color:#f92672">=</span>/etc <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --enable-systemd <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --with-systemdsystemunitdir<span style="color:#f92672">=</span>/etc/systemd/system <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --enable-save-keys <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    CFLAGS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-g -O0&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ sudo make -j<span style="color:#66d9ef">$(</span>nproc<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>$ sudo make install
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Configuring and Compiling <em>strongSwan</em>
+  
+    <br><br>
+  
+</span>
+<h2 id="3-configuring-the-server">3. Configuring the Server</h2>
+<p>All connection configurations live in <span style="font-family: Courier, monospace; font-weight: 600;">/etc/swanctl/conf.d/</span>, and are loaded by <code>swanctl --load-all</code> when the service starts. To make our lives easier when testing, we shall configure the server to accept both PSK and certificate-based authentication methods.</p>
+<h3 id="31-pre-shared-key-psk">3.1 Pre-Shared Key (PSK)</h3>
+<p>The server listens on 192.168.122.4 and accepts any initiator (<code>id = %any</code>) that knows the PSK. A few things worth pointing out:</p>
+<ul>
+<li><code>proposals</code> restricts the IKE SA to AES-CBC-128, SHA2-256 integrity, HMAC-SHA2-256 PRF and DH group 14 (<code>modp2048</code>). This is the exact proposal we will be dissecting in Part 3.</li>
+<li><code>dpd_delay</code> makes the server send an empty <span style="font-family: Courier, monospace; font-weight: 600;">INFORMATIONAL</span> message (heartbeat) every 30 seconds when the tunnel is idle.</li>
+<li><code>pools</code> hands out virtual IPs to clients from <code>rw-pool</code>.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>connections {
+</span></span><span style="display:flex;"><span>  rw-psk {
+</span></span><span style="display:flex;"><span>    version = 2
+</span></span><span style="display:flex;"><span>    local_addrs  = 192.168.122.4
+</span></span><span style="display:flex;"><span>    proposals    = aes128-sha2_256-prfsha256-modp2048
+</span></span><span style="display:flex;"><span>    rekey_time   = 4h
+</span></span><span style="display:flex;"><span>    dpd_delay    = 30s
+</span></span><span style="display:flex;"><span>    dpd_timeout  = 120s
+</span></span><span style="display:flex;"><span>    pools        = rw-pool
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    local {
+</span></span><span style="display:flex;"><span>      auth = psk
+</span></span><span style="display:flex;"><span>      id   = 192.168.122.4
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    remote {
+</span></span><span style="display:flex;"><span>      auth = psk
+</span></span><span style="display:flex;"><span>      id   = %any
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    children {
+</span></span><span style="display:flex;"><span>      net {
+</span></span><span style="display:flex;"><span>        mode          = tunnel
+</span></span><span style="display:flex;"><span>        local_ts      = 192.168.100.4/32
+</span></span><span style="display:flex;"><span>        remote_ts     = dynamic
+</span></span><span style="display:flex;"><span>        esp_proposals = aes128-sha2_256
+</span></span><span style="display:flex;"><span>        start_action  = trap
+</span></span><span style="display:flex;"><span>        dpd_action    = clear
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pools {
+</span></span><span style="display:flex;"><span>  rw-pool {
+</span></span><span style="display:flex;"><span>    addrs = 10.8.0.0/24
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>secrets {
+</span></span><span style="display:flex;"><span>  ike-rw {
+</span></span><span style="display:flex;"><span>    id     = %any
+</span></span><span style="display:flex;"><span>    secret = &#34;lab-psk-change-me&#34;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Server PSK Configuration - <span style="font-family: Courier, monospace; font-weight: 600;">/etc/swanctl/conf.d/roadwarrior-psk.conf</span>
+  
+    <br><br>
+  
+</span>
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert warning">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Warning</strong>
+        </div>
+        <div class="alert-body">The <code>lab-psk-change-me</code> secret is only meant for an isolated lab. Never reuse a weak, hardcoded PSK on a real deployment.</div>
+    </div>
+</div>
+
+<h3 id="32-digital-signatures">3.2 Digital Signatures</h3>
+<p>For certificate-based authentication, we first need a Certificate Authority (CA). We can use <em>strongSwan</em>&rsquo;s own <code>pki</code> tool to generate the CA, then issue a server certificate signed by it.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Generate CA private key (ECDSA P-256)</span>
+</span></span><span style="display:flex;"><span>$ pki --gen --type ecdsa --size <span style="color:#ae81ff">256</span> --outform pem &gt; caKey.pem
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Self-sign the CA certificate (valid 10 years)</span>
+</span></span><span style="display:flex;"><span>$ pki --self --ca --lifetime <span style="color:#ae81ff">3650</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --in caKey.pem --type ecdsa <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --dn <span style="color:#e6db74">&#34;CN=Lab CA&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --outform pem &gt; caCert.pem
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Generate server private key</span>
+</span></span><span style="display:flex;"><span>$ pki --gen --type ecdsa --size <span style="color:#ae81ff">256</span> --outform pem &gt; serverKey.pem
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Create a CSR for the server</span>
+</span></span><span style="display:flex;"><span>$ pki --req --type ecdsa <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --in serverKey.pem <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --dn <span style="color:#e6db74">&#34;CN=192.168.122.4&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --outform pem &gt; serverReq.pem
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Issue the server certificate (valid 2 years)</span>
+</span></span><span style="display:flex;"><span>$ pki --issue --lifetime <span style="color:#ae81ff">730</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --cacert caCert.pem --cakey caKey.pem <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --in serverReq.pem --type pkcs10 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --san 192.168.122.4 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --flag serverAuth <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --outform pem &gt; serverCert.pem
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Generating CA and Server Certificate
+  
+    <br><br>
+  
+</span>
+<p>Notice that the server certificate&rsquo;s Subject Alternative Name (SAN) is set to 192.168.122.4. This must match the server&rsquo;s IKE identity, otherwise the client will reject it during <span style="font-family: Courier, monospace; font-weight: 600;">IKE_AUTH</span>.</p>
+<p>Next, install the certificates and private key into their respective <em>swanctl</em> directories:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo cp caCert.pem     /etc/swanctl/x509ca/
+</span></span><span style="display:flex;"><span>$ sudo cp serverCert.pem /etc/swanctl/x509/
+</span></span><span style="display:flex;"><span>$ sudo cp serverKey.pem  /etc/swanctl/private/
+</span></span><span style="display:flex;"><span>$ sudo chmod <span style="color:#ae81ff">600</span>         /etc/swanctl/private/serverKey.pem
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Installing Server Certificates and Private Key
+  
+    <br><br>
+  
+</span>
+<p>The connection configuration is nearly identical to the PSK one. The only differences are that <code>auth</code> is now set to <code>pubkey</code>, the server presents its own certificate, and clients must present a certificate signed by our CA.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>connections {
+</span></span><span style="display:flex;"><span>  rw-cert {
+</span></span><span style="display:flex;"><span>    version = 2
+</span></span><span style="display:flex;"><span>    local_addrs  = 192.168.122.4
+</span></span><span style="display:flex;"><span>    proposals    = aes128-sha2_256-prfsha256-modp2048
+</span></span><span style="display:flex;"><span>    rekey_time   = 4h
+</span></span><span style="display:flex;"><span>    dpd_delay    = 30s
+</span></span><span style="display:flex;"><span>    dpd_timeout  = 120s
+</span></span><span style="display:flex;"><span>    pools        = rw-pool
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    local {
+</span></span><span style="display:flex;"><span>      auth  = pubkey
+</span></span><span style="display:flex;"><span>      certs = serverCert.pem
+</span></span><span style="display:flex;"><span>      id    = 192.168.122.4
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    remote {
+</span></span><span style="display:flex;"><span>      auth    = pubkey
+</span></span><span style="display:flex;"><span>      cacerts = caCert.pem
+</span></span><span style="display:flex;"><span>      id      = %any
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    children {
+</span></span><span style="display:flex;"><span>      net {
+</span></span><span style="display:flex;"><span>        mode          = tunnel
+</span></span><span style="display:flex;"><span>        local_ts      = 192.168.100.4/32
+</span></span><span style="display:flex;"><span>        remote_ts     = dynamic
+</span></span><span style="display:flex;"><span>        esp_proposals = aes128-sha2_256
+</span></span><span style="display:flex;"><span>        start_action  = trap
+</span></span><span style="display:flex;"><span>        dpd_action    = clear
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pools {
+</span></span><span style="display:flex;"><span>  rw-pool {
+</span></span><span style="display:flex;"><span>    addrs = 10.8.0.0/24
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Server Certificate Configuration - <span style="font-family: Courier, monospace; font-weight: 600;">/etc/swanctl/conf.d/roadwarrior-cert.conf</span>
+  
+    <br><br>
+  
+</span>
+<h3 id="33-starting-the-service">3.3 Starting the Service</h3>
+<p>Enable and start the service:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo systemctl enable --now strongswan
+</span></span><span style="display:flex;"><span>$ sudo systemctl restart strongswan
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Starting <em>strongSwan</em> Service
+  
+    <br><br>
+  
+</span>
+<p>Then, verify that both connections and the address pool are loaded:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo swanctl --list-conns
+</span></span><span style="display:flex;"><span>$ sudo swanctl --list-pools
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Verifying Loaded Connections and Pools
+  
+    <br><br>
+  
+</span>
+<h2 id="4-configuring-the-client">4. Configuring the Client</h2>
+<h3 id="41-pre-shared-key-psk">4.1 Pre-Shared Key (PSK)</h3>
+<p>The client configuration mirrors the server&rsquo;s. This time, we specify <code>remote_addrs</code> so that the client knows who to initiate to, and <code>vips = 0.0.0.0</code> to request a virtual IP from the server&rsquo;s pool. Setting <code>start_action = start</code> makes the client bring up the tunnel as soon as the configuration is loaded.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>connections {
+</span></span><span style="display:flex;"><span>  rw-psk {
+</span></span><span style="display:flex;"><span>    version = 2
+</span></span><span style="display:flex;"><span>    local_addrs  = 192.168.122.3
+</span></span><span style="display:flex;"><span>    remote_addrs = 192.168.122.4
+</span></span><span style="display:flex;"><span>    proposals    = aes128-sha2_256-prfsha256-modp2048
+</span></span><span style="display:flex;"><span>    rekey_time   = 4h
+</span></span><span style="display:flex;"><span>    dpd_delay    = 30s
+</span></span><span style="display:flex;"><span>    dpd_timeout  = 120s
+</span></span><span style="display:flex;"><span>    vips         = 0.0.0.0
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    local {
+</span></span><span style="display:flex;"><span>      auth = psk
+</span></span><span style="display:flex;"><span>      id   = road@lab
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    remote {
+</span></span><span style="display:flex;"><span>      auth = psk
+</span></span><span style="display:flex;"><span>      id   = 192.168.122.4
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    children {
+</span></span><span style="display:flex;"><span>      net {
+</span></span><span style="display:flex;"><span>        mode          = tunnel
+</span></span><span style="display:flex;"><span>        local_ts      = dynamic
+</span></span><span style="display:flex;"><span>        remote_ts     = 192.168.100.4/32
+</span></span><span style="display:flex;"><span>        esp_proposals = aes128-sha2_256
+</span></span><span style="display:flex;"><span>        start_action  = none
+</span></span><span style="display:flex;"><span>        dpd_action    = clear
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>secrets {
+</span></span><span style="display:flex;"><span>  ike-rw {
+</span></span><span style="display:flex;"><span>    id-1   = 192.168.122.4
+</span></span><span style="display:flex;"><span>    secret = &#34;lab-psk-change-me&#34;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Client PSK Configuration - <span style="font-family: Courier, monospace; font-weight: 600;">/etc/swanctl/conf.d/client-psk.conf</span>
+  
+    <br><br>
+  
+</span>
+<h3 id="42-digital-signatures">4.2 Digital Signatures</h3>
+<p>Generate the client certificate on the CA host (or wherever <span style="font-family: Courier, monospace; font-weight: 600;">caKey.pem</span> and <span style="font-family: Courier, monospace; font-weight: 600;">caCert.pem</span> reside), then copy the relevant files over to the client.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Generate client private key (ECDSA P-256)</span>
+</span></span><span style="display:flex;"><span>$ pki --gen --type ecdsa --size <span style="color:#ae81ff">256</span> --outform pem &gt; clientKey.pem
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Create a CSR for the client</span>
+</span></span><span style="display:flex;"><span>$ pki --req --type ecdsa <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --in clientKey.pem <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --dn <span style="color:#e6db74">&#34;CN=road@lab&#34;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --outform pem &gt; clientReq.pem
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Issue the client certificate (valid 2 years)</span>
+</span></span><span style="display:flex;"><span>$ pki --issue --lifetime <span style="color:#ae81ff">730</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --cacert caCert.pem --cakey caKey.pem <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --in clientReq.pem --type pkcs10 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --san road@lab <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --flag clientAuth <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span>    --outform pem &gt; clientCert.pem
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Generating Client Certificate
+  
+    <br><br>
+  
+</span>
+<p>Install the certificates and private key on the client:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo cp caCert.pem     /etc/swanctl/x509ca/
+</span></span><span style="display:flex;"><span>$ sudo cp clientCert.pem /etc/swanctl/x509/
+</span></span><span style="display:flex;"><span>$ sudo cp clientKey.pem  /etc/swanctl/private/
+</span></span><span style="display:flex;"><span>$ sudo chmod <span style="color:#ae81ff">600</span>         /etc/swanctl/private/clientKey.pem
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Installing Client Certificates and Private Key
+  
+    <br><br>
+  
+</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>connections {
+</span></span><span style="display:flex;"><span>  rw-cert {
+</span></span><span style="display:flex;"><span>    version = 2
+</span></span><span style="display:flex;"><span>    local_addrs  = 192.168.122.3
+</span></span><span style="display:flex;"><span>    remote_addrs = 192.168.122.4
+</span></span><span style="display:flex;"><span>    proposals    = aes128-sha2_256-prfsha256-modp2048
+</span></span><span style="display:flex;"><span>    rekey_time   = 4h
+</span></span><span style="display:flex;"><span>    dpd_delay    = 30s
+</span></span><span style="display:flex;"><span>    dpd_timeout  = 120s
+</span></span><span style="display:flex;"><span>    vips         = 0.0.0.0
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    local {
+</span></span><span style="display:flex;"><span>      auth  = pubkey
+</span></span><span style="display:flex;"><span>      certs = clientCert.pem
+</span></span><span style="display:flex;"><span>      id    = road@lab
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    remote {
+</span></span><span style="display:flex;"><span>      auth    = pubkey
+</span></span><span style="display:flex;"><span>      cacerts = caCert.pem
+</span></span><span style="display:flex;"><span>      id      = 192.168.122.4
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    children {
+</span></span><span style="display:flex;"><span>      net {
+</span></span><span style="display:flex;"><span>        mode          = tunnel
+</span></span><span style="display:flex;"><span>        local_ts      = dynamic
+</span></span><span style="display:flex;"><span>        remote_ts     = 192.168.100.4/32
+</span></span><span style="display:flex;"><span>        esp_proposals = aes128-sha2_256
+</span></span><span style="display:flex;"><span>        start_action  = none
+</span></span><span style="display:flex;"><span>        dpd_action    = clear
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Client Certificate Configuration - <span style="font-family: Courier, monospace; font-weight: 600;">/etc/swanctl/conf.d/client-cert.conf</span>
+  
+    <br><br>
+  
+</span>
+<h3 id="43-session-key-extraction">4.3 Session Key Extraction</h3>
+<p>This is the part that makes the lab actually useful for research. Edit <span style="font-family: Courier, monospace; font-weight: 600;">/etc/strongswan.conf</span> on both hosts:</p>
+<ul>
+<li><code>ike = 4</code> under <code>charon-systemd.journal</code> raises the IKE subsystem&rsquo;s log level to the most verbose setting, which includes the raw session keys in the journal.</li>
+<li>The <code>save-keys</code> plugin writes the IKE SA keys to <code>ikev2_decryption_table</code> and the ESP SA keys to <code>esp_sa</code> inside the Wireshark configuration directory, so Wireshark can decrypt the captured traffic on the fly.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>charon-systemd {
+</span></span><span style="display:flex;"><span>  journal {
+</span></span><span style="display:flex;"><span>    default = 1
+</span></span><span style="display:flex;"><span>    ike     = 4
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>charon {
+</span></span><span style="display:flex;"><span>  load_modular = yes
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  plugins {
+</span></span><span style="display:flex;"><span>    include strongswan.d/charon/*.conf
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    save-keys {
+</span></span><span style="display:flex;"><span>      load           = yes
+</span></span><span style="display:flex;"><span>      esp            = yes
+</span></span><span style="display:flex;"><span>      ike            = yes
+</span></span><span style="display:flex;"><span>      wireshark_keys = /home/kali/.config/wireshark
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>include strongswan.d/*.conf
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Debug Logging and save-keys Configuration - <span style="font-family: Courier, monospace; font-weight: 600;">/etc/strongswan.conf</span>
+  
+    <br><br>
+  
+</span>
+<link href="/posts/css/alert.css" rel="stylesheet">
+<div class="alert tip">
+    <div class="alert-content">
+        <div class="alert-header">
+            <span class="alert-icon"></span>
+            <strong class="alert-title">Tip</strong>
+        </div>
+        <div class="alert-body">Change <code>wireshark_keys</code> to the Wireshark configuration directory of whichever user runs Wireshark on your machine.</div>
+    </div>
+</div>
+
+<h2 id="5-managing-vpn-sessions">5. Managing VPN Sessions</h2>
+<p>Ensure that the <em>charon-systemd</em> is enabled on startup and is running before we use <em>swanctl</em> to manage our VPN session.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo systemctl enable strongswan
+</span></span><span style="display:flex;"><span>$ sudo systemctl restart strongswan
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Enabling &amp; Restarting <em>strongSwan</em> Service
+  
+    <br><br>
+  
+</span>
+<p>To manage your VPN session, run the following commands:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Start VPN session (Create IKE SA + Child SA)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ------------- PSK ------------- ##</span>
+</span></span><span style="display:flex;"><span>$ sudo swanctl --initiate --ike rw-psk --child net
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ------ Digital Signature ------ ##</span>
+</span></span><span style="display:flex;"><span>$ sudo swanctl --initiate --ike rw-cert --child net
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Stop VPN session (Delete IKE SA)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ------------- PSK ------------- ##</span>
+</span></span><span style="display:flex;"><span>$ sudo swanctl --terminate --ike rw-psk
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ------ Digital Signature ------ ##</span>
+</span></span><span style="display:flex;"><span>$ sudo swanctl --terminate --ike rw-cert
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Stop VPN session but preserve IKE SA (Delete Child SA only)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ------------- PSK ------------- ##</span>
+</span></span><span style="display:flex;"><span>$ sudo swanctl --terminate --ike rw-psk --child net
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## ------ Digital Signature ------ ##</span>
+</span></span><span style="display:flex;"><span>$ sudo swanctl --terminate --ike rw-cert --child net
+</span></span></code></pre></div><link href="/posts/css/caption.css" rel="stylesheet">
+
+
+
+<span class="caption" data-type="listing">
+  Managing VPN sessions
+  
+    <br><br>
+  
+</span>
+<h2 id="7-conclusion">7. Conclusion</h2>
+<p>We now have a <em>strongSwan</em> server and client built with debug symbols, two road warrior connections using PSK and certificate authentication, and session keys being dumped straight into Wireshark. With this setup, every IKEv2 message going across the wire can be decrypted and inspected.</p>
+<p>In the next part, we will use this lab to break down the different IKEv2 message types, and compute the session keys ourselves to understand exactly what goes into each message.</p>
+<h2 id="8-references">8. References</h2>
+<ol>
+<li><a href="https://download.strongswan.org/"><em>strongSwan</em> Downloads</a></li>
+<li><a href="https://docs.strongswan.org/docs/latest/swanctl/swanctlConf.html"><em>strongSwan</em> swanctl.conf documentation</a></li>
+<li><a href="https://docs.strongswan.org/docs/latest/pki/pki.html"><em>strongSwan</em> pki documentation</a></li>
+<li><a href="https://docs.strongswan.org/docs/latest/plugins/save-keys.html"><em>strongSwan</em> save-keys plugin</a></li>
+<li><a href="https://docs.strongswan.org/docs/latest/config/logging.html"><em>strongSwan</em> Logging documentation</a></li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc7296">RFC 7296 &ndash; Internet Key Exchange Protocol Version 2 (IKEv2)</a></li>
+</ol>
+<h2 id="9-resources">9. Resources</h2>
+<ol>
+<li><a href="/posts/vr-on-ipsec-vpn/part-2-experimental-setup/resources/roadwarrior-setup-diagram.drawio">DrawIO Diagram for Setup</a></li>
+</ol>
+]]></content>
+        </item>
         
         <item>
             <title>VR on IPsec VPN Part 1 - First Peek Into The Rabbit Hole</title>

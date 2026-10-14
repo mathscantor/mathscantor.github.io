@@ -12,7 +12,7 @@
 			<copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
 		
 		
-			<lastBuildDate>Sun, 11 Oct 2026 22:40:00 +0800</lastBuildDate>
+			<lastBuildDate>Wed, 14 Oct 2026 23:15:00 +0800</lastBuildDate>
 		
 			<atom:link href="https://mathscantor.github.io/tags/vr/index.xml" rel="self" type="application/rss+xml" />
 			<item>
@@ -27,7 +27,7 @@
 				<link>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-1-first-peek-into-the-rabbit-hole/</link>
 				<pubDate>Mon, 14 Sep 2026 09:34:00 +0800</pubDate>
 				<guid>https://mathscantor.github.io/posts/vr-on-ipsec-vpn/part-1-first-peek-into-the-rabbit-hole/</guid>
-				<description>&lt;h2 id=&#34;1-background&#34;&gt;1. Background&lt;/h2&gt;&#xA;&lt;h3 id=&#34;11-what-is-ipsec&#34;&gt;1.1 What is IPsec?&lt;/h3&gt;&#xA;&lt;p&gt;IPsec (Internet Protocol Security) is a suite of protocols used to secure IP communications over untrusted networks such as the Internet. It provides:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;strong&gt;Confidentiality&lt;/strong&gt; &amp;ndash; encryption prevents eavesdropping on traffic.&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;strong&gt;Integrity&lt;/strong&gt; &amp;ndash; tamper detection ensures packets have not been modified in transit.&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;strong&gt;Authentication&lt;/strong&gt; &amp;ndash; both peers verify each other&amp;rsquo;s identity before exchanging data.&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;strong&gt;Anti-replay protection&lt;/strong&gt; &amp;ndash; sequence numbers prevent an attacker from capturing and replaying legitimate packets.&lt;/p&gt;</description>
+				<description>&lt;h2 id=&#34;1-introduction&#34;&gt;1. Introduction&lt;/h2&gt;&#xA;&lt;p&gt;This series is about vulnerability research against IPsec VPN, with IKEv2 as the main target. Before we start building labs or crafting packets, we need a clear picture of what IPsec actually gives us, why the attack surface is worth the pain, and how we plan to poke at it.&lt;/p&gt;&#xA;&lt;p&gt;This first part stays high level on purpose. We will cover:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;What IPsec is and the properties it claims to provide.&lt;/li&gt;&#xA;&lt;li&gt;Why edge VPN implementations are such a juicy (and painful) target.&lt;/li&gt;&#xA;&lt;li&gt;How IKEv2 replaced IKEv1, and why that state machine is hard to fuzz.&lt;/li&gt;&#xA;&lt;li&gt;The lab and analysis approach we will use for the rest of the series.&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h2 id=&#34;2-what-is-ipsec&#34;&gt;2. What is IPsec?&lt;/h2&gt;&#xA;&lt;p&gt;IPsec (Internet Protocol Security) is a suite of protocols used to secure IP communications over untrusted networks such as the Internet. It provides:&lt;/p&gt;</description>
 			</item>
 	</channel>
 </rss>
